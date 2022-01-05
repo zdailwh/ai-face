@@ -1,6 +1,6 @@
 <template>
   <div class="liveWrap">
-<!--     <div class="sliderWrap">
+<!--<div class="sliderWrap">
       <a-tabs
         :default-active-key="1"
         tab-position="left"
@@ -18,12 +18,12 @@
             </div>
           </div>
         </div>
-        <div v-if="taskResItem.face_name" class="locationDetailWrap">
+        <!-- <div v-if="taskResItem.face_name" class="locationDetailWrap">
           <h4>人脸详情</h4>
           <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
             <ResDetail :res-item="taskResItem" />
           </div>
-        </div>
+        </div> -->
       </div>
       <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
         <a-tabs v-model="activeTab" size="small" @change="tabChange" @tabClick="tabClick">
@@ -33,10 +33,10 @@
               创建任务
             </span>
           </a-tab-pane>
-          <a-tab-pane v-for="(record, idx) in datalist" :key="record.ID" :tab="record.name + '（共' + resDataTotal + '条）'">
+          <a-tab-pane v-for="(record, idx) in datalist" :key="record.id" :tab="record.name + '（共' + resDataTotal + '条）'">
             <div class="oprateWrap">
-              <a-button type="primary" size="small" @click="toEdit(record, idx, 'edit')">编辑</a-button>
-              <a-button type="primary" size="small" v-if="record.status === 1" :disabled="true">删除</a-button>
+              <!-- <a-button type="primary" size="small" @click="toEdit(record, idx, 'edit')">编辑</a-button> -->
+              <a-button type="primary" size="small" v-if="record.status === 2" :disabled="true">删除</a-button>
               <a-popconfirm
                 v-else
                 title="确定要删除该任务吗?"
@@ -46,38 +46,31 @@
               >
                 <a-button type="primary" size="small">删除</a-button>
               </a-popconfirm>
-              <a-button type="primary" size="small" @click="toEdit(record, idx, 'copy')">复制</a-button>
+              <!-- <a-button type="primary" size="small" @click="toEdit(record, idx, 'copy')">复制</a-button> -->
               <a-popconfirm
-                  v-if="record.status === 1"
-                  title="确定要停止该任务吗?"
-                  ok-text="停止"
+                  v-if="record.status === 2"
+                  title="确定要暂停该任务吗?"
+                  ok-text="暂停"
                   cancel-text="取消"
-                  @confirm="stop(record, idx)"
+                  @confirm="pause(record, idx)"
                 >
-                <a-button type="danger" size="small">停止</a-button>
+                <a-button type="danger" size="small">暂停</a-button>
               </a-popconfirm>
               <a-popconfirm
                   v-else
-                  title="确定要执行该任务吗?"
-                  ok-text="执行"
+                  title="确定要恢复该任务吗?"
+                  ok-text="恢复"
                   cancel-text="取消"
-                  @confirm="start(record, idx)"
+                  @confirm="resume(record, idx)"
                 >
-                <a-button type="primary" size="small">执行</a-button>
+                <a-button type="primary" size="small">恢复</a-button>
               </a-popconfirm>
             </div>
             <!--结果筛选-->
             <div class="searchWrap_video">
               <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-                <a-form-model-item label="明星">
+                <a-form-model-item label="人脸">
                   <a-input v-model="searchForm.name" placeholder="姓名" allow-clear style="width: 110px;" />
-                </a-form-model-item>
-                <a-form-model-item label="表情">
-                  <a-select v-model="searchForm.expression" :dropdownMatchSelectWidth="false" placeholder="表情筛选">
-                    <a-select-option :value="item.value" v-for="(item,key) in expressionArr" v-bind:key="key">
-                      {{item.name}}
-                    </a-select-option>
-                  </a-select>
                 </a-form-model-item>
                 <a-form-model-item>
                   <a-button type="primary" ghost @click="searchHandleOk">搜索</a-button>
@@ -125,27 +118,18 @@ export default {
       activeTab: '',
       datalist: [],
       dataTotal: 0,
-      pageNum: 1,
-      pageSize: 20,
+      page_no: 1,
+      page_size: 20,
       task: {},
       taskId: '',
-      pageNumRes: 1,
-      pageSizeRes: 500,
+      page_no_res: 1,
+      page_size_res: 500,
       resDatalist: [],
       filtedResDatalist: [],
       taskResItem: {},
       searchForm: {
-        name: '',
-        expression: '全部'
+        name: ''
       },
-      expressionArr: [
-        { name: '全部', value: '全部' },
-        { name: '惊吓', value: 'surprise' },
-        { name: '反感', value: 'disgust' },
-        { name: '悲伤', value: 'sad' },
-        { name: '高兴', value: 'happy' },
-        { name: '中性', value: 'neutral' }
-      ],
       addVisible: false,
       editVisible: false,
       targetKeys: [],
@@ -176,22 +160,22 @@ export default {
   methods: {
     getTasks () {
       var params = {
-        pageNum: this.pageNum,
-        pageSize: this.pageSize,
+        page_no: this.page_no,
+        page_size: this.page_size,
         stream_type: this.stream_type
       }
       this.spinning = true
       api.getTasks(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.datalist = res.data.data
-          if (this.pageNum === 1) {
-            this.dataTotal = res.data.count
+          if (this.page_no === 1) {
+            this.dataTotal = res.data.total
           }
           this.spinning = false
           if (this.datalist.length) {
-            this.activeTab = this.datalist[0].ID
-            this.getPlayurl(this.datalist[0].ID)
-            this.getTaskResults(this.datalist[0].ID)
+            this.activeTab = this.datalist[0].id
+            this.getPlayurl(this.datalist[0].id)
+            this.getTaskResults(this.datalist[0].id)
           }
         }
       }).catch(error => {
@@ -210,7 +194,7 @@ export default {
         this.activeTab = this.prevTab
       } else {
         this.activeTab = tab
-        this.pageNumRes = 1
+        this.page_no_res = 1
         this.resDataTotal = ''
         this.getPlayurl(tab)
         this.getTaskResults(tab)
@@ -221,12 +205,12 @@ export default {
     },
     getPlayurl (tid) {
       var params = {
-        taskId: tid
+        id: tid
       }
       api.getTasksById(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.task = res.data
-          if (this.task && this.task.rtsp && this.task.rtsp !== 'undefined') {
+          if (this.task && this.task.url && this.task.url !== 'undefined') {
             this.createPlayer()
           }
         }
@@ -241,19 +225,19 @@ export default {
     getTaskResults (tid) {
       var that = this
       var params = {
-        taskId: tid,
-        pageNum: this.pageNumRes,
-        pageSize: this.pageSizeRes
+        id: tid,
+        page_no: this.page_no_res,
+        page_size: this.page_size_res
       }
       api.getTaskResults(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.resDatalist = this.resDatalist.concat(res.data.data)
-          this.resDataTotal = res.data.count
-          this.pageNumRes += 1
+          this.resDataTotal = res.data.total
+          this.page_no_res += 1
           this.filtedResDatalist = this.resDatalist
 
           window.clearTimeout(timer)
-          if (this.continueCircle && res.data.data.length === this.pageSizeRes) {
+          if (this.continueCircle && res.data.data.length === this.page_size_res) {
             timer = window.setTimeout(function () {
               that.getTaskResults(tid)
             }, 0)
@@ -268,7 +252,7 @@ export default {
       })
     },
     createPlayer () {
-      var url = this.task.rtsp
+      var url = this.task.url
       // var url = 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov'
 
       let obj = document.createElement('OBJECT')
@@ -336,7 +320,7 @@ export default {
       // window.player.currentTime(time)
     },
     delTask (record, idx) {
-      api.delTask({id: record.ID}).then(res => {
+      api.delTask({id: record.id}).then(res => {
         if (res.status >= 200 && res.status < 300) {
           // this.datalist.splice(idx, 1)
           this.$message.success('任务删除成功')
@@ -359,37 +343,37 @@ export default {
       this.editForm.type = parseInt(this.editForm.type)
       this.targetKeys = this.editForm.face_ids
     },
-    start (item, key) {
+    resume (item, key) {
       var params = {
-        id: item.ID
+        id: item.id
       }
-      api.taskRestart(params).then(res => {
+      api.taskResume(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           // this.datalist[key].status = 1
-          this.$message.success('任务已重启')
+          this.$message.success('任务已恢复')
           this.getTasks()
         }
       }).catch(error => {
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '任务重启出错！')
+          this.$message.error(error.response.data.message || '任务恢复出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
       })
     },
-    stop (item, key) {
+    pause (item, key) {
       var params = {
-        id: item.ID
+        id: item.id
       }
-      api.taskStop(params).then(res => {
+      api.taskPause(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           // this.datalist[key].status = 2
-          this.$message.success('任务已停止')
+          this.$message.success('任务已暂停')
           this.getTasks()
         }
       }).catch(error => {
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '任务停止出错！')
+          this.$message.error(error.response.data.message || '任务暂停出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
@@ -400,8 +384,8 @@ export default {
     },
     getAllFaces () {
       var params = {
-        pageNum: 1,
-        pageSize: this.$store.state.faceTotal || 100
+        page_no: 1,
+        page_size: this.$store.state.faceTotal || 100
       }
       api.getFaces(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
@@ -415,7 +399,7 @@ export default {
       }).catch(error => {
         console.log(error)
         // if (error.response && error.response.data) {
-        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+        //   this.$message.error(error.response.data.message || '获取人脸列表出错！')
         // } else {
         //   this.$message.error('接口调用失败！')
         // }
@@ -423,8 +407,7 @@ export default {
     },
     searchHandleOk () {
       var filterName = this.searchForm.name
-      var filterExp = this.searchForm.expression
-      if (filterName === '' && filterExp === '全部') {
+      if (filterName === '') {
         // this.filtedResDatalist = this.resDatalist
         this.continueCircle = true
         this.getTaskResults(this.activeTab)
@@ -433,24 +416,10 @@ export default {
         window.clearTimeout(timer)
         var arr = this.resDatalist
         arr = arr.filter((item, val, array) => {
-          if (filterName === '') {
-            if (item.data.Expression && item.data.Expression.name && item.data.Expression.name === filterExp) {
-              return true
-            } else {
-              return false
-            }
-          } else if (filterExp === '全部') {
-            if (item.face_name && item.face_name === filterName) {
-              return true
-            } else {
-              return false
-            }
+          if (item.face_name && item.face_name === filterName) {
+            return true
           } else {
-            if (item.face_name && item.face_name === filterName && item.data.Expression && item.data.Expression.name && item.data.Expression.name === filterExp) {
-              return true
-            } else {
-              return false
-            }
+            return false
           }
         })
         this.filtedResDatalist = arr

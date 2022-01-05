@@ -1,12 +1,13 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Index from '@/views/index'
-import Video from '@/views/video'
 import Login from '@/views/login'
-import Facegroup from '@/views/facegroup'
+
+import FaceGroup from '@/views/faceGroup'
+import Group from '@/views/group'
 import Face from '@/views/face'
 import Task from '@/views/task'
-import Star from '@/views/star'
+import TaskResult from '@/views/taskResult'
 import Live from '@/views/live'
 import Setting from '@/views/setting'
 import Demo from '@/views/demo'
@@ -18,38 +19,12 @@ export default new Router({
   routes: [
     {
       path: '/',
-      redirect: '/star'
+      redirect: '/facegroup/group'
     },
     {
       path: '/index',
       name: 'Index',
       component: Index
-    },
-    {
-      path: '/video/:taskId',
-      name: 'Video',
-      component: Video,
-      meta: {
-        title: '查看任务结果'
-      }
-    },
-    {
-      path: '/facegroup',
-      name: 'Facegroup',
-      component: Facegroup
-    },
-    {
-      path: '/face/:facegroupId',
-      name: 'Face',
-      component: Face
-    },
-    {
-      path: '/task',
-      name: 'Task',
-      component: Task,
-      meta: {
-        title: '离线任务'
-      }
     },
     {
       path: '/login',
@@ -60,11 +35,45 @@ export default new Router({
       }
     },
     {
-      path: '/star',
-      name: 'Star',
-      component: Star,
+      path: '/facegroup',
+      name: 'FaceGroup',
+      component: FaceGroup,
       meta: {
-        title: '明星库'
+        title: '人脸库'
+      },
+      children: [
+        {
+          path: 'group',
+          name: 'FaceGroup',
+          component: Group,
+          meta: {
+            title: '人脸库'
+          }
+        },
+        {
+          path: 'face',
+          name: 'FaceGroup',
+          component: Face,
+          meta: {
+            title: '人脸'
+          }
+        }
+      ]
+    },
+    {
+      path: '/task',
+      name: 'Task',
+      component: Task,
+      meta: {
+        title: '离线任务'
+      }
+    },
+    {
+      path: '/taskResult/:taskId',
+      name: 'TaskResult',
+      component: TaskResult,
+      meta: {
+        title: '查看任务结果'
       }
     },
     {

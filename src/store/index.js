@@ -10,6 +10,7 @@ const store = new Vuex.Store({
     facegroups: [],
     faces: [],
     faceTotal: 0,
+    groupTotal: 0,
     hosturl: (window.localStorage && window.localStorage.getItem('KS_host')) || '182.92.115.19:8001'
   },
   getters: {},
@@ -25,6 +26,9 @@ const store = new Vuex.Store({
     },
     setFaceTotal (state, total) {
       state.faceTotal = total
+    },
+    setGroupTotal (state, total) {
+      state.groupTotal = total
     },
     setHosturl (state, url) {
       state.hosturl = url

@@ -7,11 +7,11 @@
         </div>
         <div class="opt mymenu" style="justify-content: center;">
           <a-menu theme="dark" v-model="current" mode="horizontal">
-            <a-menu-item key="/demo"><router-link to="/demo">Demo</router-link></a-menu-item>
-            <a-menu-item key="/live"><router-link to="/live">直播流</router-link></a-menu-item>
-            <a-menu-item key="/task"><router-link to="/task">离线任务</router-link></a-menu-item>
-            <a-menu-item key="/star"><router-link to="/star">明星库</router-link></a-menu-item>
-            <a-menu-item key="/setting"><router-link to="/setting">设置</router-link></a-menu-item>
+            <!-- <a-menu-item key="Demo"><router-link to="/demo">Demo</router-link></a-menu-item> -->
+            <a-menu-item key="Live"><router-link to="/live">直播流</router-link></a-menu-item>
+            <a-menu-item key="Task"><router-link to="/task">离线任务</router-link></a-menu-item>
+            <a-menu-item key="FaceGroup"><router-link to="/facegroup/group">人脸库</router-link></a-menu-item>
+            <!-- <a-menu-item key="Setting"><router-link to="/setting">设置</router-link></a-menu-item> -->
           </a-menu>
         </div>
         <div v-show="smallLayout === false" class="opt" style="justify-content: flex-end;flex:1;">
@@ -51,7 +51,7 @@ export default {
   },
   computed: {
     current () {
-      return [this.$route.path]
+      return [this.$route.name]
     }
   },
   mounted () {

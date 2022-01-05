@@ -3,15 +3,14 @@
     <ul class="listWrap" v-if="taskresult.length">
       <li class="list-item" :class="{ currBox: currBoxKey === k }" v-for="(fItem,k) in taskresult" v-bind:key="k" @click="changeBox(fItem, k)">
         <div class="img-box">
-          <img v-if="fItem.data.FaceImageUri" v-lazy="'http://' + $store.state.hosturl + '/v5/resources/data?uri=' + fItem.data.FaceImageUri + '&content-type=image/jpeg'" alt="人脸图">
+          <img v-if="fItem.recImageuri" v-lazy="fItem.recImageuri" alt="人脸图">
           <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
         </div>
         <div class="desc-box">
           <div class="timeWrap">
-            <p>{{fItem.face_name}}</p>
-            <p>性别：{{fItem.data.HumanAttributes.Gender.name | toDict('Gender')}}</p>
-            <p>表情：{{fItem.data.Expression.name | toDict('Expression')}}</p>
-            <p>时间：{{fItem.time}}</p>
+            <p>{{fItem.faceName}}</p>
+            <p>时间：{{fItem.timepos}}</p>
+            <p>得分：{{fItem.score}}</p>
           </div>
         </div>
       </li>

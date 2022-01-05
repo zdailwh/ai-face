@@ -11,7 +11,7 @@
       <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
         <a-form-model-item label="任务类型">
           <a-select v-model="addForm.type">
-            <a-select-option v-if="(tag === 'online' && item.text === '实时rtsp视频流') || (tag === 'offline' && item.text !== '实时rtsp视频流')" :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
+            <a-select-option v-if="(tag === 'online' && item.text === '实时直播流') || (tag === 'offline' && item.text !== '实时直播流')" :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
               {{item.text}}
             </a-select-option>
           </a-select>
@@ -25,7 +25,7 @@
             <a-button> <a-icon type="upload" /> 选择视频文件 </a-button>
           </a-upload>
         </a-form-model-item>
-        <a-form-model-item label="任务地址">
+        <a-form-model-item label="直播流地址">
           <a-input v-model="addForm.url" :disabled="addForm.type === 1" />
         </a-form-model-item>
         <a-form-model-item label="任务名称">
@@ -34,14 +34,21 @@
         <a-form-model-item label="任务描述">
           <a-input v-model="addForm.description" />
         </a-form-model-item>
-        <a-form-model-item label="选择名人" :wrapperCol="{span: 20}">
+        <a-form-model-item label="人脸组">
+          <a-select v-model="addForm.groupId">
+            <a-select-option :value="item.value" v-for="item in groupsData" v-bind:key="item.value">
+              {{item.text}}
+            </a-select-option>
+          </a-select>
+        </a-form-model-item>
+        <a-form-model-item label="选择人脸" :wrapperCol="{span: 20}">
           <a-transfer
             :data-source="facesData"
             :filter-option="filterOption"
             :showSelectAll="false"
             :showSearch="true"
             :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-            :titles="['名人库', '目标']"
+            :titles="['人脸库', '目标']"
             :target-keys="targetKeys"
             :selected-keys="selectedKeys"
             :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
@@ -125,7 +132,7 @@ const rightTableColumns = [
   }
 ]
 export default {
-  props: [ 'tag', 'datalist', 'addVisible', 'facesData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
+  props: [ 'tag', 'datalist', 'addVisible', 'facesData', 'groupsData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
   data () {
     return {
       leftColumns: leftTableColumns,
@@ -136,11 +143,12 @@ export default {
         url: '',
         name: '',
         description: '',
+        groupId: '',
         files: []
       },
       typeArr: [
-        { value: 1, text: '用户上传视频文件' },
-        { value: 2, text: '实时rtsp视频流' }
+        { value: 1, text: '文件' },
+        { value: 2, text: '实时直播流' }
       ],
       targetFaceIds: []
     }
@@ -166,10 +174,10 @@ export default {
         this.$message.error('请填写任务名称！')
         return
       }
-      if (this.addForm.description === '') {
-        this.$message.error('请填写任务描述！')
-        return
-      }
+      // if (this.addForm.description === '') {
+      //   this.$message.error('请填写任务描述！')
+      //   return
+      // }
       if (!this.targetFaceIds.length) {
         this.$message.error('请选择任务关联的人脸！')
         return
@@ -186,12 +194,13 @@ export default {
       } else {
         formdata.append('url', this.addForm.url)
       }
-      formdata.append('face_ids', this.targetFaceIds.join(','))
+      formdata.append('groupId', this.addForm.groupId)
+      formdata.append('faceIds', this.targetFaceIds.join(','))
 
       this.addLoading = true
       api.addTask(formdata).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.updateParentData('pageNum', 1)
+          this.updateParentData('page_no', 1)
           this.$emit('getList')
 
           this.updateParentData('addVisible', false)
@@ -201,6 +210,7 @@ export default {
             url: '',
             name: '',
             description: '',
+            groupId: '',
             files: []
           }
           this.targetFaceIds = []

@@ -3,16 +3,13 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <!-- <a-form-model-item label="任务类型" prop="type">
+        <a-form-model-item label="任务类型" prop="type">
           <a-select v-model="searchForm.type" :dropdownMatchSelectWidth="false">
-            <a-select-option value="">
-              全部
-            </a-select-option>
             <a-select-option :value="key" v-for="(val,key) in typeArr_search" v-bind:key="key">
               {{val}}
             </a-select-option>
           </a-select>
-        </a-form-model-item> -->
+        </a-form-model-item>
         <a-form-model-item label="任务名称" prop="name">
           <a-input v-model="searchForm.name" />
         </a-form-model-item>
@@ -29,59 +26,68 @@
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID" :pagination="false">
         <span slot="status" slot-scope="status" style="color: #87d068;">
-          {{status === 0? '新建': status === 1? '进行中': '完成'}}
+          {{status === 0? '初始化': status === 1? '排队中' : status === 2? '处理中' : '处理完成'}}
         </span>
         <span slot="type" slot-scope="type">
-          {{type === '0'? '实时rtsp视频流': type === '1'? '用户上传视频文件': '用户平台录像文件'}}
+          {{type === '1'? '文件': type === '2'? '实时直播流': ''}}
         </span>
         <span slot="CreatedAt" slot-scope="CreatedAt">
           {{CreatedAt | dateFormat}}
         </span>
         <span slot="action" slot-scope="record, index, idx">
-          <a @click="toEdit(record, idx, 'edit')">编辑</a>
-          <a-divider type="vertical" />
+          <!-- <a @click="toEdit(record, idx, 'edit')">编辑</a>
+          <a-divider type="vertical" /> -->
           <a-popconfirm
             title="确定要删除该任务吗?"
             ok-text="删除"
             cancel-text="取消"
             @confirm="delTask(record, idx)"
           >
-            <a :disabled="record.status === 1">删除</a>
+            <a :disabled="record.status === 2">删除</a>
           </a-popconfirm>
+          <!-- <a-divider type="vertical" />
+          <a @click="toEdit(record, idx, 'copy')">复制</a> -->
           <a-divider type="vertical" />
-          <a @click="toEdit(record, idx, 'copy')">复制</a>
-          <a-divider type="vertical" />
-          <template v-if="record.status === 1">
+          <template v-if="record.status === 2">
             <a-popconfirm
-              title="确定要停止该任务吗?"
-              ok-text="停止"
+              title="确定要暂停该任务吗?"
+              ok-text="暂停"
               cancel-text="取消"
-              @confirm="stop(record, idx)"
+              @confirm="pause(record, idx)"
             >
-              <a>停止</a>
+              <a>暂停</a>
             </a-popconfirm>
           </template>
           <template v-else>
             <a-popconfirm
-              title="确定要执行该任务吗?"
-              ok-text="执行"
+              title="确定要恢复该任务吗?"
+              ok-text="恢复"
               cancel-text="取消"
-              @confirm="start(record, idx)"
+              @confirm="resume(record, idx)"
             >
-              <a>执行</a>
+              <a>恢复</a>
             </a-popconfirm>
           </template>
           <a-divider type="vertical" />
-          <router-link :to="'/video/' + record.ID">查看任务结果<a-icon type="right" /></router-link>
+          <a-popconfirm
+            title="确定要重置该任务吗?"
+            ok-text="重置"
+            cancel-text="取消"
+            @confirm="reset(record, idx)"
+          >
+            <a>重置</a>
+          </a-popconfirm>
+          <a-divider type="vertical" />
+          <router-link :to="'/taskResult/' + record.id">查看任务结果<a-icon type="right" /></router-link>
         </span>
       </a-table>
       <div style="margin: 15px 0;text-align: right;">
         <a-pagination
-          v-model="pageNum"
+          v-model="page_no"
           :page-size-options="pageSizeOptions"
           :total="dataTotal"
           show-size-changer
-          :page-size="pageSize"
+          :page-size="page_size"
           @showSizeChange="onShowSizeChange"
           @change="onPageChange"
         >
@@ -93,8 +99,8 @@
       </div>
     </div>
 
-    <AddTask tag="offline" :datalist="datalist" :add-visible="addVisible" :faces-data="facesDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
-    <EditTask tag="offline" :datalist="datalist" :edit-visible="editVisible" :faces-data="facesDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" @getList="getTasks" />
+    <AddTask tag="offline" :datalist="datalist" :add-visible="addVisible" :faces-data="facesDatalist" :groups-data="groupDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
+    <EditTask tag="offline" :datalist="datalist" :edit-visible="editVisible" :faces-data="facesDatalist" :groups-data="groupDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" @getList="getTasks" />
 
   </div>
 </template>
@@ -105,9 +111,9 @@ import EditTask from '../components/EditTask.vue'
 var moment = require('moment')
 const columns = [
   {
-    title: 'ID',
-    dataIndex: 'ID',
-    key: 'ID'
+    title: 'id',
+    dataIndex: 'id',
+    key: 'id'
   },
   {
     title: '任务名称',
@@ -120,16 +126,25 @@ const columns = [
     key: 'description'
   },
   {
-    title: '流类型',
-    dataIndex: 'stream_type',
-    key: 'stream_type',
-    scopedSlots: { customRender: 'stream_type' }
-  },
-  {
     title: '任务类型',
     dataIndex: 'type',
     key: 'type',
     scopedSlots: { customRender: 'type' }
+  },
+  {
+    title: '文件路径',
+    dataIndex: 'filepath',
+    key: 'filepath'
+  },
+  {
+    title: '人脸组',
+    dataIndex: 'groupId',
+    key: 'groupId'
+  },
+  {
+    title: '人脸',
+    dataIndex: 'faceIds',
+    key: 'faceIds'
   },
   {
     title: '状态',
@@ -139,38 +154,14 @@ const columns = [
   },
   {
     title: '创建时间',
-    dataIndex: 'CreatedAt',
-    key: 'CreatedAt',
-    scopedSlots: { customRender: 'CreatedAt' }
+    dataIndex: 'create_time',
+    key: 'create_time',
+    scopedSlots: { customRender: 'create_time' }
   },
   {
     title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' }
-  }
-]
-
-var stars = [
-  {
-    ID: 10,
-    CreatedAt: '2020-12-21T11:21:39.893+08:00',
-    UpdatedAt: '2020-12-21T11:21:39.897+08:00',
-    GroupID: 'default_base_group',
-    FaceID: 'be27bd02-d2b6-43a1-ad16-dbb907784eb9',
-    Name: 'test3',
-    Gender: '1',
-    Birthday: '2000-12-01',
-    FullURI: 'http://10.122.94.101:8080/v5/resources/data?uri=weed%3A%2F%2F543%2C01bc78d9cb95f13c\u0026contentType=image/jpeg',
-    Features: [
-      {
-        ID: 10,
-        CreatedAt: '2020-12-21T11:21:39.895+08:00',
-        UpdatedAt: '2020-12-21T11:21:39.895+08:00',
-        GroupID: 'default_base_group',
-        FaceID: 'be27bd02-d2b6-43a1-ad16-dbb907784eb9',
-        FullURI: 'http://10.122.94.101:8080/v5/resources/data?uri=weed%3A%2F%2F543%2C01bc78d9cb95f13c\u0026contentType=image/jpeg'
-      }
-    ]
   }
 ]
 
@@ -185,25 +176,26 @@ export default {
       smallLayout: false,
       spinning: false,
       searchForm: {
+        type: 0,
         name: ''
       },
       datalist: [],
       dataTotal: 0,
       pageSizeOptions: ['10', '20', '30', '40', '50'],
-      pageNum: 1,
-      pageSize: 20,
+      page_no: 1,
+      page_size: 20,
       columns,
       addVisible: false,
       editVisible: false,
-      typeArr_search: [ '在线视频任务', '离线视频任务' ],
-      mockData: stars,
+      typeArr_search: [ '任意', '文件', '实时直播流' ],
       targetKeys: [],
       selectedKeys: [],
       editForm: {},
       editItem: {},
       editKey: '',
       editTag: '', // 'edit' || 'copy'
-      facesDatalist: []
+      facesDatalist: [],
+      groupDatalist: []
     }
   },
   filters: {
@@ -223,43 +215,49 @@ export default {
 
     this.getTasks()
     this.getAllFaces()
+    this.getAllGroups()
   },
   methods: {
     onPageChange (current) {
-      this.pageNum = current
+      this.page_no = current
       this.getTasks()
     },
     onShowSizeChange (current, pageSize) {
-      this.pageSize = pageSize
+      this.page_size = pageSize
       this.getTasks()
     },
     searchHandleOk () {
-      this.pageNum = 1
-      // if (this.searchForm.name !== '') {
-      //   this.getTasksByName()
-      // } else {
-      //   this.getTasks()
-      // }
-      this.getTasks()
+      this.page_no = 1
+      var query = {}
+      if (this.searchForm.type !== 0) {
+        query.type = this.searchForm.type
+      }
+      if (this.searchForm.name !== '') {
+        query.name = this.searchForm.name
+      }
+      this.getTasks(query)
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
     },
-    getTasks () {
+    getTasks (query) {
       var params = {
-        pageNum: this.pageNum,
-        pageSize: this.pageSize,
+        page_no: this.page_no,
+        page_size: this.page_size,
         stream_type: this.stream_type
       }
-      if (this.searchForm.name !== '') {
-        params.name = this.searchForm.name
+      if (query && query.type) {
+        params.type = query.type
+      }
+      if (query && query.name) {
+        params.name = query.name
       }
       this.spinning = true
       api.getTasks(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.datalist = res.data.data
-          if (this.pageNum === 1) {
-            this.dataTotal = res.data.count
+          if (this.page_no === 1) {
+            this.dataTotal = res.data.total
           }
           this.spinning = false
         }
@@ -273,9 +271,8 @@ export default {
       })
     },
     delTask (record, idx) {
-      api.delTask({id: record.ID}).then(res => {
+      api.delTask({id: record.id}).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          // this.datalist.splice(idx, 1)
           this.$message.success('任务删除成功')
           this.getTasks()
         }
@@ -287,46 +284,64 @@ export default {
         }
       })
     },
-    toEdit (item, key, tag) {
-      this.editTag = tag
-      this.editVisible = true
-      this.editItem = item
-      this.editKey = key
-      this.editForm = item
-      this.editForm.type = parseInt(this.editForm.type)
-      this.targetKeys = this.editForm.face_ids
-    },
-    start (item, key) {
+    // toEdit (item, key, tag) {
+    //   this.editTag = tag
+    //   this.editVisible = true
+    //   this.editItem = item
+    //   this.editKey = key
+    //   this.editForm = item
+    //   this.editForm.type = parseInt(this.editForm.type)
+    //   this.targetKeys = this.editForm.face_ids
+    // },
+    resume (item, key) {
       var params = {
-        id: item.ID
+        id: item.id
       }
-      api.taskRestart(params).then(res => {
+      api.taskResume(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           // this.datalist[key].status = 1
-          this.$message.success('任务已重启')
+          this.$message.success('任务已恢复')
           this.getTasks()
         }
       }).catch(error => {
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '任务重启出错！')
+          this.$message.error(error.response.data.message || '任务恢复出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
       })
     },
-    stop (item, key) {
+    pause (item, key) {
       var params = {
-        id: item.ID
+        id: item.id
       }
-      api.taskStop(params).then(res => {
+      api.taskPause(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           // this.datalist[key].status = 2
-          this.$message.success('任务已停止')
+          this.$message.success('任务已暂停')
           this.getTasks()
         }
       }).catch(error => {
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '任务停止出错！')
+          this.$message.error(error.response.data.message || '任务暂停出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    reset (item, key) {
+      var params = {
+        id: item.id
+      }
+      api.taskReset(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          // this.datalist[key].status = 2
+          this.$message.success('任务已重置')
+          this.getTasks()
+        }
+      }).catch(error => {
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '任务重置出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
@@ -335,46 +350,42 @@ export default {
     updateData (params) {
       this[params.key] = params.val
     },
-    getTasksByName () {
-      var params = {
-        pageNum: this.pageNum,
-        pageSize: this.pageSize
-      }
-      if (this.searchForm.name !== '') {
-        params.name = this.searchForm.name
-      }
-      this.spinning = true
-      api.getTasksByName(params).then(res => {
-        console.log(res)
-        if (res.status >= 200 && res.status < 300) {
-          this.datalist = res.data.data
-          if (this.pageNum === 1) {
-            this.dataTotal = res.data.count || res.data.data.length
-          }
-          this.spinning = false
-        }
-      }).catch(error => {
-        this.spinning = false
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '获取任务出错！')
-        } else {
-          this.$message.error('接口调用失败！')
-        }
-      })
-    },
     getAllFaces () {
       var params = {
-        pageNum: 1,
-        pageSize: this.$store.state.faceTotal || 100
+        page_no: 1,
+        page_size: this.$store.state.faceTotal || 100
       }
       api.getFaces(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           var faceArr = res.data.data
           faceArr.map((item, key, arr) => {
-            item.key = item.FaceID
-            item.title = item.Name
+            item.key = item.id
+            item.title = item.name
           })
           this.facesDatalist = faceArr
+        }
+      }).catch(error => {
+        console.log(error)
+        // if (error.response && error.response.data) {
+        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+        // } else {
+        //   this.$message.error('接口调用失败！')
+        // }
+      })
+    },
+    getAllGroups () {
+      var params = {
+        page_no: 1,
+        page_size: this.$store.state.groupTotal || 100
+      }
+      api.getGroups(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          var groupArr = res.data.data
+          groupArr.map((item, key, arr) => {
+            item.value = item.id
+            item.text = item.name
+          })
+          this.groupDatalist = groupArr
         }
       }).catch(error => {
         console.log(error)

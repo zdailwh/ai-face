@@ -1,34 +1,27 @@
 <template>
   <div class="videoWrap" :style="smallLayout? 'display: block;': ''">
     <div class="d-left" :style="smallLayout? 'width: 100%;height: auto;': ''">
-      <!-- <div class="media-wrapper">
+      <div class="media-wrapper">
         <div class="media-player">
           <div class="playwrap">
             <div id="tcplayer"></div>
           </div>
         </div>
-      </div> -->
-      <div v-if="taskResItem.face_name" class="locationDetailWrap">
+      </div>
+      <!-- <div v-if="taskResItem.face_name" class="locationDetailWrap">
         <h4>人脸详情</h4>
         <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
           <ResDetail :res-item="taskResItem" />
         </div>
-      </div>
+      </div> -->
     </div>
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <a-tabs default-active-key="1" size="small" @change="tabChange">
         <a-tab-pane key="1" :tab="'任务结果（共' + resDataTotal + '条）'">
           <div class="searchWrap_video">
             <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-              <a-form-model-item label="明星">
+              <a-form-model-item label="人脸">
                 <a-input v-model="searchForm.name" placeholder="姓名" allow-clear style="width: 110px;" />
-              </a-form-model-item>
-              <a-form-model-item label="表情">
-                <a-select v-model="searchForm.expression" :dropdownMatchSelectWidth="false" placeholder="表情筛选">
-                  <a-select-option :value="item.value" v-for="(item,key) in expressionArr" v-bind:key="key">
-                    {{item.name}}
-                  </a-select-option>
-                </a-select>
               </a-form-model-item>
               <a-form-model-item>
                 <a-button type="primary" ghost @click="searchHandleOk">搜索</a-button>
@@ -66,54 +59,45 @@ export default {
   data () {
     return {
       smallLayout: false,
-      pageNum: 1,
-      pageSize: 500,
+      page_no: 1,
+      page_size: 500,
       resDatalist: [],
       filtedResDatalist: [],
       task: {},
       taskId: '',
       taskResItem: {},
       searchForm: {
-        name: '',
-        expression: '全部'
+        name: ''
       },
-      expressionArr: [
-        { name: '全部', value: '全部' },
-        { name: '惊吓', value: 'surprise' },
-        { name: '反感', value: 'disgust' },
-        { name: '悲伤', value: 'sad' },
-        { name: '高兴', value: 'happy' },
-        { name: '中性', value: 'neutral' }
-      ],
       resDataTotal: '',
       continueCircle: true // 是否继续轮循
     }
   },
   mounted () {
-    var viewWidth = document.documentElement.clientWidth
-    if (viewWidth < 768) {
-      this.smallLayout = true
-    }
-    var ele = document.querySelectorAll('.file-main')
-    if (ele.length) {
-      ele[0].style.backgroundColor = '#171819'
-    }
+    // var viewWidth = document.documentElement.clientWidth
+    // if (viewWidth < 768) {
+    //   this.smallLayout = true
+    // }
+    // var ele = document.querySelectorAll('.file-main')
+    // if (ele.length) {
+    //   ele[0].style.backgroundColor = '#171819'
+    // }
 
-    this.taskId = this.$route.params.taskId
-    if (this.taskId) {
-      this.getPlayurl(this.taskId)
-      this.getTaskResults(this.taskId)
-    }
+    // this.taskId = this.$route.params.taskId
+    // if (this.taskId) {
+    //   this.getPlayurl(this.taskId)
+    //   this.getTaskResults(this.taskId)
+    // }
   },
   methods: {
     getPlayurl (tid) {
       var params = {
-        taskId: tid
+        id: tid
       }
       api.getTasksById(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.task = res.data
-          if (this.task && this.task.rtsp && this.task.rtsp !== 'undefined') {
+          if (this.task && this.task.filepath && this.task.filepath !== 'undefined') {
             this.createPlayer()
           }
         }
@@ -128,20 +112,20 @@ export default {
     getTaskResults (tid) {
       var that = this
       var params = {
-        taskId: tid,
-        pageNum: this.pageNum,
-        pageSize: this.pageSize
+        id: tid,
+        page_no: this.page_no,
+        page_size: this.page_size
       }
       api.getTaskResults(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           console.log(res)
           this.resDatalist = this.resDatalist.concat(res.data.data)
-          this.resDataTotal = res.data.count
-          this.pageNum += 1
+          this.resDataTotal = res.data.total
+          this.page_no += 1
           this.filtedResDatalist = this.resDatalist
 
           window.clearTimeout(timer)
-          if (this.continueCircle && res.data.data.length === this.pageSize) {
+          if (this.continueCircle && res.data.data.length === this.page_size) {
             timer = window.setTimeout(function () {
               that.getTaskResults(tid)
             }, 0)
@@ -158,7 +142,8 @@ export default {
     tabChange (key) {
     },
     createPlayer () {
-      var url = this.task.rtsp
+      // var url = 'http://ai.evereasycom.cn:15280/face_reco_web/userData/test_user2/videoAsset/1638182188388.mp4'
+      var url = this.task.filepath
       document.querySelector('#tcplayer').innerHTML = ''
       var player = new TcPlayer('tcplayer', {
         mp4: url,
@@ -185,8 +170,7 @@ export default {
     },
     searchHandleOk () {
       var filterName = this.searchForm.name
-      var filterExp = this.searchForm.expression
-      if (filterName === '' && filterExp === '全部') {
+      if (filterName === '') {
         // this.filtedResDatalist = this.resDatalist
         this.continueCircle = true
         this.getTaskResults(this.taskId)
@@ -195,24 +179,10 @@ export default {
         window.clearTimeout(timer)
         var arr = this.resDatalist
         arr = arr.filter((item, val, array) => {
-          if (filterName === '') {
-            if (item.data.Expression && item.data.Expression.name && item.data.Expression.name === filterExp) {
-              return true
-            } else {
-              return false
-            }
-          } else if (filterExp === '全部') {
-            if (item.face_name && item.face_name === filterName) {
-              return true
-            } else {
-              return false
-            }
+          if (item.face_name && item.face_name === filterName) {
+            return true
           } else {
-            if (item.face_name && item.face_name === filterName && item.data.Expression && item.data.Expression.name && item.data.Expression.name === filterExp) {
-              return true
-            } else {
-              return false
-            }
+            return false
           }
         })
         this.filtedResDatalist = arr

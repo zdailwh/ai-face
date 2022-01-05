@@ -11,7 +11,7 @@
       <a-form-model :model="editForm" :label-col="{span:4}" :wrapper-col="{span:14}">
         <a-form-model-item label="任务类型">
           <a-select v-model="editForm.type">
-            <a-select-option v-if="(tag === 'online' && item.text === '实时rtsp视频流') || (tag === 'offline' && item.text !== '实时rtsp视频流')" :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
+            <a-select-option v-if="(tag === 'online' && item.text === '实时直播流') || (tag === 'offline' && item.text !== '实时直播流')" :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
               {{item.text}}
             </a-select-option>
           </a-select>
@@ -25,7 +25,7 @@
             <a-button> <a-icon type="upload" /> 选择视频文件 </a-button>
           </a-upload>
         </a-form-model-item>
-        <a-form-model-item label="任务地址">
+        <a-form-model-item label="直播流地址">
           <a-input v-model="editForm.url" :disabled="editForm.type === 1" />
         </a-form-model-item>
         <a-form-model-item label="任务名称">
@@ -34,14 +34,21 @@
         <a-form-model-item label="任务描述">
           <a-input v-model="editForm.description" />
         </a-form-model-item>
-        <a-form-model-item label="选择名人" :wrapperCol="{span: 20}">
+        <a-form-model-item label="人脸组">
+          <a-select v-model="editForm.groupId">
+            <a-select-option :value="item.value" v-for="item in groupsData" v-bind:key="item.value">
+              {{item.text}}
+            </a-select-option>
+          </a-select>
+        </a-form-model-item>
+        <a-form-model-item label="选择人脸" :wrapperCol="{span: 20}">
           <a-transfer
             :data-source="facesData"
             :filter-option="filterOption"
             :showSelectAll="false"
             :showSearch="true"
             :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-            :titles="['名人库', '目标']"
+            :titles="['人脸库', '目标']"
             :target-keys="targetKeys"
             :selected-keys="selectedKeys"
             :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
@@ -125,7 +132,7 @@ const rightTableColumns = [
   }
 ]
 export default {
-  props: [ 'tag', 'datalist', 'editVisible', 'facesData', 'targetKeys', 'selectedKeys', 'smallLayout', 'editTag', 'editForm', 'editKey', 'editItem' ],
+  props: [ 'tag', 'datalist', 'editVisible', 'facesData', 'groupsData', 'targetKeys', 'selectedKeys', 'smallLayout', 'editTag', 'editForm', 'editKey', 'editItem' ],
   data () {
     return {
       leftColumns: leftTableColumns,
@@ -140,15 +147,15 @@ export default {
       // editItem: {},
       // editKey: '',
       typeArr: [
-        { value: 1, text: '用户上传视频文件' },
-        { value: 2, text: '实时rtsp视频流' }
+        { value: 1, text: '文件' },
+        { value: 2, text: '实时直播流' }
       ],
       targetFaceIds: []
     }
   },
   watch: {
     editForm (newVal, oldVal) {
-      this.targetFaceIds = newVal.face_ids || []
+      this.targetFaceIds = newVal.faceIds || []
     }
   },
   methods: {
@@ -172,10 +179,10 @@ export default {
         this.$message.error('请填写任务名称！')
         return
       }
-      if (this.editForm.description === '') {
-        this.$message.error('请填写任务描述！')
-        return
-      }
+      // if (this.editForm.description === '') {
+      //   this.$message.error('请填写任务描述！')
+      //   return
+      // }
       if (!this.targetFaceIds.length) {
         this.$message.error('请选择任务关联的人脸！')
         return
@@ -192,7 +199,8 @@ export default {
       } else {
         formdata.append('url', this.editForm.url)
       }
-      formdata.append('face_ids', this.targetFaceIds.join(','))
+      formdata.append('groupId', this.editForm.groupId)
+      formdata.append('faceIds', this.targetFaceIds.join(','))
 
       if (this.editTag === 'edit') { // 编辑
         // 先删除 后新建
@@ -202,7 +210,7 @@ export default {
             api.addTask(formdata).then(res => {
               if (res.status >= 200 && res.status < 300) {
                 // this.datalist.splice(this.editKey, 1, res.data)
-                this.updateParentData('pageNum', 1)
+                this.updateParentData('page_no', 1)
                 this.$emit('getList')
 
                 this.updateParentData('editVisible', false)
@@ -226,7 +234,7 @@ export default {
         api.addTask(formdata).then(res => {
           if (res.status >= 200 && res.status < 300) {
             // this.datalist.splice(this.editKey, 1, res.data)
-            this.updateParentData('pageNum', 1)
+            this.updateParentData('page_no', 1)
             this.$emit('getList')
 
             this.updateParentData('editVisible', false)

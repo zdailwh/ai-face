@@ -1,0 +1,520 @@
+<template>
+  <div class="faceContainer">
+    <!--搜索-->
+    <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
+      <a-form-model ref="searchForm" :model="searchForm" layout="inline">
+        <a-form-model-item label="人名" prop="name">
+          <a-input v-model="searchForm.name" />
+        </a-form-model-item>
+        <a-form-model-item>
+          <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
+          <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
+        </a-form-model-item>
+      </a-form-model>
+      <div>
+        <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建分组</a-button>
+      </div>
+    </div>
+    <!--搜索 end-->
+    <div class="tableWrap">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID" :pagination="false">
+        <span slot="create_time" slot-scope="create_time">
+          {{create_time | dateFormat}}
+        </span>
+        <span slot="action" slot-scope="record, index, idx">
+          <a @click="toEdit(record, idx)">编辑</a>
+          <a-divider type="vertical" />
+          <a-popconfirm
+            title="确定要删除该分组吗?"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delGroup(record, idx)"
+          >
+            <a>删除</a>
+          </a-popconfirm>
+          <a-divider type="vertical" />
+          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看人脸</router-link>
+        </span>
+      </a-table>
+      <div style="margin: 15px 0;text-align: right;">
+        <a-pagination
+          v-model="page_no"
+          :page-size-options="pageSizeOptions"
+          :total="dataTotal"
+          show-size-changer
+          :page-size="page_size"
+          @showSizeChange="onShowSizeChange"
+          @change="onPageChange"
+        >
+          <template slot="buildOptionText" slot-scope="props">
+            <span v-if="props.value !== dataTotal">{{ props.value }}条/页</span>
+            <span v-if="props.value === dataTotal">全部</span>
+          </template>
+        </a-pagination>
+      </div>
+    </div>
+    <!--创建分组-->
+    <a-modal
+      title="创建分组"
+      v-model="addVisible"
+    >
+      <div>
+        <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
+          <a-form-model-item label="名称">
+            <a-input v-model="addForm.name" />
+          </a-form-model-item>
+          <a-form-model-item label="描述">
+            <a-input v-model="addForm.description" />
+          </a-form-model-item>
+        </a-form-model>
+      </div>
+      <template slot="footer">
+        <a-button key="back" @click="handleCancel_add">
+          取消
+        </a-button>
+        <a-button key="submit" type="primary" :loading="addLoading" @click="handleAdd">
+          创建
+        </a-button>
+      </template>
+    </a-modal>
+    <!--编辑分组-->
+    <a-modal
+      title="分组维护"
+      width="800px"
+      v-model="editVisible"
+    >
+      <div>
+        <a-form-model :model="editForm" :label-col="{span:0}">
+          <a-form-model-item label="选择人脸">
+            <a-transfer
+              :data-source="facesDatalist"
+              :filter-option="filterOption"
+              :showSelectAll="false"
+              :showSearch="true"
+              :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
+              :titles="['人脸库', '目标']"
+              :target-keys="targetKeys"
+              :selected-keys="selectedKeys"
+              :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
+              @change="handleChange"
+              @selectChange="handleSelectChange">
+              <template
+                slot="children"
+                slot-scope="{
+                  props: { direction, filteredItems, selectedKeys, disabled: listDisabled },
+                  on: { itemSelectAll, itemSelect },
+                }"
+              >
+                <a-table
+                  :row-selection="
+                    getRowSelection({ disabled: listDisabled, selectedKeys, itemSelectAll, itemSelect })
+                  "
+                  :columns="direction === 'left' ? leftColumns : rightColumns"
+                  :data-source="filteredItems"
+                  :pagination="{ pageSize: 10 }"
+                  size="small"
+                  :style="{ pointerEvents: listDisabled ? 'none' : null }"
+                  :custom-row="
+                    ({ key, disabled: itemDisabled }) => ({
+                      on: {
+                        click: () => {
+                          if (itemDisabled || listDisabled) return;
+                          itemSelect(key, !selectedKeys.includes(key));
+                        },
+                      },
+                    })
+                  "
+                >
+                <template slot="features" slot-scope="features">
+                  <template v-for="(fe, key) in features">
+                    <img :src="fe.featureuri" :key="key" style="max-width: 50px;max-height: 50px;">
+                  </template>
+                </template>
+                </a-table>
+              </template>
+            </a-transfer>
+          </a-form-model-item>
+        </a-form-model>
+      </div>
+      <template slot="footer">
+        <a-button key="back" @click="handleCancel_edit">
+          取消
+        </a-button>
+        <a-button key="submit" type="primary" :loading="editLoading" @click="handleEdit">
+          更新
+        </a-button>
+      </template>
+    </a-modal>
+    <!--图片预览-->
+    <a-modal :visible="previewVisible" :footer="null" @cancel="previewVisible = false">
+      <img alt="example" style="width: 100%" :src="previewImage" />
+    </a-modal>
+  </div>
+</template>
+<script>
+import difference from 'lodash/difference'
+import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
+import api from '../api'
+
+var moment = require('moment')
+const columns = [
+  {
+    title: 'ID',
+    dataIndex: 'id',
+    key: 'id',
+    width: 100
+  },
+  {
+    title: '名称',
+    dataIndex: 'name',
+    key: 'name',
+    width: 120
+  },
+  {
+    title: '描述',
+    dataIndex: 'description',
+    key: 'description'
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'create_time',
+    key: 'create_time',
+    scopedSlots: { customRender: 'create_time' },
+    width: 120
+  },
+  {
+    title: '操作',
+    key: 'action',
+    scopedSlots: { customRender: 'action' },
+    width: 120
+  }
+]
+
+export default {
+  beforeRouteEnter (to, from, next) {
+    next()
+  },
+  data () {
+    return {
+      locale,
+      smallLayout: false,
+      spinning: false,
+      datalist: [],
+      dataTotal: 0,
+      pageSizeOptions: ['10', '20', '30', '40', '50'],
+      page_no: 1,
+      page_size: 20,
+      columns,
+      addForm: {
+        name: '',
+        description: ''
+      },
+      addLoading: false,
+      addVisible: false,
+      searchForm: {
+        name: ''
+      },
+      editForm: {
+      },
+      editLoading: false,
+      editItem: {},
+      editKey: '',
+      editVisible: false,
+      previewVisible: false,
+      previewImage: '',
+      leftColumns: leftTableColumns,
+      rightColumns: rightTableColumns,
+      targetFaceIds: [],
+      targetKeys: [],
+      selectedKeys: [],
+      facesDatalist: []
+    }
+  },
+  filters: {
+    dateFormat (val) {
+      if (val === '') return ''
+      return moment(val).format('YYYY-MM-DD HH:mm:ss')
+    }
+  },
+  mounted () {
+    var ele = document.querySelectorAll('.file-main')
+    ele[0].style.backgroundColor = '#fff'
+
+    var viewWidth = document.documentElement.clientWidth
+    if (viewWidth < 540) {
+      this.smallLayout = true
+    }
+
+    this.getGroups()
+    this.getAllFaces()
+  },
+  methods: {
+    onPageChange (current) {
+      this.page_no = current
+      this.getGroups()
+    },
+    onShowSizeChange (current, pageSize) {
+      this.page_size = pageSize
+      this.getGroups()
+    },
+    searchHandleOk () {
+      this.page_no = 1
+      if (this.searchForm.name !== '') {
+        this.getGroups({ name: this.searchForm.name })
+      } else {
+        this.getGroups()
+      }
+    },
+    searchHandleReset (formName) {
+      this.$refs[formName].resetFields()
+    },
+    getGroups (query) {
+      var params = {
+        page_no: this.page_no,
+        page_size: this.page_size
+      }
+      if (query && query.name) {
+        params.name = query.name
+      }
+      this.spinning = true
+      api.getGroups(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist = res.data.data
+          if (this.page_no === 1) {
+            this.dataTotal = res.data.total
+            this.$store.commit('setGroupTotal', res.data.total)
+          }
+          this.spinning = false
+        }
+      }).catch(error => {
+        this.spinning = false
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取人脸库出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    handleCancel_add () {
+      this.addVisible = false
+      this.addForm = {
+        name: '',
+        description: ''
+      }
+    },
+    handleAdd (e) {
+      if (this.addForm.name === '') {
+        this.$message.error('请填写分组名称！')
+        return
+      }
+
+      this.addLoading = true
+      api.addGroup(this.addForm).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.page_no = 1
+          this.getGroups()
+
+          this.addVisible = false
+          this.addLoading = false
+          this.addForm = {
+            name: '',
+            description: ''
+          }
+          this.$message.success('分组创建成功')
+        }
+      }).catch(error => {
+        this.addLoading = false
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '创建出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    toEdit (item, key) {
+      this.editVisible = true
+      this.editItem = item
+      this.editKey = key
+      this.editForm = item
+    },
+    handleCancel_edit () {
+      this.editVisible = false
+      this.editForm = {}
+      this.editItem = {}
+      this.editKey = ''
+    },
+    handleEdit () {
+      if (!this.targetFaceIds.length) {
+        this.$message.error('请选择人脸！')
+        return
+      }
+      var params = {
+        id: this.editItem.id,
+        faceIds: this.targetFaceIds
+      }
+
+      this.editLoading = true
+      api.editGroup(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.page_no = 1
+          this.getGroups()
+
+          this.editVisible = false
+          this.editLoading = false
+          this.editForm = {}
+          this.$message.success('分组编辑成功')
+        }
+      }).catch(error => {
+        this.editLoading = false
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '更新出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    async handlePreview (file) {
+      if (!file.url && !file.preview) {
+        file.preview = await getBase64(file.originFileObj)
+      }
+      this.previewImage = file.url || file.preview
+      this.previewVisible = true
+    },
+    delGroup (record, idx) {
+      api.delGroup({id: record.id}).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist.splice(idx, 1)
+          this.$message.success('分组删除成功')
+        }
+      }).catch(error => {
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '删除出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    getAllFaces () {
+      var params = {
+        page_no: 1,
+        page_size: this.$store.state.faceTotal || 100
+      }
+      api.getFaces(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          var faceArr = res.data.data
+          faceArr.map((item, key, arr) => {
+            item.key = item.id
+            item.title = item.name
+          })
+          this.facesDatalist = faceArr
+        }
+      }).catch(error => {
+        console.log(error)
+        // if (error.response && error.response.data) {
+        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+        // } else {
+        //   this.$message.error('接口调用失败！')
+        // }
+      })
+    },
+    filterOption (inputValue, option) {
+      return option.title.indexOf(inputValue) > -1
+    },
+    getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
+      return {
+        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled } }),
+        onSelectAll (selected, selectedRows) {
+          const treeSelectedKeys = selectedRows
+            .filter(item => !item.disabled)
+            .map(({ key }) => key)
+          const diffKeys = selected
+            ? difference(treeSelectedKeys, selectedKeys)
+            : difference(selectedKeys, treeSelectedKeys)
+          itemSelectAll(diffKeys, selected)
+        },
+        onSelect ({ key }, selected) {
+          itemSelect(key, selected)
+        },
+        selectedRowKeys: selectedKeys
+      }
+    },
+    handleChange (nextTargetKeys, direction, moveKeys) {
+      this.targetKeys = nextTargetKeys
+      this.targetFaceIds = nextTargetKeys
+
+      // console.log('targetKeys: ', nextTargetKeys)
+      // console.log('direction: ', direction)
+      // console.log('moveKeys: ', moveKeys)
+    },
+    handleSelectChange (sourceSelectedKeys, targetSelectedKeys) {
+      this.selectedKeys = [...sourceSelectedKeys, ...targetSelectedKeys]
+
+      // console.log('sourceSelectedKeys: ', sourceSelectedKeys)
+      // console.log('targetSelectedKeys: ', targetSelectedKeys)
+    }
+  }
+}
+
+const leftTableColumns = [
+  {
+    dataIndex: 'title',
+    title: '姓名',
+    width: '50px',
+    scopedSlots: { customRender: 'name' }
+  },
+  {
+    dataIndex: 'features',
+    title: '特征图',
+    width: '150px',
+    scopedSlots: { customRender: 'features' }
+  }
+]
+const rightTableColumns = [
+  {
+    dataIndex: 'title',
+    title: '姓名',
+    width: '50px',
+    scopedSlots: { customRender: 'name' }
+  },
+  {
+    dataIndex: 'features',
+    title: '特征图',
+    width: '150px',
+    scopedSlots: { customRender: 'features' }
+  }
+]
+
+function getBase64 (file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = error => reject(error)
+  })
+}
+</script>
+<style scoped>
+.faceContainer {
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+}
+.tableWrap {
+  width: 100%;
+  margin-top: 20px;
+}
+.tableImg {
+  max-width: 50px;
+}
+.tableImg + .tableImg {
+  margin-left: 5px;
+}
+.tablePopImg {
+  max-width: 280px;
+}
+
+.searchWrap {
+  display: flex;
+  justify-content: space-between;
+}
+</style>
