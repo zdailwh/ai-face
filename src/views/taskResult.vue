@@ -4,16 +4,23 @@
       <div class="media-wrapper">
         <div class="media-player">
           <div class="playwrap">
-            <div id="tcplayer"></div>
+            <video src="" video width="100%" height="100%" controls="controls" id="myvideo"></video>
+            <a-button-group size="small">
+              <a-button @click="bofang()">开始播放</a-button>
+              <a-button @click="zanting()">暂停播放</a-button>
+              <a-button @click="kuaijin()">快进播放</a-button>
+              <a-button @click="kuaitui()">快退播放</a-button>
+              <a-button @click="soso()">加速播放</a-button>
+
+              <a-button @click="yu()">减速播放</a-button>
+              <a-button @click="normal()">正常播放</a-button>
+              <a-button @click="upper()">声音增加</a-button>
+              <a-button @click="lower()">声音减小</a-button>
+            </a-button-group>
+            <!-- <div id="tcplayer"></div> -->
           </div>
         </div>
       </div>
-      <!-- <div v-if="taskResItem.face_name" class="locationDetailWrap">
-        <h4>人脸详情</h4>
-        <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
-          <ResDetail :res-item="taskResItem" />
-        </div>
-      </div> -->
     </div>
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <a-tabs default-active-key="1" size="small" @change="tabChange">
@@ -43,7 +50,6 @@ import api from '../api'
 import { TcPlayer } from 'tcplayer'
 import Setting from '../components/Setting'
 import Face from '../components/Face'
-import ResDetail from '../components/ResDetail'
 
 var timer = null
 export default {
@@ -55,7 +61,7 @@ export default {
     window.clearTimeout(timer)
     next()
   },
-  components: { Setting, Face, ResDetail },
+  components: { Setting, Face },
   data () {
     return {
       smallLayout: false,
@@ -74,20 +80,20 @@ export default {
     }
   },
   mounted () {
-    // var viewWidth = document.documentElement.clientWidth
-    // if (viewWidth < 768) {
-    //   this.smallLayout = true
-    // }
-    // var ele = document.querySelectorAll('.file-main')
-    // if (ele.length) {
-    //   ele[0].style.backgroundColor = '#171819'
-    // }
+    var viewWidth = document.documentElement.clientWidth
+    if (viewWidth < 768) {
+      this.smallLayout = true
+    }
+    var ele = document.querySelectorAll('.file-main')
+    if (ele.length) {
+      ele[0].style.backgroundColor = '#171819'
+    }
 
-    // this.taskId = this.$route.params.taskId
-    // if (this.taskId) {
-    //   this.getPlayurl(this.taskId)
-    //   this.getTaskResults(this.taskId)
-    // }
+    this.taskId = this.$route.params.taskId
+    if (this.taskId) {
+      this.getPlayurl(this.taskId)
+      this.getTaskResults(this.taskId)
+    }
   },
   methods: {
     getPlayurl (tid) {
@@ -95,11 +101,14 @@ export default {
         id: tid
       }
       api.getTasksById(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.task = res.data
-          if (this.task && this.task.filepath && this.task.filepath !== 'undefined') {
-            this.createPlayer()
+          if (this.task && this.task.file_path && this.task.file_path !== 'undefined') {
+            document.getElementById('myvideo').setAttribute('src', '/resource/' + this.task.file_path)
+            // this.createPlayer()
           }
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -117,8 +126,7 @@ export default {
         page_size: this.page_size
       }
       api.getTaskResults(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          console.log(res)
+        if (res.data.code === 200) {
           this.resDatalist = this.resDatalist.concat(res.data.data)
           this.resDataTotal = res.data.total
           this.page_no += 1
@@ -130,6 +138,8 @@ export default {
               that.getTaskResults(tid)
             }, 0)
           }
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -143,7 +153,7 @@ export default {
     },
     createPlayer () {
       // var url = 'http://ai.evereasycom.cn:15280/face_reco_web/userData/test_user2/videoAsset/1638182188388.mp4'
-      var url = this.task.filepath
+      var url = this.task.file_path
       document.querySelector('#tcplayer').innerHTML = ''
       var player = new TcPlayer('tcplayer', {
         mp4: url,
@@ -208,6 +218,40 @@ export default {
       // var time = parseInt(h * 3600) + parseInt(m * 60) + parseInt(s)
       // console.log(h + ':' + m + ':' + s + ':::' + time)
       // window.player.currentTime(time)
+    },
+    bofang () {
+      document.getElementById('myvideo').play()
+    },
+    // 暂停
+    zanting () {
+      document.getElementById('myvideo').pause()
+    },
+    // 快进
+    kuaijin () {
+      document.getElementById('myvideo').currentTime += 10
+    },
+    // 快退
+    kuaitui () {
+      document.getElementById('myvideo').currentTime -= 10
+    },
+    // 加速(3)
+    soso () {
+      document.getElementById('myvideo').playbackRate = 3
+    },
+    // 减速（3）
+    yu () {
+      document.getElementById('myvideo').playbackRate = 1 / 3
+    },
+    normal () {
+      document.getElementById('myvideo').playbackRate = 1
+    },
+    // 调高声音
+    upper () {
+      document.getElementById('myvideo').volume += 0.3
+    },
+    // 降低声音
+    lower () {
+      document.getElementById('myvideo').volume -= 0.3
     }
   }
 }

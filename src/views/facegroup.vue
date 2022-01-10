@@ -9,7 +9,7 @@
       </a-tab-pane>
     </a-tabs> -->
     <a-menu v-model="current" mode="horizontal">
-      <a-menu-item key="/facegroup/group"><router-link to="/facegroup/group">人脸库</router-link></a-menu-item>
+      <a-menu-item key="/facegroup/group"><router-link to="/facegroup/group">人脸组</router-link></a-menu-item>
       <a-menu-item key="/facegroup/face"><router-link to="/facegroup/face">人脸</router-link></a-menu-item>
     </a-menu>
     <div style="margin-top: 10px;">

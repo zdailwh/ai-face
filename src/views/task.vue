@@ -4,14 +4,17 @@
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
         <a-form-model-item label="任务类型" prop="type">
-          <a-select v-model="searchForm.type" :dropdownMatchSelectWidth="false">
+          <a-select v-model="searchForm.type" :dropdownMatchSelectWidth="false" style="width: 100px;">
             <a-select-option :value="key" v-for="(val,key) in typeArr_search" v-bind:key="key">
               {{val}}
             </a-select-option>
           </a-select>
         </a-form-model-item>
         <a-form-model-item label="任务名称" prop="name">
-          <a-input v-model="searchForm.name" />
+          <a-input v-model="searchForm.name" style="width: 120px;" />
+        </a-form-model-item>
+        <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
+          <a-range-picker :locale="locale" v-model="searchForm.createTime" style="width: 220px;" />
         </a-form-model-item>
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
@@ -29,10 +32,10 @@
           {{status === 0? '初始化': status === 1? '排队中' : status === 2? '处理中' : '处理完成'}}
         </span>
         <span slot="type" slot-scope="type">
-          {{type === '1'? '文件': type === '2'? '实时直播流': ''}}
+          {{type === 1? '文件': type === 2? '实时直播流': ''}}
         </span>
-        <span slot="CreatedAt" slot-scope="CreatedAt">
-          {{CreatedAt | dateFormat}}
+        <span slot="create_time" slot-scope="create_time">
+          {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="record, index, idx">
           <!-- <a @click="toEdit(record, idx, 'edit')">编辑</a>
@@ -105,6 +108,7 @@
   </div>
 </template>
 <script>
+import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import api from '../api'
 import AddTask from '../components/AddTask.vue'
 import EditTask from '../components/EditTask.vue'
@@ -113,55 +117,65 @@ const columns = [
   {
     title: 'id',
     dataIndex: 'id',
-    key: 'id'
+    key: 'id',
+    width: 50
   },
   {
     title: '任务名称',
     dataIndex: 'name',
-    key: 'name'
+    key: 'name',
+    width: 100
   },
   {
     title: '描述',
     dataIndex: 'description',
-    key: 'description'
+    key: 'description',
+    width: 120
   },
   {
     title: '任务类型',
     dataIndex: 'type',
     key: 'type',
-    scopedSlots: { customRender: 'type' }
+    scopedSlots: { customRender: 'type' },
+    width: 100
   },
   {
     title: '文件路径',
-    dataIndex: 'filepath',
-    key: 'filepath'
+    dataIndex: 'file_path',
+    key: 'file_path',
+    width: 100
   },
   {
     title: '人脸组',
-    dataIndex: 'groupId',
-    key: 'groupId'
+    dataIndex: 'group_id',
+    key: 'group_id',
+    width: 100
   },
   {
     title: '人脸',
     dataIndex: 'faceIds',
-    key: 'faceIds'
+    key: 'faceIds',
+    width: 100
   },
   {
     title: '状态',
     dataIndex: 'status',
     key: 'status',
-    scopedSlots: { customRender: 'status' }
+    scopedSlots: { customRender: 'status' },
+    width: 100
   },
   {
     title: '创建时间',
     dataIndex: 'create_time',
     key: 'create_time',
-    scopedSlots: { customRender: 'create_time' }
+    scopedSlots: { customRender: 'create_time' },
+    width: 120
   },
   {
     title: '操作',
     key: 'action',
-    scopedSlots: { customRender: 'action' }
+    scopedSlots: { customRender: 'action' },
+    width: 120
   }
 ]
 
@@ -172,12 +186,14 @@ export default {
   },
   data () {
     return {
+      locale,
       stream_type: 'offline',
       smallLayout: false,
       spinning: false,
       searchForm: {
         type: 0,
-        name: ''
+        name: '',
+        createTime: []
       },
       datalist: [],
       dataTotal: 0,
@@ -200,7 +216,7 @@ export default {
   },
   filters: {
     dateFormat (val) {
-      if (val === '') return ''
+      if (val === '' || val === null) return ''
       return moment(val).format('YYYY-MM-DD HH:mm:ss')
     }
   },
@@ -228,38 +244,37 @@ export default {
     },
     searchHandleOk () {
       this.page_no = 1
-      var query = {}
-      if (this.searchForm.type !== 0) {
-        query.type = this.searchForm.type
-      }
-      if (this.searchForm.name !== '') {
-        query.name = this.searchForm.name
-      }
-      this.getTasks(query)
+      this.getTasks()
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
     },
-    getTasks (query) {
+    getTasks () {
       var params = {
         page_no: this.page_no,
         page_size: this.page_size,
         stream_type: this.stream_type
       }
-      if (query && query.type) {
-        params.type = query.type
+      if (this.searchForm.type) {
+        params.type = this.searchForm.type
       }
-      if (query && query.name) {
-        params.name = query.name
+      if (this.searchForm.name) {
+        params.name = this.searchForm.name
       }
+      if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
+        params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')
+      }
+      console.log(params)
       this.spinning = true
       api.getTasks(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.datalist = res.data.data
           if (this.page_no === 1) {
             this.dataTotal = res.data.total
           }
           this.spinning = false
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         this.spinning = false
@@ -272,9 +287,11 @@ export default {
     },
     delTask (record, idx) {
       api.delTask({id: record.id}).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.$message.success('任务删除成功')
           this.getTasks()
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -298,10 +315,12 @@ export default {
         id: item.id
       }
       api.taskResume(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           // this.datalist[key].status = 1
           this.$message.success('任务已恢复')
           this.getTasks()
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -316,10 +335,12 @@ export default {
         id: item.id
       }
       api.taskPause(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           // this.datalist[key].status = 2
           this.$message.success('任务已暂停')
           this.getTasks()
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -334,10 +355,12 @@ export default {
         id: item.id
       }
       api.taskReset(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           // this.datalist[key].status = 2
           this.$message.success('任务已重置')
           this.getTasks()
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -351,12 +374,8 @@ export default {
       this[params.key] = params.val
     },
     getAllFaces () {
-      var params = {
-        page_no: 1,
-        page_size: this.$store.state.faceTotal || 100
-      }
-      api.getFaces(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+      api.getFaces().then(res => {
+        if (res.data.code === 200) {
           var faceArr = res.data.data
           faceArr.map((item, key, arr) => {
             item.key = item.id
@@ -374,17 +393,9 @@ export default {
       })
     },
     getAllGroups () {
-      var params = {
-        page_no: 1,
-        page_size: this.$store.state.groupTotal || 100
-      }
-      api.getGroups(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+      api.getGroups().then(res => {
+        if (res.data.code === 200) {
           var groupArr = res.data.data
-          groupArr.map((item, key, arr) => {
-            item.value = item.id
-            item.text = item.name
-          })
           this.groupDatalist = groupArr
         }
       }).catch(error => {

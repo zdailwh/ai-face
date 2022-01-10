@@ -45,12 +45,18 @@ export default {
 
   async getGroups (params) {
     if (process.env.NODE_ENV === 'production') {
-      var opts = {
-        page_size: params.page_size,
-        page_no: params.page_no
+      var opts = {}
+      if (params && params.page_size) {
+        opts.page_size = params.page_size
       }
-      if (params.name) {
+      if (params && params.page_no) {
+        opts.page_no = params.page_no - 1
+      }
+      if (params && params.name) {
         opts.name = params.name
+      }
+      if (params && params.createTime) {
+        opts.createTime = params.createTime
       }
       var res = await axios.get(`/api/admin/v1/group`, {
         params: opts
@@ -97,12 +103,18 @@ export default {
 
   async getFaces (params) {
     if (process.env.NODE_ENV === 'production') {
-      var opts = {
-        page_size: params.page_size,
-        page_no: params.page_no
+      var opts = {}
+      if (params && params.page_size) {
+        opts.page_size = params.page_size
       }
-      if (params.name) {
+      if (params && params.page_no) {
+        opts.page_no = params.page_no - 1
+      }
+      if (params && params.name) {
         opts.name = params.name
+      }
+      if (params && params.createTime) {
+        opts.createTime = params.createTime
       }
       var res = await axios.get(`/api/admin/v1/face`, {
         params: opts
@@ -116,12 +128,18 @@ export default {
 
   async getGroupFaces (params) {
     if (process.env.NODE_ENV === 'production') {
-      var opts = {
-        page_size: params.page_size,
-        page_no: params.page_no
+      var opts = {}
+      if (params && params.page_size) {
+        opts.page_size = params.page_size
       }
-      if (params.name) {
+      if (params && params.page_no) {
+        opts.page_no = params.page_no - 1
+      }
+      if (params && params.name) {
         opts.name = params.name
+      }
+      if (params && params.createTime) {
+        opts.createTime = params.createTime
       }
       var res = await axios.get(`/api/admin/v1/group/faces/${params.groupId}`, {
         params: opts
@@ -133,12 +151,9 @@ export default {
     }
   },
 
-  async addFeature (params) {
+  async addFeature ({ faceId, formdata }) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post(`/api/admin/v1/feature`, {
-        faceId: params.faceId,
-        file: params.file
-      })
+      var res = await axios.post(`/api/admin/v1/feature/${faceId}`, formdata)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.feature)
@@ -186,16 +201,24 @@ export default {
 
   async getTasks (params) {
     if (process.env.NODE_ENV === 'production') {
-      var opts = {
-        page_size: params.page_size,
-        page_no: params.page_no,
-        stream_type: params.stream_type
+      var opts = {}
+      if (params && params.page_size) {
+        opts.page_size = params.page_size
       }
-      if (params.name) {
+      if (params && params.page_no) {
+        opts.page_no = params.page_no - 1
+      }
+      if (params && params.stream_type) {
+        opts.stream_type = params.stream_type
+      }
+      if (params && params.name) {
         opts.name = params.name
       }
-      if (params.type) {
+      if (params && params.type) {
         opts.type = params.type
+      }
+      if (params && params.createTime) {
+        opts.createTime = params.createTime
       }
       var res = await axios.get(`/api/admin/v1/task`, {
         params: opts
@@ -219,7 +242,7 @@ export default {
 
   async taskPause (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post(`/api/admin/v1/task/pause/${params.id}`)
+      var res = await axios.put(`/api/admin/v1/task/pause/${params.id}`)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.task)
@@ -229,7 +252,7 @@ export default {
 
   async taskResume (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post(`/api/admin/v1/task/resume/${params.id}`)
+      var res = await axios.put(`/api/admin/v1/task/resume/${params.id}`)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.task)
@@ -239,7 +262,7 @@ export default {
 
   async taskReset (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post(`/api/admin/v1/task/reset/${params.id}`)
+      var res = await axios.put(`/api/admin/v1/task/reset/${params.id}`)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.task)
@@ -257,69 +280,26 @@ export default {
     }
   },
 
-  async getDemo () {
-    // if (process.env.NODE_ENV === 'production') {
-    // var res = await axios.get(`/api/admin/v1/demo`)
-    // return res
-    // } else {
-    const data = await await timeout(200).then(() => mock.demo)
-    return { status: 200, data: data }
-    // }
-  },
-
-  async demoStart (params) {
-    // if (process.env.NODE_ENV === 'production') {
-    // var res = await axios.post(`/api/admin/v1/demo`, params)
-    // return res
-    // } else {
-    return { status: 200, data: {} }
-    // }
-  },
-
-  async demoPause () {
-    // if (process.env.NODE_ENV === 'production') {
-    // var res = await axios.post(`/api/admin/v1/demo/pause`)
-    // return res
-    // } else {
-    return { status: 200, data: {} }
-    // }
-  },
-
-  async getDemoMessages (params) {
-    // if (process.env.NODE_ENV === 'production') {
-    // var opts = {
-    //   page_size: params.page_size
-    // }
-    // var res = await axios.get(`/api/admin/v1/demo/message`, {
-    //   params: opts
-    // })
-    // return res
-    // } else {
-    const data = await await timeout(200).then(() => mock.demoMessages)
-    return { status: 200, data: data }
-    // }
-  },
-
   async login (params) {
-    // if (process.env.NODE_ENV === 'production') {
-    //   var res = await axios.post('/api/admin/v1/login', {
-    //     username: params.username,
-    //     password: params.password
-    //   })
-    //   return res
-    // } else {
-    const data = await await timeout(200).then(() => mock.authentication)
-    return { status: 200, data: data }
-    // }
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.post('/api/admin/v1/login', {
+        username: params.username,
+        password: params.password
+      })
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.authentication)
+      return { status: 200, data: data }
+    }
   },
 
   async logout (params) {
-    // if (process.env.NODE_ENV === 'production') {
-    //   var res = await axios.get('/api/admin/v1/logout')
-    //   return res
-    // } else {
-    const data = await await timeout(200).then(() => mock.authentication)
-    return { status: 200, data: data }
-    // }
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.get('/api/admin/v1/logout')
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.authentication)
+      return { status: 200, data: data }
+    }
   }
 }

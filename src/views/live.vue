@@ -18,12 +18,6 @@
             </div>
           </div>
         </div>
-        <!-- <div v-if="taskResItem.face_name" class="locationDetailWrap">
-          <h4>人脸详情</h4>
-          <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
-            <ResDetail :res-item="taskResItem" />
-          </div>
-        </div> -->
       </div>
       <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
         <a-tabs v-model="activeTab" size="small" @change="tabChange" @tabClick="tabClick">
@@ -65,6 +59,14 @@
                 >
                 <a-button type="primary" size="small">恢复</a-button>
               </a-popconfirm>
+              <a-popconfirm
+                  title="确定要重置该任务吗?"
+                  ok-text="重置"
+                  cancel-text="取消"
+                  @confirm="reset(record, idx)"
+                >
+                <a-button type="danger" size="small">重置</a-button>
+              </a-popconfirm>
             </div>
             <!--结果筛选-->
             <div class="searchWrap_video">
@@ -84,8 +86,8 @@
       </div>
     </div>
 
-    <AddTask tag="online" :datalist="datalist" :add-visible="addVisible" :faces-data="facesDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
-    <EditTask tag="online" :datalist="datalist" :edit-visible="editVisible" :faces-data="facesDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" @getList="getTasks" />
+    <AddTask tag="online" :datalist="datalist" :add-visible="addVisible" :faces-data="facesDatalist" :groups-data="groupDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
+    <EditTask tag="online" :datalist="datalist" :edit-visible="editVisible" :faces-data="facesDatalist" :groups-data="groupDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" @getList="getTasks" />
 
   </div>
 </template>
@@ -96,7 +98,6 @@ import Setting from '../components/Setting'
 import Face from '../components/Face'
 import AddTask from '../components/AddTask.vue'
 import EditTask from '../components/EditTask.vue'
-import ResDetail from '../components/ResDetail'
 
 var timer = null
 export default {
@@ -108,7 +109,7 @@ export default {
     window.clearTimeout(timer)
     next()
   },
-  components: { Setting, Face, AddTask, EditTask, ResDetail },
+  components: { Setting, Face, AddTask, EditTask },
   data () {
     return {
       stream_type: 'online',
@@ -139,6 +140,7 @@ export default {
       editKey: '',
       editTag: '', // 'edit' || 'copy'
       facesDatalist: [],
+      groupDatalist: [],
       resDataTotal: '',
       continueCircle: true // 是否继续轮循
     }
@@ -156,6 +158,7 @@ export default {
 
     this.getTasks()
     this.getAllFaces()
+    this.getAllGroups()
   },
   methods: {
     getTasks () {
@@ -166,7 +169,7 @@ export default {
       }
       this.spinning = true
       api.getTasks(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.datalist = res.data.data
           if (this.page_no === 1) {
             this.dataTotal = res.data.total
@@ -177,6 +180,8 @@ export default {
             this.getPlayurl(this.datalist[0].id)
             this.getTaskResults(this.datalist[0].id)
           }
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         this.spinning = false
@@ -208,11 +213,13 @@ export default {
         id: tid
       }
       api.getTasksById(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.task = res.data
           if (this.task && this.task.url && this.task.url !== 'undefined') {
             this.createPlayer()
           }
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -230,7 +237,7 @@ export default {
         page_size: this.page_size_res
       }
       api.getTaskResults(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.resDatalist = this.resDatalist.concat(res.data.data)
           this.resDataTotal = res.data.total
           this.page_no_res += 1
@@ -242,6 +249,8 @@ export default {
               that.getTaskResults(tid)
             }, 0)
           }
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -321,10 +330,12 @@ export default {
     },
     delTask (record, idx) {
       api.delTask({id: record.id}).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           // this.datalist.splice(idx, 1)
           this.$message.success('任务删除成功')
           this.getTasks()
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -348,10 +359,12 @@ export default {
         id: item.id
       }
       api.taskResume(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           // this.datalist[key].status = 1
           this.$message.success('任务已恢复')
           this.getTasks()
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -366,10 +379,12 @@ export default {
         id: item.id
       }
       api.taskPause(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           // this.datalist[key].status = 2
           this.$message.success('任务已暂停')
           this.getTasks()
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -379,16 +394,32 @@ export default {
         }
       })
     },
+    reset (item, key) {
+      var params = {
+        id: item.id
+      }
+      api.taskReset(params).then(res => {
+        if (res.data.code === 200) {
+          // this.datalist[key].status = 1
+          this.$message.success('任务已重置')
+          this.getTasks()
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
+        }
+      }).catch(error => {
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '任务重置出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
     updateData (params) {
       this[params.key] = params.val
     },
     getAllFaces () {
-      var params = {
-        page_no: 1,
-        page_size: this.$store.state.faceTotal || 100
-      }
-      api.getFaces(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+      api.getFaces().then(res => {
+        if (res.data.code === 200) {
           var faceArr = res.data.data
           faceArr.map((item, key, arr) => {
             item.key = item.FaceID
@@ -424,6 +455,21 @@ export default {
         })
         this.filtedResDatalist = arr
       }
+    },
+    getAllGroups () {
+      api.getGroups().then(res => {
+        if (res.data.code === 200) {
+          var groupArr = res.data.data
+          this.groupDatalist = groupArr
+        }
+      }).catch(error => {
+        console.log(error)
+        // if (error.response && error.response.data) {
+        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+        // } else {
+        //   this.$message.error('接口调用失败！')
+        // }
+      })
     }
   }
 }

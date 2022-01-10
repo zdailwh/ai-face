@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie'
 
-const TokenKey = 'aicore_token'
+const TokenKey = 'aiface_token'
 
 export function getToken () {
   return Cookies.get(TokenKey)

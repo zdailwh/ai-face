@@ -8,13 +8,25 @@
         <div class="opt mymenu" style="justify-content: center;">
           <a-menu theme="dark" v-model="current" mode="horizontal">
             <!-- <a-menu-item key="Demo"><router-link to="/demo">Demo</router-link></a-menu-item> -->
-            <a-menu-item key="Live"><router-link to="/live">直播流</router-link></a-menu-item>
-            <a-menu-item key="Task"><router-link to="/task">离线任务</router-link></a-menu-item>
-            <a-menu-item key="FaceGroup"><router-link to="/facegroup/group">人脸库</router-link></a-menu-item>
-            <!-- <a-menu-item key="Setting"><router-link to="/setting">设置</router-link></a-menu-item> -->
+            <a-menu-item key="live"><router-link to="/live">直播流</router-link></a-menu-item>
+            <a-menu-item key="task"><router-link to="/task">离线任务</router-link></a-menu-item>
+            <a-menu-item key="facegroup"><router-link to="/facegroup/group">人脸库</router-link></a-menu-item>
+            <!-- <a-menu-item key="setting"><router-link to="/setting">设置</router-link></a-menu-item> -->
           </a-menu>
         </div>
-        <div v-show="smallLayout === false" class="opt" style="justify-content: flex-end;flex:1;">
+        <div class="opt" style="justify-content: flex-end;flex:1;margin-right: 10px;">
+          <a-dropdown>
+            <a class="ant-dropdown-link" @click="e => e.preventDefault()">
+              <img src="./assets/user.png" alt=""> admin <a-icon type="down" />
+            </a>
+            <a-menu slot="overlay">
+              <a-menu-item>
+                <a href="javascript:;" @click="logout">退出登录</a>
+              </a-menu-item>
+            </a-menu>
+          </a-dropdown>
+        </div>
+        <!-- <div class="opt" style="justify-content: flex-end;flex:1;">
           <div class="person-info">
             <div class="avatar"><img src="./assets/user.png" alt=""></div>
             <div class="my-name" v-show="current.indexOf('/login') === -1">
@@ -24,7 +36,7 @@
               </ul>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
     <div class="container">
@@ -51,7 +63,7 @@ export default {
   },
   computed: {
     current () {
-      return [this.$route.name]
+      return [this.$route.meta.active]
     }
   },
   mounted () {

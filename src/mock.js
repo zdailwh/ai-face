@@ -21,30 +21,31 @@ let templateFace = {
   'gender': 1,
   'birthday': '1998-10-01',
   'features': [
-    {
-      'id': 1,
-      'create_time': '2021-12-20T19:12:30',
-      'update_time': '2021-12-20T19:12:30',
-      'featureId': '1a92-c7b30a-af80',
-      'filepath': 'resource/feature/1a92-c7b30a-af80.jpg',
-      'featureuri': 'resource/feature/1a92-c7b30a-af80.jpg',
-      'feature': 'resource/feature/1a92-c7b30a-af80.bin',
-      'status': 1
-    },
-    {
-      'id': 2,
-      'create_time': '2021-12-20T19:12:31',
-      'update_time': '2021-12-20T19:12:31',
-      'featureId': '2b81-dfb101-ef73',
-      'filepath': 'resource/feature/2b81-dfb101-ef73.jpg',
-      'featureuri': 'resource/feature/2b81-dfb101-ef73.jpg',
-      'feature': 'resource/feature/2b81-dfb101-ef73.bin',
-      'status': 1
-    }
+    // {
+    //   'id': 1,
+    //   'create_time': '2021-12-20T19:12:30',
+    //   'update_time': '2021-12-20T19:12:30',
+    //   'face_id': 36,
+    //   'filepath': 'resource/feature/1a92-c7b30a-af80.jpg',
+    //   'fileuri': 'resource/feature/1a92-c7b30a-af80.jpg',
+    //   'feature': 'resource/feature/1a92-c7b30a-af80.bin',
+    //   'status': 1
+    // },
+    // {
+    //   'id': 2,
+    //   'create_time': '2021-12-20T19:12:31',
+    //   'update_time': '2021-12-20T19:12:31',
+    //   'face_id': 36,
+    //   'filepath': 'resource/feature/2b81-dfb101-ef73.jpg',
+    //   'fileuri': 'resource/feature/2b81-dfb101-ef73.jpg',
+    //   'feature': 'resource/feature/2b81-dfb101-ef73.bin',
+    //   'status': 1
+    // }
   ]
 }
 
 let templateFaces = {
+  'code': 200,
   'total': 54,
   'data|1-54': [templateFace]
 }
@@ -56,10 +57,11 @@ let templateGroup = {
   'groupId': '8692-f7a505-df13',
   'name': 'test1',
   'description': '',
-  'faceIds': ''
+  'faceIds': []
 }
 
 let templateGroups = {
+  'code': 200,
   'total': 54,
   'data|1-54': [templateGroup]
 }
@@ -80,6 +82,7 @@ let templateTask = {
 }
 
 let templateTasks = {
+  'code': 200,
   'total': 54,
   'data|1-10': [templateTask]
 }

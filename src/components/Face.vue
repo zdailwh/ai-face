@@ -19,23 +19,11 @@
   </div>
 </template>
 <script>
-import dict from '../dict.json'
 export default {
   props: [ 'taskresult', 'smalllayout' ],
   data () {
     return {
       currBoxKey: 0
-    }
-  },
-  filters: {
-    toDict (val, label) {
-      if (!val) return ''
-      var k = `${label}_${val}`
-      if (dict[k]) {
-        return dict[k]
-      } else {
-        return val
-      }
     }
   },
   watch: {

@@ -3,8 +3,19 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
+        <a-form-model-item label="人脸组" prop="groupId">
+          <a-select v-model="searchForm.groupId" :dropdownMatchSelectWidth="false" style="width: 100px;">
+            <a-select-option value="">全部</a-select-option>
+            <a-select-option :value="item.id" v-for="item in groupsData" v-bind:key="item.id">
+              {{item.name}}
+            </a-select-option>
+          </a-select>
+        </a-form-model-item>
         <a-form-model-item label="人名" prop="name">
-          <a-input v-model="searchForm.name" />
+          <a-input v-model="searchForm.name" style="width: 120px;" />
+        </a-form-model-item>
+        <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
+          <a-range-picker :locale="locale" v-model="searchForm.createTime" style="width: 220px;" />
         </a-form-model-item>
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
@@ -19,16 +30,19 @@
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID" :pagination="false">
         <span slot="gender" slot-scope="gender">
-          {{!gender? '':(gender === '1' || gender === 1)? '男': '女'}}
+          {{!gender? '未知':(gender === 1)? '男': '女'}}
         </span>
         <span slot="features" slot-scope="text, record, index">
           <!-- <a-popover title="" v-for="(i,k) in features" :key="k">
             <template slot="content">
-              <img class="tablePopImg" :src="i.featureuri" />
+              <img class="tablePopImg" :src="i.fileuri" />
             </template>
-            <img class="tableImg" :src="i.featureuri" />
+            <img class="tableImg" :src="i.fileuri" />
           </a-popover> -->
-          <Feature :face="record"></Feature>
+          <Feature :face="record" @getfacelist="getFaces"></Feature>
+        </span>
+        <span slot="birthday" slot-scope="birthday">
+          {{birthday | birthFormat}}
         </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
@@ -78,7 +92,7 @@
           </a-form-model-item>
           <a-form-model-item label="性别">
             <a-radio-group name="gender" v-model="addForm.gender">
-              <a-radio value="1">男</a-radio><a-radio value="2">女</a-radio>
+              <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
             </a-radio-group>
           </a-form-model-item>
           <a-form-model-item label="生日">
@@ -128,7 +142,7 @@
           </a-form-model-item>
           <a-form-model-item label="性别">
             <a-radio-group name="gender" v-model="editForm.gender">
-              <a-radio value="1">男</a-radio><a-radio value="2">女</a-radio>
+              <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
             </a-radio-group>
           </a-form-model-item>
           <a-form-model-item label="生日">
@@ -156,7 +170,7 @@
       :footer="null"
       v-model="cropperVisible"
     >
-      <CropperImage :Name="cropperName" :file-obj="currImgFile" :show-use-img="true" @cropperImgSuccess="handleCropperSuccess" ref="child"></CropperImage>
+      <CropperImage :Name="cropperName" :Uid="cropperUid" :file-obj="currImgFile" :show-use-img="true" @cropperImgSuccess="handleCropperSuccess" ref="child"></CropperImage>
     </a-modal>
   </div>
 </template>
@@ -190,6 +204,7 @@ const columns = [
     title: '生日',
     dataIndex: 'birthday',
     key: 'birthday',
+    scopedSlots: { customRender: 'birthday' },
     width: 100
   },
   {
@@ -227,7 +242,6 @@ export default {
   components: { CropperImage, Feature },
   data () {
     return {
-      groupId: null,
       locale,
       imgMaxLength: 5, // 最多上传5张人脸图
       smallLayout: false,
@@ -249,7 +263,9 @@ export default {
       fileList_add: [],
       addVisible: false,
       searchForm: {
-        name: ''
+        name: '',
+        groupId: '',
+        createTime: []
       },
       editForm: {
         // name: '',
@@ -264,15 +280,21 @@ export default {
       previewVisible: false,
       previewImage: '',
       cropperVisible: false,
+      cropperUid: '',
       cropperName: '',
       cropperImgName: '',
       cropperImgVisible: false,
-      currImgFile: {}
+      currImgFile: {},
+      groupsData: []
     }
   },
   filters: {
+    birthFormat (val) {
+      if (val === '' || val === null) return ''
+      return moment(val).format('YYYY-MM-DD')
+    },
     dateFormat (val) {
-      if (val === '') return ''
+      if (val === '' || val === null) return ''
       return moment(val).format('YYYY-MM-DD HH:mm:ss')
     }
   },
@@ -280,18 +302,14 @@ export default {
     $route (newVal, oldVal) {
       if (newVal.query && newVal.query.groupId) {
         // 查询分组人脸列表
-        this.groupId = newVal.query.groupId
-      } else {
-        this.groupId = null
+        this.searchForm.groupId = newVal.query.groupId
       }
     }
   },
   mounted () {
     if (this.$route.query && this.$route.query.groupId) {
       // 查询分组人脸列表
-      this.groupId = this.$route.query.groupId
-    } else {
-      this.groupId = null
+      this.searchForm.groupId = this.$route.query.groupId
     }
 
     var ele = document.querySelectorAll('.file-main')
@@ -301,7 +319,7 @@ export default {
     if (viewWidth < 540) {
       this.smallLayout = true
     }
-
+    this.getAllGroups()
     this.getFaces()
   },
   methods: {
@@ -315,33 +333,37 @@ export default {
     },
     searchHandleOk () {
       this.page_no = 1
-      if (this.searchForm.name !== '') {
-        this.getFaces({ name: this.searchForm.name })
-      } else {
-        this.getFaces()
-      }
+      this.getFaces()
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
     },
-    getFaces (query) {
+    getFaces () {
       var params = {
         page_no: this.page_no,
         page_size: this.page_size
       }
-      if (query && query.name) {
-        params.name = query.name
+      if (this.searchForm.name) {
+        params.name = this.searchForm.name
       }
+      if (this.searchForm.groupId) {
+        params.groupId = this.searchForm.groupId
+      }
+      if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
+        params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')
+      }
+
       this.spinning = true
-      if (this.groupId) {
-        params.groupId = this.groupId
+      if (params.groupId) {
         api.getGroupFaces(params).then(res => {
-          if (res.status >= 200 && res.status < 300) {
+          if (res.data.code === 200) {
             this.datalist = res.data.data
             if (this.page_no === 1) {
               this.dataTotal = res.data.total
             }
             this.spinning = false
+          } else {
+            this.$message.error(res.data.message || '请求出错！')
           }
         }).catch(error => {
           this.spinning = false
@@ -353,13 +375,15 @@ export default {
         })
       } else {
         api.getFaces(params).then(res => {
-          if (res.status >= 200 && res.status < 300) {
+          if (res.data.code === 200) {
             this.datalist = res.data.data
             if (this.page_no === 1) {
               this.dataTotal = res.data.total
               this.$store.commit('setFaceTotal', res.data.total)
             }
             this.spinning = false
+          } else {
+            this.$message.error(res.data.message || '请求出错！')
           }
         }).catch(error => {
           this.spinning = false
@@ -415,29 +439,23 @@ export default {
         this.$message.error('请上传人脸图片！')
         return
       }
-      // var formdata = new FormData()
-      // formdata.append('name', this.addForm.name)
-      // formdata.append('description', this.addForm.description)
-      // formdata.append('gender', this.addForm.gender)
-      // formdata.append('birthday', this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DD') : '')
-      // this.addForm.files.map((item, key, arr) => {
-      //   formdata.append('files[]', item.originFileObj, item.originFileObj.name)
-      // })
-
-      var files = this.fileList_add.map((item, key, arr) => {
-        return item.thumbUrl
-      })
-      var formdata = {
+      var formdata = new FormData()
+      var face = {
         name: this.addForm.name,
         description: this.addForm.description,
         gender: this.addForm.gender,
-        birthday: this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DD') : '',
-        files: files
+        birthday: this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DD') : ''
       }
+      face = JSON.stringify(face)
+
+      formdata.append('face', face)
+      this.addForm.files.map((item, key, arr) => {
+        formdata.append('file', item.originFileObj, item.originFileObj.name)
+      })
 
       this.addLoading = true
       api.addFace(formdata).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.page_no = 1
           this.getFaces()
 
@@ -452,6 +470,8 @@ export default {
             files: []
           }
           this.$message.success('人脸创建成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         this.addLoading = false
@@ -484,7 +504,7 @@ export default {
 
       this.editLoading = true
       api.editFace(formdata).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.page_no = 1
           this.getFaces()
 
@@ -492,6 +512,8 @@ export default {
           this.editLoading = false
           this.editForm = {}
           this.$message.success('人脸编辑成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         this.editLoading = false
@@ -511,9 +533,11 @@ export default {
     },
     delFace (record, idx) {
       api.delFace({ id: record.id }).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.getFaces()
           this.$message.success('人脸删除成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -525,26 +549,39 @@ export default {
     },
     cropperPicture (file) {
       console.log(file)
-      this.cropperName = file.uid
+      this.cropperUid = file.uid
+      this.cropperName = file.name
       this.currImgFile = file
       this.cropperVisible = true
     },
     handleCropperSuccess (data) {
+      console.log(data)
       this.cropperVisible = false
       this.fileList_add.map(item => {
-        if (item.uid === data.name) {
+        if (item.uid === data.uid) {
           item.thumbUrl = data.url
+          item.originFileObj = dataURLtoFile(data.url, data.name)
         }
+      })
+    },
+    getAllGroups () {
+      api.getGroups().then(res => {
+        if (res.data.code === 200) {
+          var groupArr = res.data.data
+          this.groupsData = groupArr
+        }
+      }).catch(error => {
+        console.log(error)
+        // if (error.response && error.response.data) {
+        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+        // } else {
+        //   this.$message.error('接口调用失败！')
+        // }
       })
     }
   }
 }
 
-// function getBase64_ (img, callback) {
-//   const reader = new FileReader()
-//   reader.addEventListener('load', () => callback(reader.result))
-//   reader.readAsDataURL(img)
-// }
 function getBase64 (file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -552,6 +589,22 @@ function getBase64 (file) {
     reader.onload = () => resolve(reader.result)
     reader.onerror = error => reject(error)
   })
+}
+
+// 将base64转换为文件对象
+function dataURLtoFile (dataurl, filename) {
+  var arr = dataurl.split(',')
+  var mime = arr[0].match(/:(.*?);/)[1]
+  var bstr = atob(arr[1])
+  var n = bstr.length
+  var u8arr = new Uint8Array(n)
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n)
+  }
+  // 转换成file对象
+  return new File([u8arr], filename, { type: mime })
+  // 转换成成blob对象
+  // return new Blob([u8arr],{type:mime});
 }
 </script>
 <style scoped>

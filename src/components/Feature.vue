@@ -1,7 +1,6 @@
 <template>
   <div class="featuresOfFaceList">
     <a-upload
-      v-if="fileList.length"
       list-type="picture-card"
       :multiple="false"
       :beforeUpload="beforeUpload"
@@ -23,46 +22,9 @@
       :footer="null"
       v-model="cropperVisible"
     >
-      <CropperImage :Name="cropperName" :file-obj="currImgFile" :show-upload-img="true" @uploadCropperImg="handleAddFeature" ref="child"></CropperImage>
+      <CropperImage :Name="cropperName" :Uid="cropperUid" :file-obj="currImgFile" :show-input-img="false" :show-upload-img="true" @uploadCropperImg="handleAddFeature" ref="child"></CropperImage>
     </a-modal>
   </div>
-  <!-- <div class="clearfix">
-    <span class="ant-upload-picture-card-wrapper">
-      <div class="ant-upload-list ant-upload-list-picture-card">
-        <div class="ant-upload-list-picture-card-container">
-          <span>
-            <div class="ant-upload-list-item ant-upload-list-item-done ant-upload-list-item-list-type-picture-card">
-              <div class="ant-upload-list-item-info">
-                <a href="" target="_blank" rel="noopener noreferrer" class="ant-upload-list-item-thumbnail">
-                  <img src="../assets/u1.png" alt="image.png" class="ant-upload-list-item-image">
-                </a>
-              </div>
-              <span class="ant-upload-list-item-actions">
-                <a-icon type="eye" :style="{ color: '#fff' }" />
-                <a-popconfirm
-                  title="确定要删除该特征图吗?"
-                  ok-text="删除"
-                  cancel-text="取消"
-                  @confirm="delFeature(123)"
-                >
-                  <a-icon type="delete" :style="{ color: '#fff' }" />
-                </a-popconfirm>
-              </span>
-            </div>
-          </span>
-        </div>
-      </div>
-      <div class="ant-upload ant-upload-select ant-upload-select-picture-card">
-        <span role="button" tabindex="0" class="ant-upload">
-          <input type="file" accept="" style="display: none;">
-          <div>
-            <a-icon type="plus" />
-            <div class="ant-upload-text">Upload</div>
-          </div>
-        </span>
-      </div>
-    </span>
-  </div> -->
 </template>
 <script>
 import api from '../api'
@@ -88,6 +50,7 @@ export default {
         }
       ],
       cropperVisible: false,
+      cropperUid: '',
       cropperName: '',
       cropperImgName: '',
       cropperImgVisible: false,
@@ -105,7 +68,7 @@ export default {
           this.fileList = val.features.map(item => {
             var o = item
             o.uid = item.id
-            o.url = item.featureuri
+            o.url = item.fileuri
             return o
           })
         }
@@ -123,41 +86,49 @@ export default {
       }
       return false
     },
-    handleChange ({ fileList }) {
+    handleChange ({ file, fileList }) {
       fileList = fileList.slice(0, this.imgMaxLength)
       this.fileList = fileList
+      if (file.status === 'done') {
+        // 选完图片直接打开裁剪窗口
+        this.cropperPicture(file)
+      }
     },
     handleRemove (file) {
       this.delFeature(file)
     },
     cropperPicture (file) {
       if (!file.id) {
-        this.cropperName = file.uid
+        this.cropperUid = file.uid
+        this.cropperName = file.name
         this.currImgFile = file
         this.cropperVisible = true
       }
     },
     handleAddFeature (data) {
-      this.cropperVisible = false
-      this.fileList.map(item => {
-        if (item.uid === data.name) {
-          item.thumbUrl = data.url
-        }
-      })
-
       if (!data.url) {
         this.$message.error('请上传人脸图片！')
         return
       }
-      var formdata = {
-        faceId: this.face.id,
-        file: data.url
-      }
+
+      this.cropperVisible = false
+      var idx = 0
+      this.fileList.map((item, k) => {
+        if (item.uid === data.uid) {
+          idx = k
+          item.thumbUrl = data.url
+          item.originFileObj = dataURLtoFile(data.url, data.name)
+        }
+      })
+      console.log(this.fileList)
+
+      var formdata = new FormData()
+      formdata.append('file', this.fileList[idx].originFileObj, this.fileList[idx].originFileObj.name)
 
       this.addLoading = true
-      api.addFeature(formdata).then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          // this.getFaces()
+      api.addFeature({ faceId: this.face.id, formdata: formdata }).then(res => {
+        if (res.data.code === 200) {
+          this.$emit('getfacelist')
 
           this.addFeatureVisible = false
           this.addLoading = false
@@ -166,6 +137,8 @@ export default {
             file: ''
           }
           this.$message.success('人脸特征创建成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         this.addLoading = false
@@ -178,9 +151,11 @@ export default {
     },
     delFeature (feature) {
       api.delFeature({ id: feature.id }).then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          // this.getFaces()
+        if (res.data.code === 200) {
+          this.$emit('getfacelist')
           this.$message.success('特征图删除成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -191,6 +166,22 @@ export default {
       })
     }
   }
+}
+
+// 将base64转换为文件对象
+function dataURLtoFile (dataurl, filename) {
+  var arr = dataurl.split(',')
+  var mime = arr[0].match(/:(.*?);/)[1]
+  var bstr = atob(arr[1])
+  var n = bstr.length
+  var u8arr = new Uint8Array(n)
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n)
+  }
+  // 转换成file对象
+  return new File([u8arr], filename, { type: mime })
+  // 转换成成blob对象
+  // return new Blob([u8arr],{type:mime});
 }
 </script>
 

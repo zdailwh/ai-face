@@ -33,8 +33,10 @@
       <!--底部操作工具按钮-->
       <div class="footer-btn">
         <div class="scope-btn">
-          <!-- <label class="btn" for="uploads">选择人脸</label>
-          <input type="file" id="uploads" style="position:absolute; clip:rect(0 0 0 0);" accept="image/png, image/jpeg, image/gif, image/jpg" @change="selectImg($event)"> -->
+          <template v-if="showInputImg">
+            <label class="btn" for="uploads">选择人脸</label>
+            <input type="file" id="uploads" style="position:absolute; clip:rect(0 0 0 0);" accept="image/png, image/jpeg, image/gif, image/jpg" @change="selectImg($event)">
+          </template>
           <a-button size="small" type="primary" icon="scissor" @click="startCrop" v-if="!crap">开始截图</a-button>
           <a-button size="small" type="primary" icon="scissor" @click="stopCrop" v-else>停止截图</a-button>
           <a-button size="small" type="primary" ghost icon="zoom-in" @click="changeScale(1)">放大</a-button>
@@ -67,6 +69,10 @@ export default {
     VueCropper
   },
   props: {
+    Uid: {
+      type: String,
+      default: ''
+    },
     Name: {
       type: String,
       default: ''
@@ -76,6 +82,10 @@ export default {
       default () {
         return {}
       }
+    },
+    showInputImg: {
+      type: Boolean,
+      default: false
     },
     showUseImg: {
       type: Boolean,
@@ -88,7 +98,6 @@ export default {
   },
   data () {
     return {
-      name: this.Name,
       previews: {},
       crap: false,
       option: {
@@ -119,6 +128,8 @@ export default {
   watch: {
     fileObj: {
       handler (val, oldVal) {
+        this.crap = false
+
         let reader = new FileReader()
         reader.onload = (e) => {
           this.option.img = reader.result
@@ -162,29 +173,29 @@ export default {
       this.previews = data
     },
     // 选择图片
-    // selectImg (e) {
-    //   let file = e.target.files[0]
-    //   if (!/\.(jpg|jpeg|png|JPG|PNG)$/.test(e.target.value)) {
-    //     this.$message({
-    //       message: '图片类型要求：jpeg、jpg、png',
-    //       type: 'error'
-    //     })
-    //     return false
-    //   }
-    //   // 转化为blob
-    //   let reader = new FileReader()
-    //   reader.onload = (e) => {
-    //     let data
-    //     if (typeof e.target.result === 'object') {
-    //       data = window.URL.createObjectURL(new Blob([e.target.result]))
-    //     } else {
-    //       data = e.target.result
-    //     }
-    //     this.option.img = data
-    //   }
-    //   // 转化为base64
-    //   reader.readAsDataURL(file)
-    // },
+    selectImg (e) {
+      let file = e.target.files[0]
+      if (!/\.(jpg|jpeg|png|JPG|PNG)$/.test(e.target.value)) {
+        this.$message({
+          message: '图片类型要求：jpeg、jpg、png',
+          type: 'error'
+        })
+        return false
+      }
+      // 转化为blob
+      let reader = new FileReader()
+      reader.onload = (e) => {
+        let data
+        if (typeof e.target.result === 'object') {
+          data = window.URL.createObjectURL(new Blob([e.target.result]))
+        } else {
+          data = e.target.result
+        }
+        this.option.img = data
+      }
+      // 转化为base64
+      reader.readAsDataURL(file)
+    },
     // 使用截图
     useImg (type) {
       let _this = this
@@ -192,31 +203,11 @@ export default {
         // 获取截图的base64数据
         this.$refs.cropper.getCropData(async (data) => {
           let imgInfo = {
+            uid: _this.Uid,
             name: _this.Name,
             url: data
           }
           _this.$emit('cropperImgSuccess', imgInfo)
-          // let formData = new FormData()
-          // formData.append('file', data, 'DX.jpg')
-          // // 调用axios上传
-          // let {data: res} = await _this.$http.post('/api/file/imgUpload', formData)
-          // if (res.code === 200) {
-          //   _this.$message({
-          //     message: res.msg,
-          //     type: 'success'
-          //   })
-          //   let data = res.data.replace('[', '').replace(']', '').split(',')
-          //   let imgInfo = {
-          //     name: _this.Name,
-          //     url: data[0]
-          //   }
-          //   _this.$emit('useImgSuccess', imgInfo)
-          // } else {
-          //   _this.$message({
-          //     message: '文件服务异常，请联系管理员！',
-          //     type: 'error'
-          //   })
-          // }
         })
       }
     },
@@ -227,6 +218,7 @@ export default {
         // 获取截图的base64数据
         this.$refs.cropper.getCropData(async (data) => {
           let imgInfo = {
+            uid: _this.Uid,
             name: _this.Name,
             url: data
           }

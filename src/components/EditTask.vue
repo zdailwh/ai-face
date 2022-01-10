@@ -1,7 +1,7 @@
 <template>
   <a-modal
     :title="editTag === 'edit'? '编辑任务': '创建任务'"
-    width="700px"
+    width="800px"
     v-model="editVisible"
     :closable="false"
     :keyboard="false"
@@ -80,10 +80,12 @@
                     },
                   })
                 "
-              >
-              <template slot="FullURI" slot-scope="FullURI">
-                <img :src="FullURI" style="max-width: 50px;max-height: 50px;">
-              </template>
+                >
+                <template slot="features" slot-scope="features">
+                  <template v-for="(fe, key) in features">
+                    <img :src="fe.featureuri" :key="key" style="max-width: 50px;max-height: 50px;">
+                  </template>
+                </template>
               </a-table>
             </template>
           </a-transfer>
@@ -105,32 +107,7 @@
 <script>
 import difference from 'lodash/difference'
 import api from '../api'
-const leftTableColumns = [
-  {
-    dataIndex: 'title',
-    title: '姓名',
-    scopedSlots: { customRender: 'Name' }
-  },
-  {
-    dataIndex: 'FullURI',
-    title: '头像',
-    width: '50px',
-    scopedSlots: { customRender: 'FullURI' }
-  }
-]
-const rightTableColumns = [
-  {
-    dataIndex: 'title',
-    title: '姓名',
-    scopedSlots: { customRender: 'Name' }
-  },
-  {
-    dataIndex: 'FullURI',
-    title: '头像',
-    width: '50px',
-    scopedSlots: { customRender: 'FullURI' }
-  }
-]
+
 export default {
   props: [ 'tag', 'datalist', 'editVisible', 'facesData', 'groupsData', 'targetKeys', 'selectedKeys', 'smallLayout', 'editTag', 'editForm', 'editKey', 'editItem' ],
   data () {
@@ -205,10 +182,10 @@ export default {
       if (this.editTag === 'edit') { // 编辑
         // 先删除 后新建
         api.delTask({id: this.editItem.ID}).then(res => {
-          if (res.status >= 200 && res.status < 300) {
+          if (res.data.code === 200) {
             this.editLoading = true
             api.addTask(formdata).then(res => {
-              if (res.status >= 200 && res.status < 300) {
+              if (res.data.code === 200) {
                 // this.datalist.splice(this.editKey, 1, res.data)
                 this.updateParentData('page_no', 1)
                 this.$emit('getList')
@@ -232,7 +209,7 @@ export default {
       } else if (this.editTag === 'copy') { // 复制
         this.editLoading = true
         api.addTask(formdata).then(res => {
-          if (res.status >= 200 && res.status < 300) {
+          if (res.data.code === 200) {
             // this.datalist.splice(this.editKey, 1, res.data)
             this.updateParentData('page_no', 1)
             this.$emit('getList')
@@ -306,6 +283,34 @@ export default {
     }
   }
 }
+const leftTableColumns = [
+  {
+    dataIndex: 'title',
+    title: '姓名',
+    width: '50px',
+    scopedSlots: { customRender: 'name' }
+  },
+  {
+    dataIndex: 'features',
+    title: '特征图',
+    width: '150px',
+    scopedSlots: { customRender: 'features' }
+  }
+]
+const rightTableColumns = [
+  {
+    dataIndex: 'title',
+    title: '姓名',
+    width: '50px',
+    scopedSlots: { customRender: 'name' }
+  },
+  {
+    dataIndex: 'features',
+    title: '特征图',
+    width: '150px',
+    scopedSlots: { customRender: 'features' }
+  }
+]
 </script>
 
 <style scoped>

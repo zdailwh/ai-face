@@ -1,7 +1,7 @@
 <template>
   <a-modal
     title="创建任务"
-    width="700px"
+    width="800px"
     v-model="addVisible"
     :closable="false"
     :keyboard="false"
@@ -35,13 +35,13 @@
           <a-input v-model="addForm.description" />
         </a-form-model-item>
         <a-form-model-item label="人脸组">
-          <a-select v-model="addForm.groupId">
-            <a-select-option :value="item.value" v-for="item in groupsData" v-bind:key="item.value">
-              {{item.text}}
+          <a-select v-model="addForm.groupId" :allowClear="true" :disabled="targetFaceIds.length > 0">
+            <a-select-option :value="item.id" v-for="item in groupsData" v-bind:key="item.id">
+              {{item.name}}
             </a-select-option>
           </a-select>
         </a-form-model-item>
-        <a-form-model-item label="选择人脸" :wrapperCol="{span: 20}">
+        <a-form-model-item label="选择人脸" :wrapperCol="{span: 20}" v-show="!addForm.groupId">
           <a-transfer
             :data-source="facesData"
             :filter-option="filterOption"
@@ -80,10 +80,12 @@
                     },
                   })
                 "
-              >
-              <template slot="FullURI" slot-scope="FullURI">
-                <img :src="FullURI" style="max-width: 50px;max-height: 50px;">
-              </template>
+                >
+                <template slot="features" slot-scope="features">
+                  <template v-for="(fe, key) in features">
+                    <img :src="fe.fileuri" :key="key" style="max-width: 50px;max-height: 50px;">
+                  </template>
+                </template>
               </a-table>
             </template>
           </a-transfer>
@@ -105,32 +107,7 @@
 <script>
 import difference from 'lodash/difference'
 import api from '../api'
-const leftTableColumns = [
-  {
-    dataIndex: 'title',
-    title: '姓名',
-    scopedSlots: { customRender: 'Name' }
-  },
-  {
-    dataIndex: 'FullURI',
-    title: '头像',
-    width: '50px',
-    scopedSlots: { customRender: 'FullURI' }
-  }
-]
-const rightTableColumns = [
-  {
-    dataIndex: 'title',
-    title: '姓名',
-    scopedSlots: { customRender: 'Name' }
-  },
-  {
-    dataIndex: 'FullURI',
-    title: '头像',
-    width: '50px',
-    scopedSlots: { customRender: 'FullURI' }
-  }
-]
+
 export default {
   props: [ 'tag', 'datalist', 'addVisible', 'facesData', 'groupsData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
   data () {
@@ -178,28 +155,42 @@ export default {
       //   this.$message.error('请填写任务描述！')
       //   return
       // }
-      if (!this.targetFaceIds.length) {
-        this.$message.error('请选择任务关联的人脸！')
+      if (!this.addForm.groupId && !this.targetFaceIds.length) {
+        this.$message.error('请选择任务关联的人脸组或人脸！')
         return
       }
 
       var formdata = new FormData()
-      formdata.append('type', this.addForm.type)
-      formdata.append('name', this.addForm.name)
-      formdata.append('description', this.addForm.description)
+      var task = {
+        type: this.addForm.type,
+        name: this.addForm.name,
+        description: this.addForm.description
+      }
+      if (this.addForm.type === 2) {
+        task.url = this.addForm.url
+      }
+      if (this.addForm.groupId) {
+        task.groupId = this.addForm.groupId
+
+        var group = this.groupsData.filter((item) => {
+          return item.id === this.addForm.groupId
+        })[0]
+        task.faceIds = group.faceIds.join(',')
+      } else {
+        task.faceIds = this.targetFaceIds.join(',')
+      }
+      task = JSON.stringify(task)
+
+      formdata.append('task', task)
       if (this.addForm.type === 1) {
         this.addForm.files.map((item, key, arr) => {
           formdata.append('file', item.originFileObj, item.originFileObj.name)
         })
-      } else {
-        formdata.append('url', this.addForm.url)
       }
-      formdata.append('groupId', this.addForm.groupId)
-      formdata.append('faceIds', this.targetFaceIds.join(','))
 
       this.addLoading = true
       api.addTask(formdata).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.updateParentData('page_no', 1)
           this.$emit('getList')
 
@@ -215,6 +206,8 @@ export default {
           }
           this.targetFaceIds = []
           this.$message.success('任务创建成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         this.addLoading = false
@@ -225,6 +218,14 @@ export default {
     handleCancel (e) {
       // this.addVisible = false
       this.updateParentData('addVisible', false)
+      this.addForm = {
+        type: '',
+        url: '',
+        name: '',
+        description: '',
+        groupId: '',
+        files: []
+      }
     },
     beforeUpload (file, fileList) {
       return false
@@ -274,6 +275,35 @@ export default {
     }
   }
 }
+
+const leftTableColumns = [
+  {
+    dataIndex: 'title',
+    title: '姓名',
+    width: '50px',
+    scopedSlots: { customRender: 'name' }
+  },
+  {
+    dataIndex: 'features',
+    title: '特征图',
+    width: '150px',
+    scopedSlots: { customRender: 'features' }
+  }
+]
+const rightTableColumns = [
+  {
+    dataIndex: 'title',
+    title: '姓名',
+    width: '50px',
+    scopedSlots: { customRender: 'name' }
+  },
+  {
+    dataIndex: 'features',
+    title: '特征图',
+    width: '150px',
+    scopedSlots: { customRender: 'features' }
+  }
+]
 </script>
 
 <style scoped>

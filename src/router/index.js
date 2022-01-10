@@ -10,7 +10,6 @@ import Task from '@/views/task'
 import TaskResult from '@/views/taskResult'
 import Live from '@/views/live'
 import Setting from '@/views/setting'
-import Demo from '@/views/demo'
 import LiveTest from '@/views/liveTest'
 
 Vue.use(Router)
@@ -44,18 +43,20 @@ export default new Router({
       children: [
         {
           path: 'group',
-          name: 'FaceGroup',
+          name: 'Group',
           component: Group,
           meta: {
-            title: '人脸库'
+            title: '人脸库',
+            active: 'facegroup'
           }
         },
         {
           path: 'face',
-          name: 'FaceGroup',
+          name: 'Face',
           component: Face,
           meta: {
-            title: '人脸'
+            title: '人脸',
+            active: 'facegroup'
           }
         }
       ]
@@ -65,7 +66,8 @@ export default new Router({
       name: 'Task',
       component: Task,
       meta: {
-        title: '离线任务'
+        title: '离线任务',
+        active: 'task'
       }
     },
     {
@@ -73,7 +75,8 @@ export default new Router({
       name: 'TaskResult',
       component: TaskResult,
       meta: {
-        title: '查看任务结果'
+        title: '查看任务结果',
+        active: 'task'
       }
     },
     {
@@ -81,7 +84,8 @@ export default new Router({
       name: 'Live',
       component: Live,
       meta: {
-        title: '直播流'
+        title: '直播流',
+        active: 'live'
       }
     },
     {
@@ -89,15 +93,8 @@ export default new Router({
       name: 'Setting',
       component: Setting,
       meta: {
-        title: '设置'
-      }
-    },
-    {
-      path: '/demo',
-      name: 'Demo',
-      component: Demo,
-      meta: {
-        title: '陌生人Demo'
+        title: '设置',
+        active: 'setting'
       }
     },
     {

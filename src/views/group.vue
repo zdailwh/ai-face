@@ -4,7 +4,10 @@
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
         <a-form-model-item label="人名" prop="name">
-          <a-input v-model="searchForm.name" />
+          <a-input v-model="searchForm.name" style="width: 120px;" />
+        </a-form-model-item>
+        <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
+          <a-range-picker :locale="locale" v-model="searchForm.createTime" style="width: 220px;" />
         </a-form-model-item>
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
@@ -18,6 +21,9 @@
     <!--搜索 end-->
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID" :pagination="false">
+        <span slot="faceIds" slot-scope="faceIds">
+          {{faceIds.join(',')}}
+        </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
@@ -33,7 +39,7 @@
             <a>删除</a>
           </a-popconfirm>
           <a-divider type="vertical" />
-          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看人脸</router-link>
+          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看人脸<a-icon type="right" /></router-link>
         </span>
       </a-table>
       <div style="margin: 15px 0;text-align: right;">
@@ -124,12 +130,12 @@
                       },
                     })
                   "
-                >
-                <template slot="features" slot-scope="features">
-                  <template v-for="(fe, key) in features">
-                    <img :src="fe.featureuri" :key="key" style="max-width: 50px;max-height: 50px;">
+                  >
+                  <template slot="features" slot-scope="features">
+                    <template v-for="(fe, key) in features">
+                      <img :src="fe.fileuri" :key="key" style="max-width: 50px;max-height: 50px;">
+                    </template>
                   </template>
-                </template>
                 </a-table>
               </template>
             </a-transfer>
@@ -173,7 +179,14 @@ const columns = [
   {
     title: '描述',
     dataIndex: 'description',
-    key: 'description'
+    key: 'description',
+    width: 120
+  },
+  {
+    title: '人脸',
+    dataIndex: 'faceIds',
+    key: 'faceIds',
+    scopedSlots: { customRender: 'faceIds' }
   },
   {
     title: '创建时间',
@@ -212,7 +225,8 @@ export default {
       addLoading: false,
       addVisible: false,
       searchForm: {
-        name: ''
+        name: '',
+        createTime: []
       },
       editForm: {
       },
@@ -232,7 +246,7 @@ export default {
   },
   filters: {
     dateFormat (val) {
-      if (val === '') return ''
+      if (val === '' || val === null) return ''
       return moment(val).format('YYYY-MM-DD HH:mm:ss')
     }
   },
@@ -259,32 +273,34 @@ export default {
     },
     searchHandleOk () {
       this.page_no = 1
-      if (this.searchForm.name !== '') {
-        this.getGroups({ name: this.searchForm.name })
-      } else {
-        this.getGroups()
-      }
+      this.getGroups()
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
     },
-    getGroups (query) {
+    getGroups () {
       var params = {
         page_no: this.page_no,
         page_size: this.page_size
       }
-      if (query && query.name) {
-        params.name = query.name
+      if (this.searchForm.name) {
+        params.name = this.searchForm.name
       }
+      if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
+        params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')
+      }
+
       this.spinning = true
       api.getGroups(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.datalist = res.data.data
           if (this.page_no === 1) {
             this.dataTotal = res.data.total
             this.$store.commit('setGroupTotal', res.data.total)
           }
           this.spinning = false
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         this.spinning = false
@@ -310,7 +326,7 @@ export default {
 
       this.addLoading = true
       api.addGroup(this.addForm).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.page_no = 1
           this.getGroups()
 
@@ -321,6 +337,8 @@ export default {
             description: ''
           }
           this.$message.success('分组创建成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         this.addLoading = false
@@ -336,12 +354,14 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
+      this.targetKeys = this.editForm.faceIds
     },
     handleCancel_edit () {
       this.editVisible = false
       this.editForm = {}
       this.editItem = {}
       this.editKey = ''
+      this.targetKeys = []
     },
     handleEdit () {
       if (!this.targetFaceIds.length) {
@@ -355,7 +375,7 @@ export default {
 
       this.editLoading = true
       api.editGroup(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.page_no = 1
           this.getGroups()
 
@@ -363,6 +383,8 @@ export default {
           this.editLoading = false
           this.editForm = {}
           this.$message.success('分组编辑成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         this.editLoading = false
@@ -382,9 +404,11 @@ export default {
     },
     delGroup (record, idx) {
       api.delGroup({id: record.id}).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+        if (res.data.code === 200) {
           this.datalist.splice(idx, 1)
           this.$message.success('分组删除成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -395,18 +419,16 @@ export default {
       })
     },
     getAllFaces () {
-      var params = {
-        page_no: 1,
-        page_size: this.$store.state.faceTotal || 100
-      }
-      api.getFaces(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
+      api.getFaces().then(res => {
+        if (res.data.code === 200) {
           var faceArr = res.data.data
           faceArr.map((item, key, arr) => {
             item.key = item.id
             item.title = item.name
           })
           this.facesDatalist = faceArr
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
         console.log(error)
