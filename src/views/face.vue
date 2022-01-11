@@ -97,26 +97,10 @@
             <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="addForm.birthday" />
           </a-form-model-item>
           <a-form-model-item label="别名">
+            <Tag :curr-tags="addForm.title" @commitTag="commitTitle"></Tag>
           </a-form-model-item>
           <a-form-model-item label="履历">
-          </a-form-model-item>
-          <a-form-model-item label="人脸图">
-            <a-upload
-              list-type="picture-card"
-              :multiple="true"
-              :beforeUpload="beforeUpload_add"
-              :file-list="fileList_add"
-              :remove="handleRemove_add"
-              @preview="cropperPicture"
-              @change="handleChange_add"
-            >
-              <div v-if="fileList_add.length < imgMaxLength">
-                <a-icon type="plus" />
-                <div class="ant-upload-text">
-                  上传图片
-                </div>
-              </div>
-            </a-upload>
+            <Tag :curr-tags="addForm.history" @commitTag="commitHistory"></Tag>
           </a-form-model-item>
         </a-form-model>
       </div>
@@ -165,20 +149,12 @@
     <a-modal :visible="previewVisible" :footer="null" @cancel="previewVisible = false">
       <img alt="example" style="width: 100%" :src="previewImage" />
     </a-modal>
-    <!--裁剪人脸-->
-    <a-modal
-      title="裁剪人脸"
-      width="800px"
-      :footer="null"
-      v-model="cropperVisible"
-    >
-      <CropperImage :Name="cropperName" :Uid="cropperUid" :file-obj="currImgFile" :show-use-img="true" @cropperImgSuccess="handleCropperSuccess" ref="child"></CropperImage>
-    </a-modal>
   </div>
 </template>
 <script>
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import api from '../api'
+import Tag from '../components/Tag.vue'
 import CropperImage from '../components/Cropper.vue'
 import Feature from '../components/Feature.vue'
 
@@ -255,7 +231,7 @@ export default {
   beforeRouteEnter (to, from, next) {
     next()
   },
-  components: { CropperImage, Feature },
+  components: { CropperImage, Feature, Tag },
   data () {
     return {
       locale,
@@ -273,10 +249,10 @@ export default {
         description: '',
         gender: '',
         birthday: '',
-        files: []
+        title: [],
+        history: []
       },
       addLoading: false,
-      fileList_add: [],
       addVisible: false,
       searchForm: {
         name: '',
@@ -295,12 +271,6 @@ export default {
       editVisible: false,
       previewVisible: false,
       previewImage: '',
-      cropperVisible: false,
-      cropperUid: '',
-      cropperName: '',
-      cropperImgName: '',
-      cropperImgVisible: false,
-      currImgFile: {},
       groupsData: []
     }
   },
@@ -421,29 +391,11 @@ export default {
         })
       }
     },
-    beforeUpload_add (file, fileList) {
-      const isImg = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg'
-      if (!isImg) {
-        this.$message.error('请选择图片文件!')
-        return false
-      }
-      // var arr = this.addForm.files || []
-      // arr.push(file)
-      // this.addForm.files = arr
-
-      // var self = this
-      // getBase64_(file, imageUrl => {
-      //   self.addForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
-      // })
-      return false
+    commitTitle (params) {
+      this.addForm.title = params
     },
-    handleChange_add ({ fileList }) {
-      fileList = fileList.slice(0, this.imgMaxLength)
-      this.fileList_add = fileList
-      this.addForm.files = fileList
-    },
-    handleRemove_add (file) {
-      // this.addForm.files = []
+    commitHistory (params) {
+      this.addForm.history = params
     },
     handleCancel_add () {
       this.addVisible = false
@@ -453,7 +405,8 @@ export default {
         description: '',
         gender: '',
         birthday: '',
-        files: []
+        title: [],
+        history: []
       }
     },
     handleAdd (e) {
@@ -461,23 +414,18 @@ export default {
         this.$message.error('请填写人名！')
         return
       }
-      if (!this.addForm.files.length) {
-        this.$message.error('请上传人脸图片！')
-        return
-      }
       var formdata = new FormData()
       var face = {
         name: this.addForm.name,
         description: this.addForm.description,
         gender: this.addForm.gender,
-        birthday: this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DD') : ''
+        birthday: this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DD') : '',
+        title: this.addForm.title.join('|'),
+        history: this.addForm.history.join('|')
       }
       face = JSON.stringify(face)
 
       formdata.append('face', face)
-      this.addForm.files.map((item, key, arr) => {
-        formdata.append('file', item.originFileObj, item.originFileObj.name)
-      })
 
       this.addLoading = true
       api.addFace(formdata).then(res => {
@@ -493,7 +441,8 @@ export default {
             description: '',
             gender: '',
             birthday: '',
-            files: []
+            title: [],
+            history: []
           }
           this.$message.success('人脸创建成功')
         } else {
@@ -588,23 +537,6 @@ export default {
         }
       })
     },
-    cropperPicture (file) {
-      console.log(file)
-      this.cropperUid = file.uid
-      this.cropperName = file.name
-      this.currImgFile = file
-      this.cropperVisible = true
-    },
-    handleCropperSuccess (data) {
-      console.log(data)
-      this.cropperVisible = false
-      this.fileList_add.map(item => {
-        if (item.uid === data.uid) {
-          item.thumbUrl = data.url
-          item.originFileObj = dataURLtoFile(data.url, data.name)
-        }
-      })
-    },
     getAllGroups () {
       api.getGroups().then(res => {
         if (res.data.code === 0) {
@@ -637,21 +569,6 @@ function getBase64 (file) {
   })
 }
 
-// 将base64转换为文件对象
-function dataURLtoFile (dataurl, filename) {
-  var arr = dataurl.split(',')
-  var mime = arr[0].match(/:(.*?);/)[1]
-  var bstr = atob(arr[1])
-  var n = bstr.length
-  var u8arr = new Uint8Array(n)
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n)
-  }
-  // 转换成file对象
-  return new File([u8arr], filename, { type: mime })
-  // 转换成成blob对象
-  // return new Blob([u8arr],{type:mime});
-}
 </script>
 <style scoped>
 .faceContainer {

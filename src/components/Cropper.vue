@@ -30,6 +30,13 @@
         >
         </vue-cropper>
       </div>
+      <div>
+        <a-radio-group v-model="side">
+      <a-radio :value="0">正脸</a-radio>
+      <a-radio :value="1">左侧</a-radio>
+      <a-radio :value="2">右侧</a-radio>
+    </a-radio-group>
+      </div>
       <!--底部操作工具按钮-->
       <div class="footer-btn">
         <div class="scope-btn">
@@ -100,6 +107,8 @@ export default {
     return {
       previews: {},
       crap: false,
+      side: 0,
+      selectedImg: {},
       option: {
         img: '', // 裁剪图片的地址
         outputSize: 1, // 裁剪生成图片的质量(可选0.1 - 1)
@@ -128,14 +137,16 @@ export default {
   watch: {
     fileObj: {
       handler (val, oldVal) {
-        this.crap = false
+        if (val && val.originFileObj) {
+          this.crap = false
 
-        let reader = new FileReader()
-        reader.onload = (e) => {
-          this.option.img = reader.result
+          let reader = new FileReader()
+          reader.onload = (e) => {
+            this.option.img = reader.result
+          }
+          // 转化为base64
+          reader.readAsDataURL(val.originFileObj)
         }
-        // 转化为base64
-        reader.readAsDataURL(val.originFileObj)
       },
       deep: true,
       immediate: true
@@ -175,6 +186,7 @@ export default {
     // 选择图片
     selectImg (e) {
       let file = e.target.files[0]
+      this.selectedImg = file
       if (!/\.(jpg|jpeg|png|JPG|PNG)$/.test(e.target.value)) {
         this.$message({
           message: '图片类型要求：jpeg、jpg、png',
@@ -218,9 +230,9 @@ export default {
         // 获取截图的base64数据
         this.$refs.cropper.getCropData(async (data) => {
           let imgInfo = {
-            uid: _this.Uid,
-            name: _this.Name,
-            url: data
+            file: this.selectedImg,
+            url: data,
+            side: this.side
           }
           _this.$emit('uploadCropperImg', imgInfo)
         })

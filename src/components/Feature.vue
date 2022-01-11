@@ -1,6 +1,15 @@
 <template>
   <div class="featuresOfFaceList">
-    <a-upload
+    <template v-for="(item,k) in fileList">
+      <img class="tablePopImg" :key="k" :src="item.fileuri" />
+    </template>
+    <div v-if="fileList.length < imgMaxLength" @click="cropperVisible = true">
+      <a-icon type="plus" />
+      <div class="ant-upload-text">
+        上传图片
+      </div>
+    </div>
+    <!-- <a-upload
       list-type="picture-card"
       :multiple="false"
       :beforeUpload="beforeUpload"
@@ -15,14 +24,14 @@
           上传图片
         </div>
       </div>
-    </a-upload>
+    </a-upload> -->
     <a-modal
       title="裁剪人脸"
       width="800px"
       :footer="null"
       v-model="cropperVisible"
     >
-      <CropperImage :Name="cropperName" :Uid="cropperUid" :file-obj="currImgFile" :show-input-img="false" :show-upload-img="true" @uploadCropperImg="handleAddFeature" ref="child"></CropperImage>
+      <CropperImage :show-input-img="true" :show-upload-img="true" @uploadCropperImg="handleAddFeature" ref="child"></CropperImage>
     </a-modal>
   </div>
 </template>
@@ -106,24 +115,18 @@ export default {
       }
     },
     handleAddFeature (data) {
+      console.log(data)
       if (!data.url) {
         this.$message.error('请上传人脸图片！')
         return
       }
 
       this.cropperVisible = false
-      var idx = 0
-      this.fileList.map((item, k) => {
-        if (item.uid === data.uid) {
-          idx = k
-          item.thumbUrl = data.url
-          item.originFileObj = dataURLtoFile(data.url, data.name)
-        }
-      })
-      console.log(this.fileList)
+      var originFileObj = dataURLtoFile(data.url, data.file.name)
 
       var formdata = new FormData()
-      formdata.append('file', this.fileList[idx].originFileObj, this.fileList[idx].originFileObj.name)
+      formdata.append('side', data.side)
+      formdata.append('file', originFileObj, data.file.name)
 
       this.addLoading = true
       api.addFeature({ faceId: this.face.id, formdata: formdata }).then(res => {
