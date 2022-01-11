@@ -127,7 +127,7 @@ export default {
 
       this.addLoading = true
       api.addFeature({ faceId: this.face.id, formdata: formdata }).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.$emit('getfacelist')
 
           this.addFeatureVisible = false
@@ -142,6 +142,11 @@ export default {
         }
       }).catch(error => {
         this.addLoading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '创建出错！')
         } else {
@@ -151,13 +156,18 @@ export default {
     },
     delFeature (feature) {
       api.delFeature({ id: feature.id }).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.$emit('getfacelist')
           this.$message.success('特征图删除成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '删除出错！')
         } else {

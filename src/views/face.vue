@@ -20,11 +20,9 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建人脸</a-button>
         </a-form-model-item>
       </a-form-model>
-      <div>
-        <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建人脸</a-button>
-      </div>
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
@@ -97,6 +95,10 @@
           </a-form-model-item>
           <a-form-model-item label="生日">
             <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="addForm.birthday" />
+          </a-form-model-item>
+          <a-form-model-item label="别名">
+          </a-form-model-item>
+          <a-form-model-item label="履历">
           </a-form-model-item>
           <a-form-model-item label="人脸图">
             <a-upload
@@ -213,6 +215,20 @@ const columns = [
     key: 'gender',
     scopedSlots: { customRender: 'gender' },
     width: 60
+  },
+  {
+    title: '别名',
+    dataIndex: 'title',
+    key: 'title',
+    scopedSlots: { customRender: 'title' },
+    width: 100
+  },
+  {
+    title: '履历',
+    dataIndex: 'history',
+    key: 'history',
+    scopedSlots: { customRender: 'history' },
+    width: 100
   },
   {
     title: '人脸特征图',
@@ -356,7 +372,7 @@ export default {
       this.spinning = true
       if (params.groupId) {
         api.getGroupFaces(params).then(res => {
-          if (res.data.code === 200) {
+          if (res.data.code === 0) {
             this.datalist = res.data.data
             if (this.page_no === 1) {
               this.dataTotal = res.data.total
@@ -367,6 +383,11 @@ export default {
           }
         }).catch(error => {
           this.spinning = false
+          if (error.response.status === 401) {
+            this.$store.dispatch('authentication/resetToken').then(() => {
+              this.$router.push({ path: '/login' })
+            })
+          }
           if (error.response && error.response.data) {
             this.$message.error(error.response.data.message || '获取人脸库出错！')
           } else {
@@ -375,7 +396,7 @@ export default {
         })
       } else {
         api.getFaces(params).then(res => {
-          if (res.data.code === 200) {
+          if (res.data.code === 0) {
             this.datalist = res.data.data
             if (this.page_no === 1) {
               this.dataTotal = res.data.total
@@ -387,6 +408,11 @@ export default {
           }
         }).catch(error => {
           this.spinning = false
+          if (error.response.status === 401) {
+            this.$store.dispatch('authentication/resetToken').then(() => {
+              this.$router.push({ path: '/login' })
+            })
+          }
           if (error.response && error.response.data) {
             this.$message.error(error.response.data.message || '获取人脸库出错！')
           } else {
@@ -455,7 +481,7 @@ export default {
 
       this.addLoading = true
       api.addFace(formdata).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.page_no = 1
           this.getFaces()
 
@@ -475,6 +501,11 @@ export default {
         }
       }).catch(error => {
         this.addLoading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '创建出错！')
         } else {
@@ -504,7 +535,7 @@ export default {
 
       this.editLoading = true
       api.editFace(formdata).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.page_no = 1
           this.getFaces()
 
@@ -517,6 +548,11 @@ export default {
         }
       }).catch(error => {
         this.editLoading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '更新出错！')
         } else {
@@ -533,13 +569,18 @@ export default {
     },
     delFace (record, idx) {
       api.delFace({ id: record.id }).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.getFaces()
           this.$message.success('人脸删除成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '删除出错！')
         } else {
@@ -566,12 +607,17 @@ export default {
     },
     getAllGroups () {
       api.getGroups().then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           var groupArr = res.data.data
           this.groupsData = groupArr
         }
       }).catch(error => {
         console.log(error)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         // if (error.response && error.response.data) {
         //   this.$message.error(error.response.data.message || '获取明星列表出错！')
         // } else {

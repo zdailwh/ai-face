@@ -37,8 +37,8 @@
             <label class="btn" for="uploads">选择人脸</label>
             <input type="file" id="uploads" style="position:absolute; clip:rect(0 0 0 0);" accept="image/png, image/jpeg, image/gif, image/jpg" @change="selectImg($event)">
           </template>
-          <a-button size="small" type="primary" icon="scissor" @click="startCrop" v-if="!crap">开始截图</a-button>
-          <a-button size="small" type="primary" icon="scissor" @click="stopCrop" v-else>停止截图</a-button>
+          <!-- <a-button size="small" type="primary" icon="scissor" @click="startCrop" v-if="!crap">开始截图</a-button>
+          <a-button size="small" type="primary" icon="scissor" @click="stopCrop" v-else>停止截图</a-button> -->
           <a-button size="small" type="primary" ghost icon="zoom-in" @click="changeScale(1)">放大</a-button>
           <a-button size="small" type="primary" ghost icon="zoom-out" @click="changeScale(-1)">缩小</a-button>
           <a-button size="small" type="primary" ghost @click="rotateLeft">↺ 左旋转</a-button>
@@ -106,13 +106,13 @@ export default {
         outputType: 'jpeg', // 裁剪生成图片的格式（jpeg || png || webp）
         info: true, // 图片大小信息
         canScale: true, // 图片是否允许滚轮缩放
-        autoCrop: false, // 是否默认生成截图框
+        autoCrop: true, // 是否默认生成截图框
         autoCropWidth: 200, // 默认生成截图框宽度
-        autoCropHeight: 200, // 默认生成截图框高度
-        fixed: false, // 是否开启截图框宽高固定比例
-        fixedNumber: [1.53, 1], // 截图框的宽高比例
+        autoCropHeight: 300, // 默认生成截图框高度
+        fixed: true, // 是否开启截图框宽高固定比例
+        fixedNumber: [1, 1.5], // 截图框的宽高比例
         full: false, // false按原比例裁切图片，不失真
-        fixedBox: false, // 固定截图框大小，不允许改变
+        fixedBox: true, // 固定截图框大小，不允许改变
         canMove: true, // 上传图片是否可以移动
         canMoveBox: true, // 截图框能否拖动
         original: false, // 上传图片按照原始比例渲染
@@ -242,7 +242,7 @@ export default {
 }
 .cropper-content .cropper-box .cropper{
   width: auto;
-  height: 300px;
+  height: 400px;
 }
 .cropper-content .show-preview{
   flex: 1;

@@ -190,7 +190,7 @@ export default {
 
       this.addLoading = true
       api.addTask(formdata).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.updateParentData('page_no', 1)
           this.$emit('getList')
 
@@ -211,7 +211,11 @@ export default {
         }
       }).catch(error => {
         this.addLoading = false
-        console.log(error.response)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         this.$message.error(error.response.data.message || '创建出错！')
       })
     },

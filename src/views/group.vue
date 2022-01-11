@@ -12,11 +12,9 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建分组</a-button>
         </a-form-model-item>
       </a-form-model>
-      <div>
-        <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建分组</a-button>
-      </div>
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
@@ -292,7 +290,7 @@ export default {
 
       this.spinning = true
       api.getGroups(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.datalist = res.data.data
           if (this.page_no === 1) {
             this.dataTotal = res.data.total
@@ -304,6 +302,11 @@ export default {
         }
       }).catch(error => {
         this.spinning = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '获取人脸库出错！')
         } else {
@@ -326,7 +329,7 @@ export default {
 
       this.addLoading = true
       api.addGroup(this.addForm).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.page_no = 1
           this.getGroups()
 
@@ -342,6 +345,11 @@ export default {
         }
       }).catch(error => {
         this.addLoading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '创建出错！')
         } else {
@@ -375,7 +383,7 @@ export default {
 
       this.editLoading = true
       api.editGroup(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.page_no = 1
           this.getGroups()
 
@@ -388,6 +396,11 @@ export default {
         }
       }).catch(error => {
         this.editLoading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '更新出错！')
         } else {
@@ -404,13 +417,18 @@ export default {
     },
     delGroup (record, idx) {
       api.delGroup({id: record.id}).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.datalist.splice(idx, 1)
           this.$message.success('分组删除成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '删除出错！')
         } else {
@@ -420,7 +438,7 @@ export default {
     },
     getAllFaces () {
       api.getFaces().then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           var faceArr = res.data.data
           faceArr.map((item, key, arr) => {
             item.key = item.id
@@ -432,6 +450,11 @@ export default {
         }
       }).catch(error => {
         console.log(error)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         // if (error.response && error.response.data) {
         //   this.$message.error(error.response.data.message || '获取明星列表出错！')
         // } else {

@@ -101,8 +101,8 @@ export default {
         id: tid
       }
       api.getTasksById(params).then(res => {
-        if (res.data.code === 200) {
-          this.task = res.data
+        if (res.data.code === 0) {
+          this.task = res.data.data
           if (this.task && this.task.file_path && this.task.file_path !== 'undefined') {
             document.getElementById('myvideo').setAttribute('src', '/resource/' + this.task.file_path)
             // this.createPlayer()
@@ -111,6 +111,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '获取任务详情出错！')
         } else {
@@ -126,7 +131,7 @@ export default {
         page_size: this.page_size
       }
       api.getTaskResults(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.resDatalist = this.resDatalist.concat(res.data.data)
           this.resDataTotal = res.data.total
           this.page_no += 1
@@ -142,6 +147,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '获取任务结果出错！')
         } else {
@@ -282,6 +292,7 @@ export default {
 }
 .playwrap {
   padding: 0 5px;
+  height: 500px;
 }
 
 .cut_catalog_dropdown {

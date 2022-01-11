@@ -19,11 +19,9 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true;targetKeys = []"><a-icon key="plus" type="plus"/>添加任务</a-button>
         </a-form-model-item>
       </a-form-model>
-      <div>
-        <a-button type="primary" @click="addVisible = true;targetKeys = []"><a-icon key="plus" type="plus"/>添加任务</a-button>
-      </div>
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
@@ -267,7 +265,7 @@ export default {
       console.log(params)
       this.spinning = true
       api.getTasks(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.datalist = res.data.data
           if (this.page_no === 1) {
             this.dataTotal = res.data.total
@@ -278,6 +276,11 @@ export default {
         }
       }).catch(error => {
         this.spinning = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '获取任务列表出错！')
         } else {
@@ -287,13 +290,18 @@ export default {
     },
     delTask (record, idx) {
       api.delTask({id: record.id}).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.$message.success('任务删除成功')
           this.getTasks()
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '删除出错！')
         } else {
@@ -315,7 +323,7 @@ export default {
         id: item.id
       }
       api.taskResume(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           // this.datalist[key].status = 1
           this.$message.success('任务已恢复')
           this.getTasks()
@@ -323,6 +331,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '任务恢复出错！')
         } else {
@@ -335,7 +348,7 @@ export default {
         id: item.id
       }
       api.taskPause(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           // this.datalist[key].status = 2
           this.$message.success('任务已暂停')
           this.getTasks()
@@ -343,6 +356,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '任务暂停出错！')
         } else {
@@ -355,7 +373,7 @@ export default {
         id: item.id
       }
       api.taskReset(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           // this.datalist[key].status = 2
           this.$message.success('任务已重置')
           this.getTasks()
@@ -363,6 +381,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '任务重置出错！')
         } else {
@@ -375,7 +398,7 @@ export default {
     },
     getAllFaces () {
       api.getFaces().then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           var faceArr = res.data.data
           faceArr.map((item, key, arr) => {
             item.key = item.id
@@ -384,7 +407,11 @@ export default {
           this.facesDatalist = faceArr
         }
       }).catch(error => {
-        console.log(error)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         // if (error.response && error.response.data) {
         //   this.$message.error(error.response.data.message || '获取明星列表出错！')
         // } else {
@@ -394,12 +421,16 @@ export default {
     },
     getAllGroups () {
       api.getGroups().then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           var groupArr = res.data.data
           this.groupDatalist = groupArr
         }
       }).catch(error => {
-        console.log(error)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         // if (error.response && error.response.data) {
         //   this.$message.error(error.response.data.message || '获取明星列表出错！')
         // } else {

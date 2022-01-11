@@ -169,7 +169,7 @@ export default {
       }
       this.spinning = true
       api.getTasks(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.datalist = res.data.data
           if (this.page_no === 1) {
             this.dataTotal = res.data.total
@@ -185,6 +185,11 @@ export default {
         }
       }).catch(error => {
         this.spinning = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '获取任务列表出错！')
         } else {
@@ -213,7 +218,7 @@ export default {
         id: tid
       }
       api.getTasksById(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.task = res.data
           if (this.task && this.task.url && this.task.url !== 'undefined') {
             this.createPlayer()
@@ -222,6 +227,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '获取任务详情出错！')
         } else {
@@ -237,7 +247,7 @@ export default {
         page_size: this.page_size_res
       }
       api.getTaskResults(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           this.resDatalist = this.resDatalist.concat(res.data.data)
           this.resDataTotal = res.data.total
           this.page_no_res += 1
@@ -253,6 +263,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '获取任务结果出错！')
         } else {
@@ -330,7 +345,7 @@ export default {
     },
     delTask (record, idx) {
       api.delTask({id: record.id}).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           // this.datalist.splice(idx, 1)
           this.$message.success('任务删除成功')
           this.getTasks()
@@ -338,6 +353,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '删除出错！')
         } else {
@@ -359,7 +379,7 @@ export default {
         id: item.id
       }
       api.taskResume(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           // this.datalist[key].status = 1
           this.$message.success('任务已恢复')
           this.getTasks()
@@ -367,6 +387,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '任务恢复出错！')
         } else {
@@ -379,7 +404,7 @@ export default {
         id: item.id
       }
       api.taskPause(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           // this.datalist[key].status = 2
           this.$message.success('任务已暂停')
           this.getTasks()
@@ -387,6 +412,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '任务暂停出错！')
         } else {
@@ -399,7 +429,7 @@ export default {
         id: item.id
       }
       api.taskReset(params).then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           // this.datalist[key].status = 1
           this.$message.success('任务已重置')
           this.getTasks()
@@ -407,6 +437,11 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '任务重置出错！')
         } else {
@@ -419,7 +454,7 @@ export default {
     },
     getAllFaces () {
       api.getFaces().then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           var faceArr = res.data.data
           faceArr.map((item, key, arr) => {
             item.key = item.FaceID
@@ -428,7 +463,11 @@ export default {
           this.facesDatalist = faceArr
         }
       }).catch(error => {
-        console.log(error)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         // if (error.response && error.response.data) {
         //   this.$message.error(error.response.data.message || '获取人脸列表出错！')
         // } else {
@@ -458,12 +497,16 @@ export default {
     },
     getAllGroups () {
       api.getGroups().then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 0) {
           var groupArr = res.data.data
           this.groupDatalist = groupArr
         }
       }).catch(error => {
-        console.log(error)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
         // if (error.response && error.response.data) {
         //   this.$message.error(error.response.data.message || '获取明星列表出错！')
         // } else {

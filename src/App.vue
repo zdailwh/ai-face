@@ -5,13 +5,19 @@
         <div class="opt">
           <div class="logo" v-show="smallLayout === false"><!-- <img src="./assets/ks_logo.png"> --><span class="logo_title">中广恒通 AI实验室</span></div>
         </div>
-        <div class="opt mymenu" style="justify-content: center;">
+        <div v-if="$router.options.routes.length" class="opt mymenu" style="justify-content: center;">
           <a-menu theme="dark" v-model="current" mode="horizontal">
-            <!-- <a-menu-item key="Demo"><router-link to="/demo">Demo</router-link></a-menu-item> -->
             <a-menu-item key="live"><router-link to="/live">直播流</router-link></a-menu-item>
             <a-menu-item key="task"><router-link to="/task">离线任务</router-link></a-menu-item>
             <a-menu-item key="facegroup"><router-link to="/facegroup/group">人脸库</router-link></a-menu-item>
-            <!-- <a-menu-item key="setting"><router-link to="/setting">设置</router-link></a-menu-item> -->
+            <!-- <a-sub-menu key="setting">
+              <span slot="title">基础配置</span>
+              <a-menu-item key="admin"><router-link to="/setting/admin/index">用户设置</router-link></a-menu-item>
+              <a-menu-item key="role"><router-link to="/setting/role/index">角色配置</router-link></a-menu-item>
+              <a-menu-item key="permission"><router-link to="/setting/permission/index">权限配置</router-link></a-menu-item>
+              <a-menu-item key="roleuser"><router-link to="/setting/roleuser/index">用户角色</router-link></a-menu-item>
+              <a-menu-item key="roleperm"><router-link to="/setting/roleperm/index">角色权限</router-link></a-menu-item>
+            </a-sub-menu> -->
           </a-menu>
         </div>
         <div class="opt" style="justify-content: flex-end;flex:1;margin-right: 10px;">
@@ -63,7 +69,7 @@ export default {
   },
   computed: {
     current () {
-      return [this.$route.meta.active]
+      return [this.$route.meta.active || '']
     }
   },
   mounted () {
@@ -75,9 +81,19 @@ export default {
   methods: {
     logout () {
       this.showMenus = false
-      this.$store.dispatch('authentication/logout').then(() => {
-        this.$router.push({ path: '/login' })
-      }).catch(() => {
+      this.$store.dispatch('authentication/logout').then((res) => {
+        if (res.data.code === 0) {
+          this.$router.push({ path: '/login' })
+        } else {
+          this.$message.error(res.data.message)
+        }
+      }).catch((error) => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        this.$message.error(error.response.data.message || error.response.data || '接口调用失败！')
       })
     }
   }
@@ -135,6 +151,9 @@ export default {
   background-color: transparent !important;
   border-bottom: none;
 }
+/*.mymenu .ant-menu-horizontal .ant-menu-submenu-horizontal .ant-menu-submenu-selected .ant-menu-submenu-title {
+  background-color: #1890ff;
+}*/
 
 .person-info {
   position: relative;

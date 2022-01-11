@@ -182,10 +182,10 @@ export default {
       if (this.editTag === 'edit') { // 编辑
         // 先删除 后新建
         api.delTask({id: this.editItem.ID}).then(res => {
-          if (res.data.code === 200) {
+          if (res.data.code === 0) {
             this.editLoading = true
             api.addTask(formdata).then(res => {
-              if (res.data.code === 200) {
+              if (res.data.code === 0) {
                 // this.datalist.splice(this.editKey, 1, res.data)
                 this.updateParentData('page_no', 1)
                 this.$emit('getList')
@@ -198,18 +198,26 @@ export default {
               }
             }).catch(error => {
               this.editLoading = false
-              console.log(error.response)
+              if (error.response.status === 401) {
+                this.$store.dispatch('authentication/resetToken').then(() => {
+                  this.$router.push({ path: '/login' })
+                })
+              }
               this.$message.error(error.response.data.message || '编辑出错！')
             })
           }
         }).catch(error => {
-          console.log(error.response)
+          if (error.response.status === 401) {
+            this.$store.dispatch('authentication/resetToken').then(() => {
+              this.$router.push({ path: '/login' })
+            })
+          }
           this.$message.error(error.response.data.message || '删除出错！')
         })
       } else if (this.editTag === 'copy') { // 复制
         this.editLoading = true
         api.addTask(formdata).then(res => {
-          if (res.data.code === 200) {
+          if (res.data.code === 0) {
             // this.datalist.splice(this.editKey, 1, res.data)
             this.updateParentData('page_no', 1)
             this.$emit('getList')
@@ -222,7 +230,11 @@ export default {
           }
         }).catch(error => {
           this.editLoading = false
-          console.log(error.response)
+          if (error.response.status === 401) {
+            this.$store.dispatch('authentication/resetToken').then(() => {
+              this.$router.push({ path: '/login' })
+            })
+          }
           this.$message.error(error.response.data.message || '复制出错！')
         })
       }

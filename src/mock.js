@@ -45,7 +45,7 @@ let templateFace = {
 }
 
 let templateFaces = {
-  'code': 200,
+  'code': 0,
   'total': 54,
   'data|1-54': [templateFace]
 }
@@ -61,7 +61,7 @@ let templateGroup = {
 }
 
 let templateGroups = {
-  'code': 200,
+  'code': 0,
   'total': 54,
   'data|1-54': [templateGroup]
 }
@@ -82,7 +82,7 @@ let templateTask = {
 }
 
 let templateTasks = {
-  'code': 200,
+  'code': 0,
   'total': 54,
   'data|1-10': [templateTask]
 }
@@ -120,8 +120,8 @@ let templateDemoMessages = {
   'data|1-10': [templateResultItem]
 }
 
-let user = {
-  'id': '@id',
+let templateUser = {
+  'id|2-10000': 2,
   'class': 'app\\user\\admin\\User',
   'class_name': '系统管理员',
   'model_name': '用户',
@@ -130,12 +130,18 @@ let user = {
   'status|1': [1, 2],
   'statusstr|1': ['活跃', '禁用'],
   'path': '/api/admin/v1/users/2',
-  'username': '@sentence(5, 10)',
+  'username': 'test1',
   'mobile': '',
+  'isadmin': 4,
   'activity': '@integer(100, 500)'
 }
+let templateUsers = {
+  'code': 0,
+  'total': 54,
+  'data|1-54': [templateUser]
+}
 
-let authentication = {
+let templateAuthentication = {
   'id': 965,
   'class': 'app\\user\\admin\\Authentication',
   'class_name': '登录认证',
@@ -148,7 +154,61 @@ let authentication = {
   'session': 'ej89fobjl830eoo8pdqhi63cmq',
   'clientip': '111.199.84.127',
   'expiretime': '2019-08-22 18:49:40',
-  'user': user
+  'user': templateUser
+}
+let templateLoginRes = {
+  'code': 0,
+  'data': templateAuthentication
+}
+
+let templateRole = {
+  'id|2-10000': 2,
+  create_time: '@datetime',
+  name: '@first',
+  description: '@first',
+  'status|1': [0, 1, 2]
+}
+
+let templateRoles = {
+  'code': 0,
+  'total': 54,
+  'data|1-54': [templateRole]
+}
+
+let templatePermission = {
+  'id|2-10000': 2,
+  create_time: '@datetime',
+  info: '@first',
+  name: '@first',
+  'status|1': [0, 1, 2]
+}
+
+let templatePermissions = {
+  'code': 0,
+  'total': 54,
+  'data|1-54': [templatePermission]
+}
+
+let templateRoleperm = {
+  'id|2-10000': 2,
+  'status|1': [0, 1, 2]
+}
+
+let templateRoleperms = {
+  'code': 0,
+  'total': 54,
+  'data|1-54': [templateRoleperm]
+}
+
+let templateRoleuser = {
+  'id|2-10000': 2,
+  'status|1': [0, 1, 2]
+}
+
+let templateRoleusers = {
+  'code': 0,
+  'total': 54,
+  'data|1-54': [templateRoleuser]
 }
 
 let face = Mock.mock(templateFace)
@@ -162,6 +222,18 @@ let features = Mock.mock(templateFeatures)
 let result = Mock.mock(templateResult)
 let demo = Mock.mock(templateDemo)
 let demoMessages = Mock.mock(templateDemoMessages)
+let authentication = Mock.mock(templateAuthentication)
+let loginRes = Mock.mock(templateLoginRes)
+let user = Mock.mock(templateUser)
+let users = Mock.mock(templateUsers)
+let role = Mock.mock(templateRole)
+let roles = Mock.mock(templateRoles)
+let permission = Mock.mock(templatePermission)
+let permissions = Mock.mock(templatePermissions)
+let roleperm = Mock.mock(templateRoleperm)
+let roleperms = Mock.mock(templateRoleperms)
+let roleuser = Mock.mock(templateRoleuser)
+let roleusers = Mock.mock(templateRoleusers)
 
 module.exports = {
   face,
@@ -175,5 +247,16 @@ module.exports = {
   result,
   demo,
   demoMessages,
-  authentication
+  authentication,
+  loginRes,
+  user,
+  users,
+  role,
+  roles,
+  permission,
+  permissions,
+  roleperm,
+  roleperms,
+  roleuser,
+  roleusers
 }

@@ -2,7 +2,7 @@
   <div class="login_container">
     <div class="login-wrap" :style="smallLayout?'width:369px':''">
       <div class="login_bg" v-show="smallLayout === false">
-        <span>智能内容管理系统</span>
+        <span>AI人脸审核系统</span>
       </div>
       <div class="login_box">
         <div class="login-form">
@@ -29,7 +29,6 @@
   </div>
 </template>
 <script>
-import { setToken } from '../utils/auth'
 export default {
   data () {
     let checkPending
@@ -84,24 +83,17 @@ export default {
     submitForm (formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          if (this.loginForm.username !== 'admin') {
-            this.$message.error('用户名错误')
-            return
-          }
-          if (this.loginForm.password !== 'admin') {
-            this.$message.error('密码错误')
-            return
-          }
-
-          setToken(JSON.stringify(this.loginForm))
-          this.$router.push({ path: this.redirect || '/' })
-          // this.loading = true
-          // this.$store.dispatch('authentication/login', this.loginForm).then(() => {
-          //   this.$router.push({ path: this.redirect || '/' })
-          //   this.loading = false
-          // }).catch(() => {
-          //   this.loading = false
-          // })
+          this.loading = true
+          this.$store.dispatch('authentication/login', this.loginForm).then((res) => {
+            this.loading = false
+            if (res.data.code === 0) {
+              this.$router.push({ path: this.redirect || '/' })
+            } else {
+              this.$message.error(res.data.message)
+            }
+          }).catch(() => {
+            this.loading = false
+          })
         } else {
           console.log('error submit!!')
           return false

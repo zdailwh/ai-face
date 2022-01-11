@@ -35,7 +35,25 @@ router.beforeEach(async (to, from, next) => {
       // if is logged in, redirect to the home page
       next({ path: '/' })
     } else {
-      next()
+      // determine whether the user has obtained his permission roles through getInfo
+      try {
+        var currUser = JSON.parse(hasToken)
+        var roles = []
+        if (parseInt(currUser.isadmin) > 3) {
+          roles = ['admin']
+        } else {
+          roles = ['editor']
+        }
+        await store.dispatch('authentication/setRole', roles)
+        // const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
+        // router.addRoutes(accessRoutes)
+        // next({ ...to, replace: true })
+        next()
+      } catch (error) {
+        // remove token and go to login page to re-login
+        await store.dispatch('authentication/resetToken')
+        next(`/login?redirect=${to.path}`)
+      }
     }
   } else {
     /* has no token */
@@ -48,7 +66,6 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 })
-
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

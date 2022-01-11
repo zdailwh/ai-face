@@ -282,20 +282,17 @@ export default {
 
   async login (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post('/api/admin/v1/login', {
-        username: params.username,
-        password: params.password
-      })
+      var res = await axios.post(`/login?username=${params.username}&password=${params.password}`)
       return res
     } else {
-      const data = await await timeout(200).then(() => mock.authentication)
+      const data = await await timeout(200).then(() => mock.loginRes)
       return { status: 200, data: data }
     }
   },
 
   async logout (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.get('/api/admin/v1/logout')
+      var res = await axios.get('/logout')
       return res
     } else {
       const data = await await timeout(200).then(() => mock.authentication)

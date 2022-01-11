@@ -3,7 +3,8 @@ import { getToken, setToken, removeToken } from '../../utils/auth'
 
 const state = {
   token: getToken() ? JSON.parse(getToken()) : null,
-  info: getToken() ? JSON.parse(getToken()) : {}
+  info: getToken() ? JSON.parse(getToken()) : {},
+  roles: []
 }
 
 const mutations = {
@@ -12,20 +13,31 @@ const mutations = {
   },
   SET_TOKEN: (state, token) => {
     state.token = token
+  },
+  SET_ROLES: (state, roles) => {
+    state.roles = roles
   }
 }
 
 const actions = {
+  setRole ({ commit }, roles) {
+    return new Promise(resolve => {
+      commit('SET_ROLES', roles)
+      resolve()
+    })
+  },
   // user login
   login ({ commit }, userInfo) {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
       api.login({ username: username.trim(), password: password }).then(response => {
-        const item = response.data
-        commit('SET_INFO', item.user)
-        commit('SET_TOKEN', item.user)
-        setToken(JSON.stringify(item.user))
-        resolve(item)
+        if (response.data.code === 0) {
+          const item = response.data.data
+          commit('SET_INFO', item.user)
+          commit('SET_TOKEN', JSON.stringify(item.user))
+          setToken(JSON.stringify(item.user))
+        }
+        resolve(response)
       }).catch(error => {
         reject(error)
       })
@@ -35,11 +47,13 @@ const actions = {
   // user logout
   logout ({ commit, state }) {
     return new Promise((resolve, reject) => {
-      api.logout().then(() => {
-        commit('SET_INFO', {})
-        commit('SET_TOKEN', null)
-        removeToken()
-        resolve()
+      api.logout().then((response) => {
+        if (response.data.code === 0) {
+          commit('SET_INFO', {})
+          commit('SET_TOKEN', null)
+          removeToken()
+        }
+        resolve(response)
       }).catch(error => {
         reject(error)
       })
