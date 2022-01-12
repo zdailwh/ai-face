@@ -15,7 +15,7 @@
           <a-input v-model="formadd.mobile" />
         </a-form-model-item>
         <a-form-model-item label="角色">
-          <a-select v-model="roleId" :allowClear="true">
+          <a-select v-model="formadd.role_id" :allowClear="true">
             <a-select-option :value="item.value" v-for="item in optionsRoles" v-bind:key="item.value">
               {{item.label}}
             </a-select-option>
@@ -83,9 +83,9 @@ export default {
       formadd: {
         username: '',
         password: '',
-        mobile: ''
+        mobile: '',
+        role_id: ''
       },
-      roleId: null,
       ruleValidate: {
         username: [
           { required: true, type: 'string', message: '姓名不能为空', trigger: 'blur' }
@@ -105,21 +105,28 @@ export default {
   },
   methods: {
     commit () {
-      this.$refs.form.validate((valid) => {
-        if (valid) {
-          if (!this.roleId) {
-            this.$message({
-              message: '请选择用户角色！',
-              type: 'error'
-            })
-            return false
-          }
-          this.createUser()
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
+      if (!this.formadd.username) {
+        this.$message({
+          message: '请输入用户名！',
+          type: 'error'
+        })
+        return false
+      }
+      if (!this.formadd.password) {
+        this.$message({
+          message: '请输入密码！',
+          type: 'error'
+        })
+        return false
+      }
+      if (!this.formadd.role_id) {
+        this.$message({
+          message: '请选择用户角色！',
+          type: 'error'
+        })
+        return false
+      }
+      this.createUser()
     },
     createUser () {
       console.log(this.formadd)
@@ -129,15 +136,16 @@ export default {
           message: '用户创建成功！',
           type: 'success'
         })
-        this.createRoleUser(response.id, this.roleId)
+        this.createRoleUser(response.data.data.id, this.formadd.role_id)
         this.formadd = {
           username: '',
           password: '',
-          mobile: ''
+          mobile: '',
+          role_id: ''
         }
         this.loading = false
-        // this.$emit('changeAddVisible', false)
-        // this.$emit('refresh')
+        this.$emit('changeAddVisible', false)
+        this.$emit('refresh')
       }).catch(error => {
         this.loading = false
         console.log(error.response.data)

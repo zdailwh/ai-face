@@ -46,8 +46,10 @@ let templateFace = {
 
 let templateFaces = {
   'code': 0,
-  'total': 54,
-  'data|1-54': [templateFace]
+  'data': {
+    'total': 54,
+    'item|1-54': [templateFace]
+  }
 }
 
 let templateGroup = {
@@ -62,20 +64,43 @@ let templateGroup = {
 
 let templateGroups = {
   'code': 0,
-  'total': 54,
-  'data|1-54': [templateGroup]
+  'data': {
+    'total': 54,
+    'item|1-54': [templateGroup]
+  }
+}
+
+let templateTemp = {
+  'id|2-10000': 2,
+  'create_time': '2020-10-15T17:54:52.43+08:00',
+  'update_time': '2020-10-15T17:54:52.43+08:00',
+  'frame_rate': 25,
+  'prority': 0,
+  'groupIds': []
+}
+
+let templateTemps = {
+  'code': 0,
+  'data': {
+    'total': 54,
+    'item|1-54': [templateTemp]
+  }
 }
 
 let templateTask = {
   'id|2-10000': 2,
   'create_time': '2020-10-15T18:43:24.842+08:00',
   'update_time': '2020-10-15T18:43:24.842+08:00',
-  'groupId': 'default_base_all',
+  'group_ids': 'default_base_all',
   'name': 'test20200915-4',
   'description': 'hank-test',
   'url': '',
   'filepath': 'task/111.mp4',
   'faceIds': '8692-f7a505-df13,7a92-efa815-af02',
+  'frame_rate': 25,
+  'prority': 0,
+  'processTime': 12,
+  'duration': 30,
   'status|1': [0, 1, 2], // 0新建，1进⾏中，2完成
   'stream_type': 'offline',
   'type': '1'
@@ -83,8 +108,10 @@ let templateTask = {
 
 let templateTasks = {
   'code': 0,
-  'total': 54,
-  'data|1-10': [templateTask]
+  'data': {
+    'total': 54,
+    'item|1-54': [templateTask]
+  }
 }
 
 let templateFeature = {
@@ -137,8 +164,10 @@ let templateUser = {
 }
 let templateUsers = {
   'code': 0,
-  'total': 54,
-  'data|1-54': [templateUser]
+  'data': {
+    'total': 54,
+    'item|1-54': [templateUser]
+  }
 }
 
 let templateAuthentication = {
@@ -171,8 +200,10 @@ let templateRole = {
 
 let templateRoles = {
   'code': 0,
-  'total': 54,
-  'data|1-54': [templateRole]
+  'data': {
+    'total': 54,
+    'item|1-54': [templateRole]
+  }
 }
 
 let templatePermission = {
@@ -185,8 +216,10 @@ let templatePermission = {
 
 let templatePermissions = {
   'code': 0,
-  'total': 54,
-  'data|1-54': [templatePermission]
+  'data': {
+    'total': 54,
+    'item|1-54': [templatePermission]
+  }
 }
 
 let templateRoleperm = {
@@ -196,8 +229,10 @@ let templateRoleperm = {
 
 let templateRoleperms = {
   'code': 0,
-  'total': 54,
-  'data|1-54': [templateRoleperm]
+  'data': {
+    'total': 54,
+    'item|1-54': [templateRoleperm]
+  }
 }
 
 let templateRoleuser = {
@@ -207,14 +242,18 @@ let templateRoleuser = {
 
 let templateRoleusers = {
   'code': 0,
-  'total': 54,
-  'data|1-54': [templateRoleuser]
+  'data': {
+    'total': 54,
+    'item|1-54': [templateRoleuser]
+  }
 }
 
 let face = Mock.mock(templateFace)
 let faces = Mock.mock(templateFaces)
 let group = Mock.mock(templateGroup)
 let groups = Mock.mock(templateGroups)
+let temp = Mock.mock(templateTemp)
+let temps = Mock.mock(templateTemps)
 let task = Mock.mock(templateTask)
 let tasks = Mock.mock(templateTasks)
 let feature = Mock.mock(templateFeature)
@@ -240,6 +279,8 @@ module.exports = {
   faces,
   group,
   groups,
+  temp,
+  temps,
   task,
   tasks,
   feature,

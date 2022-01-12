@@ -3,8 +3,18 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="人名" prop="name">
-          <a-input v-model="searchForm.name" style="width: 120px;" />
+        <a-form-model-item label="帧率" prop="frame_rate">
+          <a-select v-model="searchForm.frame_rate" placeholder="选择帧率" style="width: 120px">
+            <a-select-option :value="1">1</a-select-option>
+            <a-select-option :value="2">2</a-select-option>
+            <a-select-option :value="5">5</a-select-option>
+            <a-select-option :value="25">25</a-select-option>
+          </a-select>
+        </a-form-model-item>
+        <a-form-model-item label="优先级" prop="prority">
+          <a-select v-model="searchForm.prority" placeholder="选择优先级" style="width: 120px">
+            <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
+          </a-select>
         </a-form-model-item>
         <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
           <a-range-picker :locale="locale" v-model="searchForm.createTime" style="width: 220px;" />
@@ -12,15 +22,17 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
-          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建分组</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建模板</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="id" :pagination="false">
-        <span slot="faceIds" slot-scope="faceIds">
-          {{faceIds.join(',')}}
+        <span slot="groups" slot-scope="groups">
+          <template v-for="(it, k) in groups">
+            <router-link :to="{ path: '/facegroup/face', query: { groupId: it.id }}" :key="k">{{it.name}}、</router-link>
+          </template>
         </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
@@ -29,15 +41,15 @@
           <a @click="toEdit(record, idx)">编辑</a>
           <a-divider type="vertical" />
           <a-popconfirm
-            title="确定要删除该分组吗?"
+            title="确定要删除该模板吗?"
             ok-text="删除"
             cancel-text="取消"
-            @confirm="delGroup(record, idx)"
+            @confirm="delTemp(record, idx)"
           >
             <a>删除</a>
           </a-popconfirm>
-          <a-divider type="vertical" />
-          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看人脸<a-icon type="right" /></router-link>
+          <!-- <a-divider type="vertical" />
+          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看人脸<a-icon type="right" /></router-link> -->
         </span>
       </a-table>
       <div style="margin: 15px 0;text-align: right;">
@@ -57,46 +69,35 @@
         </a-pagination>
       </div>
     </div>
-    <!--创建分组-->
+    <!--创建模板-->
     <a-modal
-      title="创建分组"
+      title="创建模板"
+      width="800px"
       v-model="addVisible"
     >
       <div>
-        <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
-          <a-form-model-item label="名称">
-            <a-input v-model="addForm.name" />
+        <a-form-model :model="addForm">
+          <a-form-model-item label="帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="addForm.frame_rate">
+              <a-select-option :value="1">1</a-select-option>
+              <a-select-option :value="2">2</a-select-option>
+              <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="25">25</a-select-option>
+            </a-select>
           </a-form-model-item>
-          <a-form-model-item label="描述">
-            <a-input v-model="addForm.description" />
+          <a-form-model-item label="优先级" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="addForm.prority">
+              <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
+            </a-select>
           </a-form-model-item>
-        </a-form-model>
-      </div>
-      <template slot="footer">
-        <a-button key="back" @click="handleCancel_add">
-          取消
-        </a-button>
-        <a-button key="submit" type="primary" :loading="addLoading" @click="handleAdd">
-          创建
-        </a-button>
-      </template>
-    </a-modal>
-    <!--编辑分组-->
-    <a-modal
-      title="分组维护"
-      width="800px"
-      v-model="editVisible"
-    >
-      <div>
-        <a-form-model :model="editForm" :label-col="{span:0}">
-          <a-form-model-item label="选择人脸">
+          <a-form-model-item label="选择人脸组" :label-col="{span:3}" :wrapper-col="{span:21}">
             <a-transfer
-              :data-source="facesDatalist"
+              :data-source="groupsDatalist"
               :filter-option="filterOption"
               :showSelectAll="false"
               :showSearch="true"
               :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-              :titles="['人脸库', '目标']"
+              :titles="['人脸组', '目标']"
               :target-keys="targetKeys"
               :selected-keys="selectedKeys"
               :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
@@ -129,10 +130,87 @@
                     })
                   "
                   >
-                  <template slot="features" slot-scope="features">
-                    <template v-for="(fe, key) in features">
-                      <img :src="fe.fileuri" :key="key" style="max-width: 50px;max-height: 50px;">
-                    </template>
+                  <template slot="title" slot-scope="item">
+                    <a href="javascript:;">{{item.title}}</a>
+                  </template>
+                </a-table>
+              </template>
+            </a-transfer>
+          </a-form-model-item>
+        </a-form-model>
+      </div>
+      <template slot="footer">
+        <a-button key="back" @click="handleCancel_add">
+          取消
+        </a-button>
+        <a-button key="submit" type="primary" :loading="addLoading" @click="handleAdd">
+          创建
+        </a-button>
+      </template>
+    </a-modal>
+    <!--编辑模板-->
+    <a-modal
+      title="模板维护"
+      width="800px"
+      v-model="editVisible"
+    >
+      <div>
+        <a-form-model :model="editForm" :label-col="{span:0}">
+          <a-form-model-item label="帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="editForm.frame_rate">
+              <a-select-option :value="1">1</a-select-option>
+              <a-select-option :value="2">2</a-select-option>
+              <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="25">25</a-select-option>
+            </a-select>
+          </a-form-model-item>
+          <a-form-model-item label="优先级" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="editForm.prority">
+              <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
+            </a-select>
+          </a-form-model-item>
+          <a-form-model-item label="选择人脸组" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-transfer
+              :data-source="groupsDatalist"
+              :filter-option="filterOption"
+              :showSelectAll="false"
+              :showSearch="true"
+              :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
+              :titles="['人脸组', '目标']"
+              :target-keys="targetKeys"
+              :selected-keys="selectedKeys"
+              :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
+              @change="handleChange"
+              @selectChange="handleSelectChange">
+              <template
+                slot="children"
+                slot-scope="{
+                  props: { direction, filteredItems, selectedKeys, disabled: listDisabled },
+                  on: { itemSelectAll, itemSelect },
+                }"
+              >
+                <a-table
+                  :row-selection="
+                    getRowSelection({ disabled: listDisabled, selectedKeys, itemSelectAll, itemSelect })
+                  "
+                  :columns="direction === 'left' ? leftColumns : rightColumns"
+                  :data-source="filteredItems"
+                  :pagination="{ pageSize: 10 }"
+                  size="small"
+                  :style="{ pointerEvents: listDisabled ? 'none' : null }"
+                  :custom-row="
+                    ({ key, disabled: itemDisabled }) => ({
+                      on: {
+                        click: () => {
+                          if (itemDisabled || listDisabled) return;
+                          itemSelect(key, !selectedKeys.includes(key));
+                        },
+                      },
+                    })
+                  "
+                  >
+                  <template slot="title" slot-scope="item">
+                    <a href="javascript:;">{{item.title}}</a>
                   </template>
                 </a-table>
               </template>
@@ -148,10 +226,6 @@
           更新
         </a-button>
       </template>
-    </a-modal>
-    <!--图片预览-->
-    <a-modal :visible="previewVisible" :footer="null" @cancel="previewVisible = false">
-      <img alt="example" style="width: 100%" :src="previewImage" />
     </a-modal>
   </div>
 </template>
@@ -169,22 +243,22 @@ const columns = [
     width: 100
   },
   {
-    title: '名称',
-    dataIndex: 'name',
-    key: 'name',
+    title: '帧率',
+    dataIndex: 'frame_rate',
+    key: 'frame_rate',
     width: 120
   },
   {
-    title: '描述',
-    dataIndex: 'description',
-    key: 'description',
+    title: '优先级',
+    dataIndex: 'prority',
+    key: 'prority',
     width: 120
   },
   {
-    title: '人脸',
-    dataIndex: 'faceIds',
-    key: 'faceIds',
-    scopedSlots: { customRender: 'faceIds' }
+    title: '人脸组',
+    dataIndex: 'groups',
+    key: 'groups',
+    scopedSlots: { customRender: 'groups' }
   },
   {
     title: '创建时间',
@@ -217,13 +291,14 @@ export default {
       page_size: 20,
       columns,
       addForm: {
-        name: '',
-        description: ''
+        frame_rate: 25,
+        prority: 0
       },
       addLoading: false,
       addVisible: false,
       searchForm: {
-        name: '',
+        frame_rate: '',
+        prority: '',
         createTime: []
       },
       editForm: {
@@ -232,14 +307,12 @@ export default {
       editItem: {},
       editKey: '',
       editVisible: false,
-      previewVisible: false,
-      previewImage: '',
       leftColumns: leftTableColumns,
       rightColumns: rightTableColumns,
-      targetFaceIds: [],
+      targetGroupIds: [],
       targetKeys: [],
       selectedKeys: [],
-      facesDatalist: []
+      groupsDatalist: []
     }
   },
   filters: {
@@ -249,54 +322,51 @@ export default {
     }
   },
   mounted () {
-    var ele = document.querySelectorAll('.file-main')
-    ele[0].style.backgroundColor = '#fff'
-
     var viewWidth = document.documentElement.clientWidth
     if (viewWidth < 540) {
       this.smallLayout = true
     }
 
-    this.getGroups()
-    this.getAllFaces()
+    this.getTemps()
+    this.getAllGroups()
   },
   methods: {
     onPageChange (current) {
       this.page_no = current
-      this.getGroups()
+      this.getTemps()
     },
     onShowSizeChange (current, pageSize) {
       this.page_size = pageSize
-      this.getGroups()
+      this.getTemps()
     },
     searchHandleOk () {
       this.page_no = 1
-      this.getGroups()
+      this.getTemps()
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
     },
-    getGroups () {
+    getTemps () {
       var params = {
         page_no: this.page_no,
         page_size: this.page_size
       }
-      if (this.searchForm.name) {
-        params.name = this.searchForm.name
+      if (this.searchForm.frame_rate) {
+        params.frame_rate = this.searchForm.frame_rate
+      }
+      if (this.searchForm.prority) {
+        params.prority = this.searchForm.prority
       }
       if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
         params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')
       }
 
       this.spinning = true
-      api.getGroups(params).then(res => {
+      api.getTemps(params).then(res => {
         var resBody = res.data
         if (resBody.code === 0) {
           this.datalist = resBody.data.item
-          if (this.page_no === 1) {
-            this.dataTotal = resBody.data.total
-            this.$store.commit('setGroupTotal', resBody.data.total)
-          }
+          this.dataTotal = resBody.data.total
           this.spinning = false
         } else {
           this.$message.error(resBody.message || '请求出错！')
@@ -318,21 +388,31 @@ export default {
     handleCancel_add () {
       this.addVisible = false
       this.addForm = {
-        name: '',
-        description: ''
+        frame_rate: '',
+        prority: ''
       }
     },
     handleAdd (e) {
-      if (this.addForm.name === '') {
-        this.$message.error('请填写分组名称！')
+      if (this.addForm.frame_rate === '') {
+        this.$message.error('请选择帧率！')
         return
+      }
+      if (this.addForm.prority === '') {
+        this.$message.error('请选择优先级！')
+        return
+      }
+      if (!this.targetGroupIds.length) {
+        this.$message.error('请选择人脸组！')
+        return
+      } else {
+        this.addForm.group_ids = this.targetGroupIds.join(',')
       }
 
       this.addLoading = true
-      api.addGroup(this.addForm).then(res => {
+      api.addTemp(this.addForm).then(res => {
         if (res.data.code === 0) {
           this.page_no = 1
-          this.getGroups()
+          this.getTemps()
 
           this.addVisible = false
           this.addLoading = false
@@ -340,7 +420,7 @@ export default {
             name: '',
             description: ''
           }
-          this.$message.success('分组创建成功')
+          this.$message.success('模板创建成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
@@ -363,7 +443,7 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-      this.targetKeys = this.editForm.faceIds
+      this.targetKeys = this.editForm.group_ids.split(',')
     },
     handleCancel_edit () {
       this.editVisible = false
@@ -373,25 +453,35 @@ export default {
       this.targetKeys = []
     },
     handleEdit () {
-      if (!this.targetFaceIds.length) {
-        this.$message.error('请选择人脸！')
+      if (this.editForm.frame_rate === '') {
+        this.$message.error('请选择帧率！')
+        return
+      }
+      if (this.editForm.prority === '') {
+        this.$message.error('请选择优先级！')
+        return
+      }
+      if (!this.targetGroupIds.length) {
+        this.$message.error('请选择人脸组！')
         return
       }
       var params = {
         id: this.editItem.id,
-        faceIds: this.targetFaceIds
+        frame_rate: this.editForm.frame_rate,
+        prority: this.editForm.prority,
+        group_ids: this.targetGroupIds.join(',')
       }
 
       this.editLoading = true
-      api.editGroup(params).then(res => {
+      api.editTemp(params).then(res => {
         if (res.data.code === 0) {
           this.page_no = 1
-          this.getGroups()
+          this.getTemps()
 
           this.editVisible = false
           this.editLoading = false
           this.editForm = {}
-          this.$message.success('分组编辑成功')
+          this.$message.success('模板编辑成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
@@ -409,18 +499,11 @@ export default {
         }
       })
     },
-    async handlePreview (file) {
-      if (!file.url && !file.preview) {
-        file.preview = await getBase64(file.originFileObj)
-      }
-      this.previewImage = file.url || file.preview
-      this.previewVisible = true
-    },
-    delGroup (record, idx) {
-      api.delGroup({id: record.id}).then(res => {
+    delTemp (record, idx) {
+      api.delTemp({id: record.id}).then(res => {
         if (res.data.code === 0) {
           this.datalist.splice(idx, 1)
-          this.$message.success('分组删除成功')
+          this.$message.success('模板删除成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
@@ -437,16 +520,16 @@ export default {
         }
       })
     },
-    getAllFaces () {
-      api.getFaces().then(res => {
+    getAllGroups () {
+      api.getGroups().then(res => {
         var resBody = res.data
         if (resBody.code === 0) {
-          var faceArr = resBody.data.item
-          faceArr.map((item, key, arr) => {
-            item.key = item.id
+          var groupArr = resBody.data.item
+          groupArr.map((item, key, arr) => {
+            item.key = '' + item.id
             item.title = item.name
           })
-          this.facesDatalist = faceArr
+          this.groupsDatalist = groupArr
         } else {
           this.$message.error(resBody.message || '请求出错！')
         }
@@ -487,7 +570,7 @@ export default {
     },
     handleChange (nextTargetKeys, direction, moveKeys) {
       this.targetKeys = nextTargetKeys
-      this.targetFaceIds = nextTargetKeys
+      this.targetGroupIds = nextTargetKeys
 
       // console.log('targetKeys: ', nextTargetKeys)
       // console.log('direction: ', direction)
@@ -505,40 +588,17 @@ export default {
 const leftTableColumns = [
   {
     dataIndex: 'title',
-    title: '姓名',
-    width: '50px',
+    title: '名称',
     scopedSlots: { customRender: 'name' }
-  },
-  {
-    dataIndex: 'features',
-    title: '特征图',
-    width: '150px',
-    scopedSlots: { customRender: 'features' }
   }
 ]
 const rightTableColumns = [
   {
     dataIndex: 'title',
-    title: '姓名',
-    width: '50px',
+    title: '名称',
     scopedSlots: { customRender: 'name' }
-  },
-  {
-    dataIndex: 'features',
-    title: '特征图',
-    width: '150px',
-    scopedSlots: { customRender: 'features' }
   }
 ]
-
-function getBase64 (file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = error => reject(error)
-  })
-}
 </script>
 <style scoped>
 .faceContainer {

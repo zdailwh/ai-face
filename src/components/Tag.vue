@@ -14,7 +14,7 @@
       v-if="inputVisible"
       ref="input"
       type="text"
-      :style="{ width: '78px' }"
+      :style="{ width: '150px' }"
       :value="inputValue"
       @change="handleInputChange"
       @blur="handleInputConfirm"
@@ -46,6 +46,7 @@ export default {
     handleClose (removedTag) {
       const tags = this.tags.filter(tag => tag !== removedTag)
       this.tags = tags
+      this.$emit('commitTag', tags)
     },
     showInput () {
       this.inputVisible = true
@@ -67,7 +68,7 @@ export default {
         inputVisible: false,
         inputValue: ''
       })
-      this.$emit('commit_tag', tags)
+      this.$emit('commitTag', tags)
     }
   }
 }

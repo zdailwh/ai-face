@@ -1,13 +1,15 @@
 <template>
   <div class="featuresOfFaceList">
-    <template v-for="(item,k) in fileList">
-      <img class="tablePopImg" :key="k" :src="item.fileuri" />
-    </template>
-    <div v-if="fileList.length < imgMaxLength" @click="cropperVisible = true">
-      <a-icon type="plus" />
-      <div class="ant-upload-text">
-        上传图片
+    <div v-for="(item,k) in fileList" :key="k" class="imgWrap">
+      <img class="tablePopImg" :src="item.fileuri" />
+      <div class="hoverWrap">
+        <a-icon type="eye" @click="handlePreview(item)" />
+        <a-icon type="delete" @click="delFeature(item)" />
       </div>
+    </div>
+    <div class="my-addimg" v-if="fileList.length < imgMaxLength" @click="cropperVisible = true">
+      <a-icon type="plus" />
+      <p>上传图片</p>
     </div>
     <!-- <a-upload
       list-type="picture-card"
@@ -33,6 +35,10 @@
     >
       <CropperImage :show-input-img="true" :show-upload-img="true" @uploadCropperImg="handleAddFeature" ref="child"></CropperImage>
     </a-modal>
+    <!--图片预览-->
+    <a-modal :visible="previewVisible" :footer="null" @cancel="previewVisible = false">
+      <img alt="example" style="width: 100%" :src="previewImage" />
+    </a-modal>
   </div>
 </template>
 <script>
@@ -43,19 +49,23 @@ export default {
   components: { CropperImage },
   data () {
     return {
+      previewImage: '',
+      previewVisible: false,
       imgMaxLength: 5, // 最多上传5张人脸图
       fileList: [
         {
           uid: '-1',
           name: 'image.png',
           status: 'done',
-          url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
+          url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+          fileuri: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
         },
         {
           uid: '-2',
           name: 'image.png',
           status: 'done',
-          url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
+          url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+          fileuri: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
         }
       ],
       cropperVisible: false,
@@ -177,6 +187,10 @@ export default {
           this.$message.error('接口调用失败！')
         }
       })
+    },
+    async handlePreview (feature) {
+      this.previewImage = feature.fileuri
+      this.previewVisible = true
     }
   }
 }
@@ -199,18 +213,48 @@ function dataURLtoFile (dataurl, filename) {
 </script>
 
 <style>
-.featuresOfFaceList .ant-upload-list-picture-card-container {
-  width: 70px;
-  height: 70px;
+.featuresOfFaceList {
+  display: flex;
 }
-.featuresOfFaceList .ant-upload-list-picture-card .ant-upload-list-item {
-  width: 70px;
-  height: 70px;
-  padding: 0;
-  border: none;
+.imgWrap {
+  position: relative;
 }
-.featuresOfFaceList .ant-upload.ant-upload-select-picture-card {
-  width: 70px;
-  height: 70px;
+.imgWrap:hover .hoverWrap {
+  display: flex;
+}
+.imgWrap .hoverWrap {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0,0,0,.3);
+  width: 60px;
+  height: 90px;
+  justify-content: center;
+  align-items: center;
+}
+.imgWrap .hoverWrap .anticon {
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 5px;
+}
+.my-addimg {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  border: 1px dashed #d9d9d9;
+  background-color: #fafafa;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.tablePopImg {
+  max-width: 60px;
+  max-height: 90px;
+  margin-right: 5px;
+  margin-bottom: 5px;
 }
 </style>

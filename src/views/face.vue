@@ -26,7 +26,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID" :pagination="false">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="id" :pagination="false">
         <span slot="gender" slot-scope="gender">
           {{!gender? '未知':(gender === 1)? '男': '女'}}
         </span>
@@ -97,10 +97,10 @@
             <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="addForm.birthday" />
           </a-form-model-item>
           <a-form-model-item label="别名">
-            <Tag :curr-tags="addForm.title" @commitTag="commitTitle"></Tag>
+            <Tag :curr-tags="addForm.title" @commitTag="commitAddTitle"></Tag>
           </a-form-model-item>
           <a-form-model-item label="履历">
-            <Tag :curr-tags="addForm.history" @commitTag="commitHistory"></Tag>
+            <Tag :curr-tags="addForm.history" @commitTag="commitAddHistory"></Tag>
           </a-form-model-item>
         </a-form-model>
       </div>
@@ -133,6 +133,12 @@
           </a-form-model-item>
           <a-form-model-item label="生日">
             <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="editForm.birthday" />
+          </a-form-model-item>
+          <a-form-model-item label="别名">
+            <Tag :curr-tags="editForm.title" @commitTag="commitEditTitle"></Tag>
+          </a-form-model-item>
+          <a-form-model-item label="履历">
+            <Tag :curr-tags="editForm.history" @commitTag="commitEditHistory"></Tag>
           </a-form-model-item>
         </a-form-model>
       </div>
@@ -248,7 +254,7 @@ export default {
         name: '',
         description: '',
         gender: '',
-        birthday: '',
+        birthday: null,
         title: [],
         history: []
       },
@@ -342,14 +348,15 @@ export default {
       this.spinning = true
       if (params.groupId) {
         api.getGroupFaces(params).then(res => {
-          if (res.data.code === 0) {
-            this.datalist = res.data.data
+          var resBody = res.data
+          if (resBody.code === 0) {
+            this.datalist = resBody.data.item
             if (this.page_no === 1) {
-              this.dataTotal = res.data.total
+              this.dataTotal = resBody.data.total
             }
             this.spinning = false
           } else {
-            this.$message.error(res.data.message || '请求出错！')
+            this.$message.error(resBody.message || '请求出错！')
           }
         }).catch(error => {
           this.spinning = false
@@ -366,15 +373,16 @@ export default {
         })
       } else {
         api.getFaces(params).then(res => {
-          if (res.data.code === 0) {
-            this.datalist = res.data.data
+          var resBody = res.data
+          if (resBody.code === 0) {
+            this.datalist = resBody.data.item
             if (this.page_no === 1) {
-              this.dataTotal = res.data.total
-              this.$store.commit('setFaceTotal', res.data.total)
+              this.dataTotal = resBody.data.total
+              this.$store.commit('setFaceTotal', resBody.total)
             }
             this.spinning = false
           } else {
-            this.$message.error(res.data.message || '请求出错！')
+            this.$message.error(resBody.message || '请求出错！')
           }
         }).catch(error => {
           this.spinning = false
@@ -391,11 +399,17 @@ export default {
         })
       }
     },
-    commitTitle (params) {
+    commitAddTitle (params) {
       this.addForm.title = params
     },
-    commitHistory (params) {
+    commitAddHistory (params) {
       this.addForm.history = params
+    },
+    commitEditTitle (params) {
+      this.editForm.title = params
+    },
+    commitEditHistory (params) {
+      this.editForm.history = params
     },
     handleCancel_add () {
       this.addVisible = false
@@ -404,7 +418,7 @@ export default {
         name: '',
         description: '',
         gender: '',
-        birthday: '',
+        birthday: null,
         title: [],
         history: []
       }
@@ -414,18 +428,14 @@ export default {
         this.$message.error('请填写人名！')
         return
       }
-      var formdata = new FormData()
-      var face = {
+      var formdata = {
         name: this.addForm.name,
         description: this.addForm.description,
         gender: this.addForm.gender,
-        birthday: this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DD') : '',
+        birthday: this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DDTHH:mm:ss') : '',
         title: this.addForm.title.join('|'),
         history: this.addForm.history.join('|')
       }
-      face = JSON.stringify(face)
-
-      formdata.append('face', face)
 
       this.addLoading = true
       api.addFace(formdata).then(res => {
@@ -440,7 +450,7 @@ export default {
             name: '',
             description: '',
             gender: '',
-            birthday: '',
+            birthday: null,
             title: [],
             history: []
           }
@@ -479,7 +489,9 @@ export default {
         id: this.editForm.id,
         description: this.editForm.description,
         gender: this.editForm.gender,
-        birthday: this.editForm.birthday ? moment(this.editForm.birthday).format('YYYY-MM-DD') : ''
+        birthday: this.editForm.birthday ? moment(this.editForm.birthday).format('YYYY-MM-DDTHH:mm:ss') : '',
+        title: this.editForm.title.join('|'),
+        history: this.editForm.history.join('|')
       }
 
       this.editLoading = true
@@ -539,8 +551,9 @@ export default {
     },
     getAllGroups () {
       api.getGroups().then(res => {
-        if (res.data.code === 0) {
-          var groupArr = res.data.data
+        var resBody = res.data
+        if (resBody.code === 0) {
+          var groupArr = resBody.data.item
           this.groupsData = groupArr
         }
       }).catch(error => {
@@ -585,9 +598,6 @@ function getBase64 (file) {
 }
 .tableImg + .tableImg {
   margin-left: 5px;
-}
-.tablePopImg {
-  max-width: 280px;
 }
 
 .searchWrap {

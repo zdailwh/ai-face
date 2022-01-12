@@ -25,7 +25,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID" :pagination="false">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="id" :pagination="false">
         <span slot="status" slot-scope="status" style="color: #87d068;">
           {{status === 0? '初始化': status === 1? '排队中' : status === 2? '处理中' : '处理完成'}}
         </span>
@@ -34,6 +34,9 @@
         </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
+        </span>
+        <span slot="process" slot-scope="process, record">
+          {{ (record.processTime / record.duration).toFixed(4) * 100 }}%
         </span>
         <span slot="action" slot-scope="record, index, idx">
           <!-- <a @click="toEdit(record, idx, 'edit')">编辑</a>
@@ -100,7 +103,7 @@
       </div>
     </div>
 
-    <AddTask tag="offline" :datalist="datalist" :add-visible="addVisible" :faces-data="facesDatalist" :groups-data="groupDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
+    <AddTask tag="offline" :datalist="datalist" :add-visible="addVisible" :faces-data="facesDatalist" :modes-data="modesDatalist" :groups-data="groupDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
     <EditTask tag="offline" :datalist="datalist" :edit-visible="editVisible" :faces-data="facesDatalist" :groups-data="groupDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" @getList="getTasks" />
 
   </div>
@@ -145,14 +148,27 @@ const columns = [
   },
   {
     title: '人脸组',
-    dataIndex: 'group_id',
-    key: 'group_id',
+    dataIndex: 'group_ids',
+    key: 'group_ids',
     width: 100
   },
   {
-    title: '人脸',
-    dataIndex: 'faceIds',
-    key: 'faceIds',
+    title: '帧率',
+    dataIndex: 'frame_rate',
+    key: 'frame_rate',
+    width: 50
+  },
+  {
+    title: '优先级',
+    dataIndex: 'prority',
+    key: 'prority',
+    width: 50
+  },
+  {
+    title: '进度',
+    dataIndex: 'process',
+    key: 'process',
+    scopedSlots: { customRender: 'process' },
     width: 100
   },
   {
@@ -177,9 +193,15 @@ const columns = [
   }
 ]
 
+var timer = null
 export default {
   components: { AddTask, EditTask },
   beforeRouteEnter (to, from, next) {
+    next()
+  },
+  beforeRouteLeave (to, from, next) {
+    this.continueCircle = false
+    window.clearTimeout(timer)
     next()
   },
   data () {
@@ -209,7 +231,9 @@ export default {
       editKey: '',
       editTag: '', // 'edit' || 'copy'
       facesDatalist: [],
-      groupDatalist: []
+      modesDatalist: [],
+      groupDatalist: [],
+      continueCircle: true // 是否继续轮循
     }
   },
   filters: {
@@ -229,6 +253,7 @@ export default {
 
     this.getTasks()
     this.getAllFaces()
+    this.getAllTemps()
     this.getAllGroups()
   },
   methods: {
@@ -250,8 +275,7 @@ export default {
     getTasks () {
       var params = {
         page_no: this.page_no,
-        page_size: this.page_size,
-        stream_type: this.stream_type
+        page_size: this.page_size
       }
       if (this.searchForm.type) {
         params.type = this.searchForm.type
@@ -262,17 +286,26 @@ export default {
       if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
         params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')
       }
-      console.log(params)
+
       this.spinning = true
       api.getTasks(params).then(res => {
-        if (res.data.code === 0) {
-          this.datalist = res.data.data
+        this.spinning = false
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.datalist = resBody.data.item
           if (this.page_no === 1) {
-            this.dataTotal = res.data.total
+            this.dataTotal = resBody.data.total
           }
-          this.spinning = false
         } else {
-          this.$message.error(res.data.message || '请求出错！')
+          this.$message.error(resBody.message || '请求出错！')
+        }
+        // 循环调用任务列表接口
+        var that = this
+        window.clearTimeout(timer)
+        if (this.continueCircle) {
+          timer = window.setTimeout(function () {
+            that.getTasks()
+          }, 5000)
         }
       }).catch(error => {
         this.spinning = false
@@ -398,10 +431,11 @@ export default {
     },
     getAllFaces () {
       api.getFaces().then(res => {
-        if (res.data.code === 0) {
-          var faceArr = res.data.data
+        var resBody = res.data
+        if (resBody.code === 0) {
+          var faceArr = resBody.data.item
           faceArr.map((item, key, arr) => {
-            item.key = item.id
+            item.key = '' + item.id
             item.title = item.name
           })
           this.facesDatalist = faceArr
@@ -419,10 +453,35 @@ export default {
         // }
       })
     },
+    getAllTemps () {
+      api.getTemps().then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          var modeArr = resBody.data.item
+          this.modesDatalist = modeArr
+        }
+      }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        // if (error.response && error.response.data) {
+        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+        // } else {
+        //   this.$message.error('接口调用失败！')
+        // }
+      })
+    },
     getAllGroups () {
       api.getGroups().then(res => {
-        if (res.data.code === 0) {
-          var groupArr = res.data.data
+        var resBody = res.data
+        if (resBody.code === 0) {
+          var groupArr = resBody.data.item
+          groupArr.map((item, key, arr) => {
+            item.key = '' + item.id
+            item.title = item.name
+          })
           this.groupDatalist = groupArr
         }
       }).catch(error => {

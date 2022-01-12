@@ -7,17 +7,16 @@
         </div>
         <div v-if="$router.options.routes.length" class="opt mymenu" style="justify-content: center;">
           <a-menu theme="dark" v-model="current" mode="horizontal">
-            <a-menu-item key="live"><router-link to="/live">直播流</router-link></a-menu-item>
             <a-menu-item key="task"><router-link to="/task">离线任务</router-link></a-menu-item>
-            <a-menu-item key="facegroup"><router-link to="/facegroup/group">人脸库</router-link></a-menu-item>
-            <!-- <a-sub-menu key="setting">
+            <a-menu-item key="facegroup"><router-link to="/facegroup/face">人脸库</router-link></a-menu-item>
+            <a-sub-menu key="setting">
               <span slot="title">基础配置</span>
               <a-menu-item key="admin"><router-link to="/setting/admin/index">用户设置</router-link></a-menu-item>
               <a-menu-item key="role"><router-link to="/setting/role/index">角色配置</router-link></a-menu-item>
               <a-menu-item key="permission"><router-link to="/setting/permission/index">权限配置</router-link></a-menu-item>
               <a-menu-item key="roleuser"><router-link to="/setting/roleuser/index">用户角色</router-link></a-menu-item>
               <a-menu-item key="roleperm"><router-link to="/setting/roleperm/index">角色权限</router-link></a-menu-item>
-            </a-sub-menu> -->
+            </a-sub-menu>
           </a-menu>
         </div>
         <div class="opt" style="justify-content: flex-end;flex:1;margin-right: 10px;">

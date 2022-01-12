@@ -12,6 +12,26 @@ function timeout (ms) {
 }
 
 export default {
+  async login (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.post(`/login?username=${params.username}&password=${params.password}`)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.loginRes)
+      return { status: 200, data: data }
+    }
+  },
+
+  async logout (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.get('/logout')
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.authentication)
+      return { status: 200, data: data }
+    }
+  },
+
   async addGroup (params) {
     if (process.env.NODE_ENV === 'production') {
       var res = await axios.post(`/api/admin/v1/group`, params)
@@ -280,22 +300,63 @@ export default {
     }
   },
 
-  async login (params) {
+  async addTemp (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post(`/login?username=${params.username}&password=${params.password}`)
+      var res = await axios.post(`/api/face/v1/mode`, params)
       return res
     } else {
-      const data = await await timeout(200).then(() => mock.loginRes)
+      const data = await await timeout(200).then(() => mock.temp)
       return { status: 200, data: data }
     }
   },
 
-  async logout (params) {
+  async editTemp (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.get('/logout')
+      var res = await axios.put(`/api/face/v1/mode/${params.id}`, {
+        frame_rate: params.frame_rate,
+        prority: params.prority,
+        group_ids: params.group_ids
+      })
       return res
     } else {
-      const data = await await timeout(200).then(() => mock.authentication)
+      const data = await await timeout(200).then(() => mock.temp)
+      return { status: 200, data: data }
+    }
+  },
+
+  async delTemp (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.delete(`/api/face/v1/mode/${params.id}`)
+      return res
+    } else {
+      return { status: 200 }
+    }
+  },
+
+  async getTemps (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var opts = {}
+      if (params && params.page_size) {
+        opts.page_size = params.page_size
+      }
+      if (params && params.page_no) {
+        opts.page_no = params.page_no - 1
+      }
+      if (params && params.frame_rate) {
+        opts.frame_rate = params.frame_rate
+      }
+      if (params && params.prority) {
+        opts.prority = params.prority
+      }
+      if (params && params.createTime) {
+        opts.createTime = params.createTime
+      }
+      var res = await axios.get(`/api/face/v1/mode`, {
+        params: opts
+      })
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.temps)
       return { status: 200, data: data }
     }
   }

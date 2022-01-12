@@ -35,7 +35,7 @@
               </a-form-model-item>
             </a-form-model>
           </div>
-          <div v-if="resDataTotal === ''" class="loadingWrap"><img src="static/loading_.gif"></div>
+          <!-- <div v-if="resDataTotal === ''" class="loadingWrap"><img src="static/loading_.gif"></div> -->
           <Face :taskresult="filtedResDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="2" tab="任务基本信息">
@@ -68,7 +68,7 @@ export default {
       page_no: 1,
       page_size: 500,
       resDatalist: [],
-      filtedResDatalist: [],
+      filtedResDatalist: {},
       task: {},
       taskId: '',
       taskResItem: {},
@@ -101,14 +101,15 @@ export default {
         id: tid
       }
       api.getTasksById(params).then(res => {
-        if (res.data.code === 0) {
-          this.task = res.data.data
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.task = resBody.data
           if (this.task && this.task.file_path && this.task.file_path !== 'undefined') {
             document.getElementById('myvideo').setAttribute('src', '/resource/' + this.task.file_path)
             // this.createPlayer()
           }
         } else {
-          this.$message.error(res.data.message || '请求出错！')
+          this.$message.error(resBody.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response.status === 401) {
@@ -124,27 +125,28 @@ export default {
       })
     },
     getTaskResults (tid) {
-      var that = this
       var params = {
         id: tid,
         page_no: this.page_no,
         page_size: this.page_size
       }
       api.getTaskResults(params).then(res => {
-        if (res.data.code === 0) {
-          this.resDatalist = this.resDatalist.concat(res.data.data)
-          this.resDataTotal = res.data.total
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.resDatalist = resBody.data.timefaces
+          // this.resDataTotal = resBody.data.timefaces.length
           this.page_no += 1
           this.filtedResDatalist = this.resDatalist
 
-          window.clearTimeout(timer)
-          if (this.continueCircle && res.data.data.length === this.page_size) {
-            timer = window.setTimeout(function () {
-              that.getTaskResults(tid)
-            }, 0)
-          }
+          // var that = this
+          // window.clearTimeout(timer)
+          // if (this.continueCircle && resBody.data.length === this.page_size) {
+          //   timer = window.setTimeout(function () {
+          //     that.getTaskResults(tid)
+          //   }, 0)
+          // }
         } else {
-          this.$message.error(res.data.message || '请求出错！')
+          this.$message.error(resBody.message || '请求出错！')
         }
       }).catch(error => {
         if (error.response.status === 401) {
@@ -210,6 +212,8 @@ export default {
     },
     videoFixed (params) {
       this.taskResItem = params.item
+      var fixSecond = params.currentTime
+      document.getElementById('myvideo').currentTime = fixSecond / 1000
       // var timeStr = params.currentTime
       // var h = 0
       // var m = 0

@@ -12,33 +12,33 @@
         <a-form-model-item>
           <a-button type="primary" @click="handleFilter"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="resetForm('filterForm')">重置</a-button>
-          <a-button v-if="currUser.isadmin !== '' && currUser.isadmin > 3" style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建用户</a-button>
+          <a-button v-if="currUser.level !== '' && currUser.level > 3" style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建用户</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="ID" :pagination="false">
-        <span slot="isadmin" slot-scope="isadmin">
-          {{isadmin | isadminFilter}}
+      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false">
+        <span slot="level" slot-scope="level">
+          {{level | levelFilter}}
         </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="record, index, idx">
-          <template v-if="currUser.isadmin !== '' && currUser.isadmin > 3 && record.status !== 1">
+          <template v-if="currUser.level !== '' && currUser.level > 3 && record.status !== 1">
             <a @click="actived(record.id, idx)">激活</a>
             <a-divider type="vertical" />
           </template>
-          <template v-if="currUser.isadmin !== '' && currUser.isadmin > 3 && record.status !== 2">
+          <template v-if="currUser.level !== '' && currUser.level > 3 && record.status !== 2">
             <a @click="inactived(record.id, idx)">禁用</a>
             <a-divider type="vertical" />
           </template>
-          <template v-if="currUser.isadmin !== '' && currUser.isadmin > 3 && record.status === 2">
+          <template v-if="currUser.level !== '' && currUser.level > 3 && record.status === 2">
             <a @click="resetPwdHandle(record, idx)">重置密码</a>
             <a-divider type="vertical" />
           </template>
-          <template v-if="currUser.isadmin !== '' && currUser.isadmin > 3 && record.status === 2">
+          <template v-if="currUser.level !== '' && currUser.level > 3 && record.status === 2">
             <a @click="resetRoleHandle(record, idx)">修改角色</a>
             <a-divider type="vertical" />
           </template>
@@ -109,16 +109,10 @@ const columns = [
   },
   {
     title: '管理员标识',
-    dataIndex: 'isadmin',
-    key: 'isadmin',
-    scopedSlots: { customRender: 'isadmin' },
+    dataIndex: 'level',
+    key: 'level',
+    scopedSlots: { customRender: 'level' },
     width: 120
-  },
-  {
-    title: '活跃度',
-    dataIndex: 'activity',
-    key: 'activity',
-    width: 80
   },
   {
     title: '状态',
@@ -145,7 +139,7 @@ const columns = [
 export default {
   components: { Add, ResetPwd, ResetRole },
   filters: {
-    isadminFilter (val) {
+    levelFilter (val) {
       const typeObj = {
         2: '普通',
         3: '操作员',
@@ -200,6 +194,8 @@ export default {
     }
   },
   created () {
+    var ele = document.querySelectorAll('.file-main')
+    ele[0].style.backgroundColor = '#fff'
     var viewWidth = document.documentElement.clientWidth
     if (viewWidth < 540) {
       this.smallLayout = true
@@ -221,24 +217,12 @@ export default {
       this.listLoading = true
       apiAdmin.fetchList(this.listQuery).then(res => {
         this.listLoading = false
-        if (res.data.code === 0) {
-          if (res.data.data) {
-            this.list = res.data.data.filter(item => {
-              if (this.currUser.isadmin === 3) {
-                // 操作员
-                return this.currUser.id === item.id
-              } else if (this.currUser.isadmin === 4) {
-                // 管理员
-                return true
-              } else if (this.currUser.isadmin === 5) {
-                // 超级管理员
-                return true
-              }
-            })
-          }
-          this.total = res.data.total
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.list = resBody.data.item
+          this.total = resBody.data.total
         } else {
-          this.$message.error(res.data.message || '请求出错！')
+          this.$message.error(resBody.message || '请求出错！')
         }
       }).catch(error => {
         this.listLoading = false
@@ -361,8 +345,13 @@ export default {
       this.dialogVisibleResetRole = params
     },
     getAllRoles () {
-      apiRole.getAllRoles().then(data => {
-        this.allRoles = data.items || []
+      apiRole.getAllRoles().then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.allRoles = resBody.data.item || []
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
       }).catch(error => {
         console.log(error.response.data)
       })

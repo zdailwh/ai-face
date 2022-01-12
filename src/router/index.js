@@ -52,6 +52,15 @@ export const constantRoutes = [
           title: '人脸',
           active: 'facegroup'
         }
+      },
+      {
+        path: 'temp',
+        name: 'Temp',
+        component: () => import('@/views/temp'),
+        meta: {
+          title: '模板',
+          active: 'facegroup'
+        }
       }
     ]
   },

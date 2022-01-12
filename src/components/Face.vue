@@ -1,19 +1,21 @@
 <template>
   <div class="faceWrap" :style="smalllayout? 'height: auto;': ''">
-    <ul class="listWrap" v-if="taskresult.length">
-      <li class="list-item" :class="{ currBox: currBoxKey === k }" v-for="(fItem,k) in taskresult" v-bind:key="k" @click="changeBox(fItem, k)">
-        <div class="img-box">
-          <img v-if="fItem.recImageuri" v-lazy="fItem.recImageuri" alt="人脸图">
-          <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
-        </div>
-        <div class="desc-box">
-          <div class="timeWrap">
-            <p>{{fItem.faceName}}</p>
-            <p>时间：{{fItem.timepos}}</p>
-            <p>得分：{{fItem.score}}</p>
+    <ul class="listWrap" v-if="taskresult">
+      <template v-for="(fItem, second) in taskresult">
+        <li class="list-item" :class="{ currBox: currBoxKey === second + '-' + k }" v-bind:key="second + '-' + k" v-for="(it, k) in fItem.items" @click="changeBox(fItem, second)">
+          <div class="img-box">
+            <img v-if="fItem.image" v-lazy="fItem.image" alt="人脸图">
+            <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
           </div>
-        </div>
-      </li>
+          <div class="desc-box">
+            <div class="timeWrap">
+              <p>{{it.name}}</p>
+              <p>得分：{{ `${it.score.toFixed(2)}`}}</p>
+              <p>人脸ID：{{it.faceId}}</p>
+            </div>
+          </div>
+        </li>
+      </template>
     </ul>
     <!-- <div v-else><p>还没有识别结果！</p></div> -->
   </div>
@@ -28,17 +30,17 @@ export default {
   },
   watch: {
     taskresult (val, oldVal) {
-      if (val.length) {
-        this.currBoxKey = 0
-        var fItem = val[0]
-        this.$emit('videofixed', { currentTime: fItem.time, item: fItem })
-      }
+      // if (val.length) {
+      //   this.currBoxKey = 0
+      //   var fItem = val[0]
+      //   this.$emit('videofixed', { currentTime: fItem.time, item: fItem })
+      // }
     }
   },
   methods: {
-    changeBox (fItem, k) {
-      this.$emit('videofixed', { currentTime: fItem.time, item: fItem })
-      this.currBoxKey = k
+    changeBox (fItem, second) {
+      this.$emit('videofixed', { currentTime: second, item: fItem })
+      this.currBoxKey = second
     }
   }
 }

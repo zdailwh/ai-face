@@ -8,15 +8,15 @@
     :maskClosable="false"
   >
     <div>
-      <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
-        <a-form-model-item label="任务类型">
+      <a-form-model :model="addForm">
+        <!-- <a-form-model-item label="任务类型" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-select v-model="addForm.type">
-            <a-select-option v-if="(tag === 'online' && item.text === '实时直播流') || (tag === 'offline' && item.text !== '实时直播流')" :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
+            <a-select-option :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
               {{item.text}}
             </a-select-option>
           </a-select>
-        </a-form-model-item>
-        <a-form-model-item label="上传视频" v-if="addForm.type === 1">
+        </a-form-model-item> -->
+        <a-form-model-item label="上传视频" v-if="addForm.type === 1" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-upload
             list-type="picture"
             :beforeUpload="beforeUpload"
@@ -25,72 +25,85 @@
             <a-button> <a-icon type="upload" /> 选择视频文件 </a-button>
           </a-upload>
         </a-form-model-item>
-        <a-form-model-item label="直播流地址">
+        <a-form-model-item label="直播流地址" v-if="addForm.type !== 1" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-input v-model="addForm.url" :disabled="addForm.type === 1" />
         </a-form-model-item>
-        <a-form-model-item label="任务名称">
+        <a-form-model-item label="任务名称" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-input v-model="addForm.name" />
         </a-form-model-item>
-        <a-form-model-item label="任务描述">
+        <a-form-model-item label="任务描述" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-input v-model="addForm.description" />
         </a-form-model-item>
-        <a-form-model-item label="人脸组">
-          <a-select v-model="addForm.groupId" :allowClear="true" :disabled="targetFaceIds.length > 0">
-            <a-select-option :value="item.id" v-for="item in groupsData" v-bind:key="item.id">
-              {{item.name}}
+        <a-form-model-item label="模板" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <a-select v-model="mymode" :allowClear="true" @change="handleChangeMode">
+            <a-select-option :value="item.id" v-for="item in modesData" v-bind:key="item.id" :myitem="item">
+              帧率：{{item.frame_rate}} / 优先级：{{item.prority}} / 人脸组：{{item.group_ids}}
             </a-select-option>
+            <a-select-option value="自定义">自定义</a-select-option>
           </a-select>
         </a-form-model-item>
-        <a-form-model-item label="选择人脸" :wrapperCol="{span: 20}" v-show="!addForm.groupId">
-          <a-transfer
-            :data-source="facesData"
-            :filter-option="filterOption"
-            :showSelectAll="false"
-            :showSearch="true"
-            :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-            :titles="['人脸库', '目标']"
-            :target-keys="targetKeys"
-            :selected-keys="selectedKeys"
-            :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
-            @change="handleChange"
-            @selectChange="handleSelectChange">
-            <template
-              slot="children"
-              slot-scope="{
-                props: { direction, filteredItems, selectedKeys, disabled: listDisabled },
-                on: { itemSelectAll, itemSelect },
-              }"
-            >
-              <a-table
-                :row-selection="
-                  getRowSelection({ disabled: listDisabled, selectedKeys, itemSelectAll, itemSelect })
-                "
-                :columns="direction === 'left' ? leftColumns : rightColumns"
-                :data-source="filteredItems"
-                :pagination="{ pageSize: 10 }"
-                size="small"
-                :style="{ pointerEvents: listDisabled ? 'none' : null }"
-                :custom-row="
-                  ({ key, disabled: itemDisabled }) => ({
-                    on: {
-                      click: () => {
-                        if (itemDisabled || listDisabled) return;
-                        itemSelect(key, !selectedKeys.includes(key));
+        <template v-if="mymode === '自定义'">
+          <a-form-model-item label="帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="addForm.frame_rate">
+              <a-select-option :value="1">1</a-select-option>
+              <a-select-option :value="2">2</a-select-option>
+              <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="25">25</a-select-option>
+            </a-select>
+          </a-form-model-item>
+          <a-form-model-item label="优先级" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="addForm.prority">
+              <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
+            </a-select>
+          </a-form-model-item>
+          <a-form-model-item label="选择人脸组" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-transfer
+              :data-source="groupsData"
+              :filter-option="filterOption"
+              :showSelectAll="false"
+              :showSearch="true"
+              :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
+              :titles="['人脸组', '目标']"
+              :target-keys="targetKeys"
+              :selected-keys="selectedKeys"
+              :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
+              @change="handleChange"
+              @selectChange="handleSelectChange">
+              <template
+                slot="children"
+                slot-scope="{
+                  props: { direction, filteredItems, selectedKeys, disabled: listDisabled },
+                  on: { itemSelectAll, itemSelect },
+                }"
+              >
+                <a-table
+                  :row-selection="
+                    getRowSelection({ disabled: listDisabled, selectedKeys, itemSelectAll, itemSelect })
+                  "
+                  :columns="direction === 'left' ? leftColumns : rightColumns"
+                  :data-source="filteredItems"
+                  :pagination="{ pageSize: 10 }"
+                  size="small"
+                  :style="{ pointerEvents: listDisabled ? 'none' : null }"
+                  :custom-row="
+                    ({ key, disabled: itemDisabled }) => ({
+                      on: {
+                        click: () => {
+                          if (itemDisabled || listDisabled) return;
+                          itemSelect(key, !selectedKeys.includes(key));
+                        },
                       },
-                    },
-                  })
-                "
-                >
-                <template slot="features" slot-scope="features">
-                  <template v-for="(fe, key) in features">
-                    <img :src="fe.fileuri" :key="key" style="max-width: 50px;max-height: 50px;">
+                    })
+                  "
+                  >
+                  <template slot="title" slot-scope="item">
+                    <a href="javascript:;">{{item.title}}</a>
                   </template>
-                </template>
-              </a-table>
-            </template>
-          </a-transfer>
-
-        </a-form-model-item>
+                </a-table>
+              </template>
+            </a-transfer>
+          </a-form-model-item>
+        </template>
       </a-form-model>
     </div>
     <template slot="footer">
@@ -109,17 +122,19 @@ import difference from 'lodash/difference'
 import api from '../api'
 
 export default {
-  props: [ 'tag', 'datalist', 'addVisible', 'facesData', 'groupsData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
+  props: [ 'tag', 'datalist', 'addVisible', 'facesData', 'modesData', 'groupsData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
   data () {
     return {
       leftColumns: leftTableColumns,
       rightColumns: rightTableColumns,
       addLoading: false,
       addForm: {
-        type: '',
+        type: 1,
         url: '',
         name: '',
         description: '',
+        frame_rate: '',
+        prority: '',
         groupId: '',
         files: []
       },
@@ -127,10 +142,19 @@ export default {
         { value: 1, text: '文件' },
         { value: 2, text: '实时直播流' }
       ],
-      targetFaceIds: []
+      targetGroupIds: [],
+      mymode: ''
     }
   },
   methods: {
+    handleChangeMode (val, opt) {
+      if (val !== '自定义') {
+        var selMode = opt.data.attrs.myitem
+        this.addForm.frame_rate = selMode.frame_rate
+        this.addForm.prority = selMode.prority
+        this.addForm.groupId = selMode.groupIds
+      }
+    },
     handleOk (e) {
       if (this.addForm.type === '') {
         this.$message.error('请选择任务类型！')
@@ -155,8 +179,16 @@ export default {
       //   this.$message.error('请填写任务描述！')
       //   return
       // }
-      if (!this.addForm.groupId && !this.targetFaceIds.length) {
-        this.$message.error('请选择任务关联的人脸组或人脸！')
+      if (this.addForm.frame_rate === '') {
+        this.$message.error('请选择帧率！')
+        return
+      }
+      if (this.addForm.prority === '') {
+        this.$message.error('请选择优先级！')
+        return
+      }
+      if (!this.addForm.groupId && !this.targetGroupIds.length) {
+        this.$message.error('请选择任务关联的人脸组！')
         return
       }
 
@@ -164,21 +196,15 @@ export default {
       var task = {
         type: this.addForm.type,
         name: this.addForm.name,
-        description: this.addForm.description
+        description: this.addForm.description,
+        frame_rate: this.addForm.frame_rate,
+        prority: this.addForm.prority,
+        faceIds: this.addForm.groupId || this.targetGroupIds.join(',')
       }
       if (this.addForm.type === 2) {
         task.url = this.addForm.url
       }
-      if (this.addForm.groupId) {
-        task.groupId = this.addForm.groupId
 
-        var group = this.groupsData.filter((item) => {
-          return item.id === this.addForm.groupId
-        })[0]
-        task.faceIds = group.faceIds.join(',')
-      } else {
-        task.faceIds = this.targetFaceIds.join(',')
-      }
       task = JSON.stringify(task)
 
       formdata.append('task', task)
@@ -201,10 +227,12 @@ export default {
             url: '',
             name: '',
             description: '',
+            frame_rate: '',
+            prority: '',
             groupId: '',
             files: []
           }
-          this.targetFaceIds = []
+          this.targetGroupIds = []
           this.$message.success('任务创建成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
@@ -227,6 +255,8 @@ export default {
         url: '',
         name: '',
         description: '',
+        frame_rate: '',
+        prority: '',
         groupId: '',
         files: []
       }
@@ -261,7 +291,7 @@ export default {
     handleChange (nextTargetKeys, direction, moveKeys) {
       // this.targetKeys = nextTargetKeys
       this.updateParentData('targetKeys', nextTargetKeys)
-      this.targetFaceIds = nextTargetKeys
+      this.targetGroupIds = nextTargetKeys
 
       // console.log('targetKeys: ', nextTargetKeys)
       // console.log('direction: ', direction)
@@ -283,29 +313,15 @@ export default {
 const leftTableColumns = [
   {
     dataIndex: 'title',
-    title: '姓名',
-    width: '50px',
+    title: '名称',
     scopedSlots: { customRender: 'name' }
-  },
-  {
-    dataIndex: 'features',
-    title: '特征图',
-    width: '150px',
-    scopedSlots: { customRender: 'features' }
   }
 ]
 const rightTableColumns = [
   {
     dataIndex: 'title',
-    title: '姓名',
-    width: '50px',
+    title: '名称',
     scopedSlots: { customRender: 'name' }
-  },
-  {
-    dataIndex: 'features',
-    title: '特征图',
-    width: '150px',
-    scopedSlots: { customRender: 'features' }
   }
 ]
 </script>
