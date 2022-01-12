@@ -25,7 +25,7 @@
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
-        <span slot="action" slot-scope="record, index, idx">
+        <span slot="action" slot-scope="action, record">
           <template v-if="currUser.level !== '' && currUser.level > 3 && record.status !== 1">
             <a @click="actived(record.id, idx)">激活</a>
             <a-divider type="vertical" />
@@ -258,10 +258,7 @@ export default {
     actived (id, idx) {
       apiAdmin.actived({ id: id }).then(res => {
         if (res.data.code === 0) {
-          this.$message({
-            message: '激活成功！',
-            type: 'success'
-          })
+          this.$message.success('激活成功！')
           this.getList()
         } else {
           this.$message.error(res.data.message || '请求出错！')
@@ -282,10 +279,7 @@ export default {
     inactived (id, idx) {
       apiAdmin.inactived({ id: id }).then(res => {
         if (res.data.code === 0) {
-          this.$message({
-            message: '禁用成功！',
-            type: 'success'
-          })
+          this.$message.success('禁用成功！')
           this.getList()
         } else {
           this.$message.error(res.data.message || '请求出错！')
@@ -306,10 +300,7 @@ export default {
     delUser (id, idx) {
       apiAdmin.deleteUser({ id: id }).then(res => {
         if (res.data.code === 0) {
-          this.$message({
-            message: '删除成功！',
-            type: 'success'
-          })
+          this.$message.success('删除成功！')
           this.getList()
         } else {
           this.$message.error(res.data.message || '请求出错！')

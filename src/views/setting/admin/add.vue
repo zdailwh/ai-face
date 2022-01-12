@@ -1,7 +1,7 @@
 <template>
   <a-modal
     title="创建用户"
-    v-model="dialogVisibleAdd"
+    v-model="visible"
   >
     <div>
       <a-form-model :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
@@ -48,6 +48,11 @@ export default {
       default: function () {
         return []
       }
+    }
+  },
+  computed: {
+    visible () {
+      return this.dialogVisibleAdd
     }
   },
   data () {
@@ -106,24 +111,15 @@ export default {
   methods: {
     commit () {
       if (!this.formadd.username) {
-        this.$message({
-          message: '请输入用户名！',
-          type: 'error'
-        })
+        this.$message.error('请输入用户名！')
         return false
       }
       if (!this.formadd.password) {
-        this.$message({
-          message: '请输入密码！',
-          type: 'error'
-        })
+        this.$message.error('请输入密码！')
         return false
       }
       if (!this.formadd.role_id) {
-        this.$message({
-          message: '请选择用户角色！',
-          type: 'error'
-        })
+        this.$message.error('请选择用户角色！')
         return false
       }
       this.createUser()
@@ -132,27 +128,43 @@ export default {
       console.log(this.formadd)
       this.loading = true
       apiAdmin.createUser(this.formadd).then(response => {
-        this.$message({
-          message: '用户创建成功！',
-          type: 'success'
-        })
-        this.createRoleUser(response.data.data.id, this.formadd.role_id)
-        this.formadd = {
-          username: '',
-          password: '',
-          mobile: '',
-          role_id: ''
-        }
         this.loading = false
-        this.$emit('changeAddVisible', false)
-        this.$emit('refresh')
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('用户创建成功！')
+          this.createRoleUser(resBody.data.id, this.formadd.role_id)
+          this.formadd = {
+            username: '',
+            password: '',
+            mobile: '',
+            role_id: ''
+          }
+          // this.$emit('changeAddVisible', false)
+          // this.$emit('refresh')
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
       }).catch(error => {
         this.loading = false
-        console.log(error.response.data)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     reset () {
-      this.$refs.form.resetFields()
+      this.formadd = {
+        username: '',
+        password: '',
+        mobile: '',
+        role_id: ''
+      }
       this.$emit('changeAddVisible', false)
     },
     handleClose (done) {
@@ -161,13 +173,26 @@ export default {
     },
     createRoleUser (userId, roleId) {
       apiRoleuser.createRoleUser({ userId: userId, roleId: roleId }).then(response => {
-        this.$message({
-          message: '用户角色关联创建成功！',
-          type: 'success'
-        })
-        this.$emit('changeAddVisible', false)
-        this.$emit('refresh')
-      }).catch(() => {
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('用户角色关联创建成功！')
+          this.$emit('changeAddVisible', false)
+          this.$emit('refresh')
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch(error => {
+        this.loading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     }
   }

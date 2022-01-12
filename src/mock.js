@@ -159,7 +159,7 @@ let templateUser = {
   'path': '/api/admin/v1/users/2',
   'username': 'test1',
   'mobile': '',
-  'isadmin': 4,
+  'level': 4,
   'activity': '@integer(100, 500)'
 }
 let templateUsers = {

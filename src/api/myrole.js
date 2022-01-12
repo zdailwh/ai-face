@@ -41,7 +41,7 @@ export default {
       })
       return res
     } else {
-      const data = await await timeout(200).then(() => mock.role)
+      const data = await await timeout(200).then(() => mock.roles)
       return { status: 200, data: data }
     }
   },

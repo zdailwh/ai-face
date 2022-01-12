@@ -199,7 +199,7 @@ export default {
         description: this.addForm.description,
         frame_rate: this.addForm.frame_rate,
         prority: this.addForm.prority,
-        faceIds: this.addForm.groupId || this.targetGroupIds.join(',')
+        group_ids: this.addForm.groupId || this.targetGroupIds.join(',')
       }
       if (this.addForm.type === 2) {
         task.url = this.addForm.url
