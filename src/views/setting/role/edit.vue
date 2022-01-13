@@ -1,37 +1,41 @@
 <template>
-  <el-dialog
+  <a-modal
     title="编辑角色"
-    :visible.sync="dialogVisibleEdit"
-    width="50%"
-    :before-close="handleClose"
+    v-model="visible"
   >
-    <div class="channelForm">
-      <el-form ref="form" :model="editItem" :rules="ruleValidate" label-width="80px">
-        <el-form-item label="角色名称" prop="name">
-          <el-input v-model="editItem.name" placeholder="请输入角色名称" />
-        </el-form-item>
-        <el-form-item label="角色等级" prop="level">
-          <el-select v-model="editItem.level" placeholder="请选择" style="width: 100%;">
-            <el-option v-for="item in levelArr" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="角色描述" prop="description">
-          <el-input v-model="editItem.description" placeholder="请输入角色描述" />
-        </el-form-item>
-      </el-form>
+    <div>
+      <a-form-model ref="form" :model="editItem" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+        <a-form-model-item label="角色名称" prop="name">
+          <a-input v-model="editItem.name" placeholder="请输入角色名称" />
+        </a-form-model-item>
+        <a-form-model-item label="角色等级" prop="level">
+          <a-select v-model="editItem.level" :allowClear="true" placeholder="请选择">
+            <a-select-option :value="item.value" v-for="item in levelArr" v-bind:key="item.value">
+              {{item.label}}
+            </a-select-option>
+          </a-select>
+        </a-form-model-item>
+        <a-form-model-item label="角色描述" prop="description">
+          <a-input v-model="editItem.description" placeholder="请输入角色描述" />
+        </a-form-model-item>
+      </a-form-model>
     </div>
-    <span slot="footer" class="dialog-footer">
-      <el-button @click="reset">取 消</el-button>
-      <el-button type="primary" :loading="loading" @click="commit">确 定</el-button>
-    </span>
-  </el-dialog>
+    <template slot="footer">
+      <a-button key="back" @click="reset">
+        取消
+      </a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="commit">
+        确定
+      </a-button>
+    </template>
+  </a-modal>
 </template>
 <script>
 import apiRole from '@/api/myrole'
 
 export default {
   props: {
-    dialogVisibleEdit: {
+    dialogVisible: {
       type: Boolean,
       default: false
     },
@@ -39,6 +43,16 @@ export default {
       type: Object,
       default () {
         return {}
+      }
+    }
+  },
+  computed: {
+    visible: {
+      get () {
+        return this.dialogVisible
+      },
+      set (val) {
+        this.$emit('changeVisible', false)
       }
     }
   },
@@ -78,23 +92,35 @@ export default {
     updateRole () {
       this.loading = true
       apiRole.updateRole(this.editItem).then(response => {
-        this.$message({
-          message: '编辑成功！',
-          type: 'success'
-        })
         this.loading = false
-        this.$emit('changeEditVisible', false)
-        this.$emit('refresh')
-      }).catch(() => {
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('编辑成功！')
+          this.$emit('changeVisible', false)
+          this.$emit('refresh')
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
         this.loading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     reset () {
       this.$refs.form.resetFields()
-      this.$emit('changeEditVisible', false)
+      this.$emit('changeVisible', false)
     },
     handleClose (done) {
-      this.$emit('changeEditVisible', false)
+      this.$emit('changeVisible', false)
       // done()
     }
   }

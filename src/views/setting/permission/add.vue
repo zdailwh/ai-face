@@ -1,32 +1,34 @@
 <template>
-  <el-dialog
+  <a-modal
     title="创建权限"
-    :visible.sync="dialogVisibleAdd"
-    width="50%"
-    :before-close="handleClose"
+    v-model="visible"
   >
-    <div class="channelForm">
-      <el-form ref="form" :model="formadd" :rules="ruleValidate" label-width="100px">
-        <el-form-item label="接口地址" prop="name">
-          <el-input v-model="formadd.name" placeholder="请输入接口地址（如：userUpdatePhone）" />
-        </el-form-item>
-        <el-form-item label="权限描述" prop="info">
-          <el-input v-model="formadd.info" placeholder="请输入权限描述" />
-        </el-form-item>
-      </el-form>
+    <div>
+      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+        <a-form-model-item label="接口地址" prop="name">
+          <a-input v-model="formadd.name" placeholder="请输入接口地址（如：userUpdatePhone）" />
+        </a-form-model-item>
+        <a-form-model-item label="权限描述" prop="info">
+          <a-input v-model="formadd.info" placeholder="请输入权限描述" />
+        </a-form-model-item>
+      </a-form-model>
     </div>
-    <span slot="footer" class="dialog-footer">
-      <el-button @click="reset">取 消</el-button>
-      <el-button type="primary" :loading="loading" @click="commit">确 定</el-button>
-    </span>
-  </el-dialog>
+    <template slot="footer">
+      <a-button key="back" @click="reset">
+        取消
+      </a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="commit">
+        创建
+      </a-button>
+    </template>
+  </a-modal>
 </template>
 <script>
 import apiPermission from '@/api/mypermission'
 
 export default {
   props: {
-    dialogVisibleAdd: {
+    dialogVisible: {
       type: Boolean,
       default: false
     },
@@ -34,6 +36,16 @@ export default {
       type: Array,
       default: function () {
         return []
+      }
+    }
+  },
+  computed: {
+    visible: {
+      get () {
+        return this.dialogVisible
+      },
+      set (val) {
+        this.$emit('changeVisible', false)
       }
     }
   },
@@ -71,34 +83,41 @@ export default {
       console.log(this.formadd)
       this.loading = true
       apiPermission.createPermission(this.formadd).then(response => {
-        this.$message({
-          message: '创建成功！',
-          type: 'success'
-        })
-        this.formadd = {
-          name: '',
-          info: ''
+        this.loading = false
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('创建成功！')
+          this.formadd = {
+            name: '',
+            info: ''
+          }
+          this.$emit('changeVisible', false)
+          this.$emit('refresh')
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
         }
+      }).catch((error) => {
         this.loading = false
-        this.$emit('changeAddVisible', false)
-        this.$emit('refresh')
-      }).catch(() => {
-        this.loading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     reset () {
       this.$refs.form.resetFields()
-      this.$emit('changeAddVisible', false)
+      this.$emit('changeVisible', false)
     },
     handleClose (done) {
-      this.$emit('changeAddVisible', false)
+      this.$emit('changeVisible', false)
       // done()
     }
   }
 }
 </script>
-<style scoped>
-.permission-tree {
-  margin-bottom: 30px;
-}
-</style>

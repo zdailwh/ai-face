@@ -26,6 +26,12 @@
             </a>
             <a-menu slot="overlay">
               <a-menu-item>
+                <router-link to="/my/admin/edit">编辑个人信息</router-link>
+              </a-menu-item>
+              <a-menu-item>
+                <router-link to="/my/admin/updatePwd">修改密码</router-link>
+              </a-menu-item>
+              <a-menu-item>
                 <a href="javascript:;" @click="logout">退出登录</a>
               </a-menu-item>
             </a-menu>

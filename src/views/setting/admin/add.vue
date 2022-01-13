@@ -4,17 +4,17 @@
     v-model="visible"
   >
     <div>
-      <a-form-model :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
-        <a-form-model-item label="用户名">
+      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+        <a-form-model-item label="用户名" prop="username">
           <a-input v-model="formadd.username" />
         </a-form-model-item>
-        <a-form-model-item label="密码">
+        <a-form-model-item label="密码" prop="password">
           <a-input v-model="formadd.password" />
         </a-form-model-item>
-        <a-form-model-item label="手机号">
+        <a-form-model-item label="手机号" prop="mobile">
           <a-input v-model="formadd.mobile" />
         </a-form-model-item>
-        <a-form-model-item label="角色">
+        <a-form-model-item label="角色" prop="role_id">
           <a-select v-model="formadd.role_id" :allowClear="true">
             <a-select-option :value="item.value" v-for="item in optionsRoles" v-bind:key="item.value">
               {{item.label}}
@@ -39,7 +39,7 @@ import apiRoleuser from '@/api/roleuser'
 import Cookies from 'js-cookie'
 export default {
   props: {
-    dialogVisibleAdd: {
+    dialogVisible: {
       type: Boolean,
       default: false
     },
@@ -51,8 +51,13 @@ export default {
     }
   },
   computed: {
-    visible () {
-      return this.dialogVisibleAdd
+    visible: {
+      get () {
+        return this.dialogVisible
+      },
+      set (val) {
+        this.$emit('changeVisible', false)
+      }
     }
   },
   data () {
@@ -102,6 +107,9 @@ export default {
         mobile: [
           { required: true, message: '手机号码不能为空', trigger: 'blur' },
           { type: 'string', message: '手机号格式不正确', length: 11, pattern: /^1[3|5|8|7]([0-9]{9})$/, trigger: 'blur' }
+        ],
+        role_id: [
+          { required: true, message: '请选择用户角色！', trigger: 'blur' }
         ]
       }
     }
@@ -110,19 +118,14 @@ export default {
   },
   methods: {
     commit () {
-      if (!this.formadd.username) {
-        this.$message.error('请输入用户名！')
-        return false
-      }
-      if (!this.formadd.password) {
-        this.$message.error('请输入密码！')
-        return false
-      }
-      if (!this.formadd.role_id) {
-        this.$message.error('请选择用户角色！')
-        return false
-      }
-      this.createUser()
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          this.createUser()
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
     },
     createUser () {
       console.log(this.formadd)
@@ -139,7 +142,7 @@ export default {
             mobile: '',
             role_id: ''
           }
-          // this.$emit('changeAddVisible', false)
+          // this.$emit('changeVisible', false)
           // this.$emit('refresh')
         } else {
           this.$message.error(resBody.message || '请求出错！')
@@ -159,16 +162,11 @@ export default {
       })
     },
     reset () {
-      this.formadd = {
-        username: '',
-        password: '',
-        mobile: '',
-        role_id: ''
-      }
-      this.$emit('changeAddVisible', false)
+      this.$refs.form.resetFields()
+      this.$emit('changeVisible', false)
     },
     handleClose (done) {
-      this.$emit('changeAddVisible', false)
+      this.$emit('changeVisible', false)
       // done()
     },
     createRoleUser (userId, roleId) {
@@ -176,7 +174,7 @@ export default {
         var resBody = response.data
         if (resBody.code === 0) {
           this.$message.success('用户角色关联创建成功！')
-          this.$emit('changeAddVisible', false)
+          this.$emit('changeVisible', false)
           this.$emit('refresh')
         } else {
           this.$message.error(resBody.message || '请求出错！')

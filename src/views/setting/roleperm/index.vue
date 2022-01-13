@@ -1,67 +1,76 @@
 <template>
-  <div class="app-container">
-    <el-form ref="filterForm" :model="filterForm" :inline="true" class="filter-form">
-      <!-- <el-form-item prop="roleId">
-        <el-select v-model="filterForm.roleId" placeholder="角色">
-          <el-option label="全部角色" value="" />
-          <el-option v-for="item in optionsRoles" :key="item.value" :label="item.label" :value="item.value" />
-        </el-select>
-      </el-form-item>
-      <el-form-item prop="permissionId">
-        <el-select v-model="filterForm.permissionId" placeholder="权限">
-          <el-option label="全部权限" value="" />
-          <el-option v-for="item in optionsPermissions" :key="item.value" :label="item.label" :value="item.value" />
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-          搜索
-        </el-button>
-      </el-form-item>
-      <el-form-item>
-        <el-button @click="resetForm('filterForm')">重置</el-button>
-      </el-form-item> -->
-      <el-button v-if="!isVisitor" class="filter-item" type="primary" icon="el-icon-plus" @click="dialogVisibleAdd = true">
-        创建关联记录
-      </el-button>
-      <!-- <el-button v-if="!isVisitor" class="filter-item" type="danger" icon="el-icon-delete" :disabled="!multipleSelection.length" @click="delSomeHandler">
-        批量删除
-      </el-button> -->
-    </el-form>
+  <div class="taskContainer">
+    <!--搜索-->
+    <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
+      <a-form-model ref="filterForm" :model="filterForm" layout="inline">
+        <a-form-model-item>
+          <!-- <a-button type="primary" @click="handleFilter"><a-icon key="search" type="search"/>搜索</a-button>
+          <a-button style="margin-left: 10px;" @click="resetForm('filterForm')">重置</a-button> -->
+          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建关联记录</a-button>
+          <!-- <a-popconfirm
+            title="确定要删除所选关联记录吗？"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delSome()"
+          >
+            <a-button style="margin-left: 10px;" type="danger" :disabled="!multipleSelection.length"><a-icon key="del" type="del"/>批量删除</a-button>
+          </a-popconfirm> -->
+        </a-form-model-item>
+      </a-form-model>
+    </div>
+    <!--搜索 end-->
 
-    <el-table v-loading="listLoading" :data="listPermsOfRole" border fit highlight-current-row style="width: 856px;" @selection-change="handleSelectionChange">
-      <!-- <el-table-column type="selection" width="55" /> -->
-      <el-table-column label="角色名" align="center" width="150">
-        <template slot-scope="{row}">
-          <span>{{ row.role && row.role.name }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="权限名" align="center" width="555">
-        <template v-if="row.perms && row.perms.length" slot-scope="{row}">
-          <template v-for="it in row.perms">
-            <span v-if="it" :key="it.id"> {{ it.info }}、 </span>
+    <div class="tableWrap">
+      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false">
+        <span slot="role" slot-scope="role">
+          {{ role && role.name }}
+        </span>
+        <div slot="perms" slot-scope="perms">
+          <template v-if="perms.length">
+            <span v-for="it in perms" :key="it.id"> {{ it.info }}、 </span>
           </template>
-        </template>
-      </el-table-column>
-      <!-- <el-table-column label="状态" align="center" width="150">
-        <template slot-scope="{row}">
-          <span>{{ row.statusstr }}</span>
-        </template>
-      </el-table-column> -->
-      <el-table-column v-if="!isVisitor" label="操作" align="center" width="150">
-        <template slot-scope="{row, $index}">
-          <!-- <el-button type="text" size="medium" @click="delHandler(row.id, $index)">删除</el-button> -->
-          <el-button type="text" size="medium" @click="editHandle(row, $index)">编辑</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+        </div>
+        <span slot="create_time" slot-scope="create_time">
+          {{create_time | dateFormat}}
+        </span>
+        <span slot="action" slot-scope="action, record, idx">
+          <a @click="editHandle(record, idx)">编辑</a>
+          <!-- <a-divider type="vertical" />
+          <a-popconfirm
+            title="确定要删除此关联吗？"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delRolePerm(record.id, idx)"
+          >
+            <a>删除</a>
+          </a-popconfirm> -->
+        </span>
+      </a-table>
+      <div style="margin: 15px 0;text-align: right;">
+        <a-pagination
+          v-model="listQuery.page"
+          :page-size-options="pageSizeOptions"
+          :total="total"
+          show-size-changer
+          :page-size="listQuery.limit"
+          @showSizeChange="onShowSizeChange"
+          @change="onPageChange"
+        >
+          <template slot="buildOptionText" slot-scope="props">
+            <span v-if="props.value !== total">{{ props.value }}条/页</span>
+            <span v-if="props.value === total">全部</span>
+          </template>
+        </a-pagination>
+      </div>
+    </div>
 
-    <Add :dialog-visible-add="dialogVisibleAdd" :options-permissions="optionsPermissions" :options-roles="optionsRoles" @changeAddVisible="changeAddVisible" @refresh="getPermsOfRole" />
-    <Edit :edit-item="editItem" :dialog-visible-edit="dialogVisibleEdit" :options-permissions="optionsPermissions" @changeEditVisible="changeEditVisible" @refresh="getPermsOfRole" />
+    <Add :dialog-visible="dialogVisibleAdd" :options-permissions="optionsPermissions" :options-roles="optionsRoles" @changeVisible="changeAddVisible" @refresh="getPermsOfRole" />
+    <Edit :edit-item="editItem" :dialog-visible="dialogVisibleEdit" :options-permissions="optionsPermissions" @changeVisible="changeEditVisible" @refresh="getPermsOfRole" />
   </div>
 </template>
 
 <script>
+import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import Cookies from 'js-cookie'
 import apiRole from '@/api/myrole'
 import apiPermission from '@/api/mypermission'
@@ -70,10 +79,64 @@ import apiRoleperm from '@/api/roleperm'
 import Add from './add.vue'
 import Edit from './edit.vue'
 
+var moment = require('moment')
+const columns = [
+  // {
+  //   title: 'ID',
+  //   dataIndex: 'id',
+  //   key: 'id',
+  //   width: 50
+  // },
+  {
+    title: '角色名',
+    dataIndex: 'role',
+    key: 'role',
+    scopedSlots: { customRender: 'role' },
+    width: 100
+  },
+  {
+    title: '权限名',
+    dataIndex: 'perms',
+    key: 'perms',
+    scopedSlots: { customRender: 'perms' },
+    width: 120
+  },
+  {
+    title: '状态',
+    dataIndex: 'statusstr',
+    key: 'statusstr',
+    scopedSlots: { customRender: 'statusstr' },
+    width: 100
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'create_time',
+    key: 'create_time',
+    scopedSlots: { customRender: 'create_time' },
+    width: 120
+  },
+  {
+    title: '操作',
+    key: 'action',
+    scopedSlots: { customRender: 'action' },
+    width: 120
+  }
+]
+
 export default {
   components: { Add, Edit },
+  filters: {
+    dateFormat (val) {
+      if (val === '' || val === null) return ''
+      return moment(val).format('YYYY-MM-DD HH:mm:ss')
+    }
+  },
   data () {
     return {
+      locale,
+      columns,
+      pageSizeOptions: ['10', '20', '30', '40', '50'],
+      smallLayout: false,
       isVisitor: (Cookies.get('Programme-isVisitor') && JSON.parse(Cookies.get('Programme-isVisitor'))) || false,
       list: null,
       total: 0,
@@ -122,20 +185,49 @@ export default {
     }
   },
   created () {
+    var ele = document.querySelectorAll('.file-main')
+    ele[0].style.backgroundColor = '#fff'
+    var viewWidth = document.documentElement.clientWidth
+    if (viewWidth < 540) {
+      this.smallLayout = true
+    }
+
     this.getAllPermissions()
     this.getAllRoles()
     // this.getList()
   },
   methods: {
+    onPageChange (current) {
+      this.listQuery.page = current
+      this.getList()
+    },
+    onShowSizeChange (current, pageSize) {
+      this.listQuery.limit = pageSize
+      this.getList()
+    },
     getList () {
       this.listLoading = true
-      apiRoleperm.fetchList(this.listQuery).then(data => {
-        this.list = data.items || []
-        this.total = data.total
-
+      apiRoleperm.fetchList(this.listQuery).then(res => {
         this.listLoading = false
-      }).catch(() => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.list = resBody.data.item || []
+          this.total = resBody.data.total
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
         this.listLoading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     handleFilter () {
@@ -159,62 +251,84 @@ export default {
       this.dialogVisibleAdd = params
     },
     getAllPermissions () {
-      apiPermission.getAllPermissions().then(data => {
-        this.allPermissions = data.items || []
+      apiPermission.getAllPermissions().then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.allPermissions = resBody.data.item || []
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
       }).catch(error => {
-        this.$message({
-          message: error.message || '操作失败！',
-          type: 'error'
-        })
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     getAllRoles () {
-      apiRole.getAllRoles().then(data => {
-        this.allRoles = data.items || []
-        // 分别获取各角色的权限列表
-        this.getPermsOfRole()
+      apiRole.getAllRoles().then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.allRoles = resBody.data.item || []
+          // 分别获取各角色的权限列表
+          this.getPermsOfRole()
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
       }).catch(error => {
-        this.$message({
-          message: error.message || '操作失败！',
-          type: 'error'
-        })
-      })
-    },
-    delHandler (id, idx) {
-      this.$confirm('确定要删除此关联吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.delRolePerm(id, idx)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     delRolePerm (id, idx) {
-      apiRoleperm.deleteRolePerm({ id: id }).then(response => {
-        this.$message({
-          message: response.message || '删除成功！',
-          type: 'success'
-        })
-        this.getList()
+      apiRoleperm.deleteRolePerm({ id: id }).then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.$message.success('删除成功！')
+          this.getList()
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     handleSelectionChange (val) {
       this.multipleSelection = val
     },
-    delSomeHandler () {
-      this.$confirm('确定要删除所选关联记录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.delSome()
-      })
-    },
     delSome () {
       var requestList = this.multipleSelection.map(async item => {
         return new Promise((resolve, reject) => {
           apiRoleperm.deleteRolePerm({ id: item.id }).then(response => {
-            resolve(response)
+            var resBody = response.data
+            if (resBody.code === 0) {
+              resolve(response)
+            } else {
+              reject(resBody.message || '请求出错！')
+            }
           }).catch((error) => {
             reject(error)
           })
@@ -222,10 +336,7 @@ export default {
       })
       Promise.all(requestList).then(result => {
         console.log(result)
-        this.$message({
-          message: '删除成功！',
-          type: 'success'
-        })
+        this.$message.success('删除成功！')
         this.getList()
       }).catch((result) => {
         console.log(result)
@@ -241,11 +352,16 @@ export default {
           roleId: item.id
         }
         return new Promise((resolve, reject) => {
-          apiRoleperm.fetchList(listQuery).then(data => {
-            var permissions = data.items.map(it => {
-              return it.permission
-            })
-            resolve({ id: item.id, role: item, perms: permissions })
+          apiRoleperm.fetchList(listQuery).then(response => {
+            var resBody = response.data
+            if (resBody.code === 0) {
+              var permissions = resBody.data.item.map(it => {
+                return it.permission
+              })
+              resolve({ id: item.id, role: item, perms: permissions })
+            } else {
+              reject(resBody.message || '请求出错！')
+            }
           }).catch((error) => {
             reject(error)
           })
@@ -274,7 +390,14 @@ export default {
 }
 </script>
 <style scoped>
-.deviceTabs {
-  margin-bottom: 10px;
+.taskContainer {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  background-color: #fff;
+}
+.tableWrap {
+  width: 100%;
+  margin-top: 20px;
 }
 </style>

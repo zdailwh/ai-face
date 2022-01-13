@@ -1,7 +1,21 @@
 <template>
-  <div class="app-container">
+  <div class="taskContainer">
     <div class="formWrap">
-      <el-form ref="form" :model="formadd" :rules="ruleValidate" label-width="80px">
+      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+        <a-form-model-item label="原密码" prop="old">
+          <a-input v-model="formadd.old" type="password" />
+        </a-form-model-item>
+        <a-form-model-item label="新密码" prop="new">
+          <a-input v-model="formadd.new" type="password" />
+        </a-form-model-item>
+        <a-form-model-item :wrapper-col="{ span: 14, offset: 4 }">
+          <a-button type="primary" :loading="loading" @click="commit">
+            确定
+          </a-button>
+        </a-form-model-item>
+      </a-form-model>
+
+      <!-- <el-form ref="form" :model="formadd" :rules="ruleValidate" label-width="80px">
         <el-form-item label="原密码" prop="old">
           <el-input v-model="formadd.old" type="password" />
         </el-form-item>
@@ -13,7 +27,7 @@
             确定
           </el-button>
         </el-form-item>
-      </el-form>
+      </el-form> -->
     </div>
   </div>
 </template>
@@ -82,20 +96,32 @@ export default {
     updatePwd () {
       this.loading = true
       apiAdmin.updatePwd(this.formadd).then(async response => {
-        this.$message({
-          message: '密码修改成功，请重新登录！',
-          type: 'success'
-        })
-        this.formadd = {
-          old: '',
-          new: ''
-        }
         this.loading = false
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('密码修改成功，请重新登录！')
+          this.formadd = {
+            old: '',
+            new: ''
+          }
 
-        await this.$store.dispatch('user/logout')
-        this.$router.push(`/login?redirect=${this.$route.fullPath}`)
-      }).catch(() => {
+          await this.$store.dispatch('authentication/logout')
+          this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
         this.loading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     }
   }
@@ -104,6 +130,7 @@ export default {
 <style scoped>
 .formWrap {
   width: 500px;
+  margin: 20px auto;
   padding: 20px;
   border: 1px solid #DCDFE6;
   border-radius: 10px;

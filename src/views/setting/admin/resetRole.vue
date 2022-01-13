@@ -1,12 +1,12 @@
 <template>
   <a-modal
     title="修改用户角色"
-    v-model="dialogVisibleResetRole"
+    v-model="visible"
   >
     <div>
-      <a-form-model :model="editform" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
-        <a-form-model-item label="角色">
-          <a-select v-model="editform.roleId" :allowClear="true">
+      <a-form-model ref="form" :model="editform" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+        <a-form-model-item label="角色" prop="role_id">
+          <a-select v-model="editform.role_id" :allowClear="true">
             <a-select-option :value="item.value" v-for="item in optionsRoles" v-bind:key="item.value">
               {{item.label}}
             </a-select-option>
@@ -19,7 +19,7 @@
         取消
       </a-button>
       <a-button key="submit" type="primary" :loading="loading" @click="commit">
-        创建
+        确定
       </a-button>
     </template>
   </a-modal>
@@ -29,7 +29,7 @@ import apiAdmin from '@/api/admin'
 import apiRoleuser from '@/api/roleuser'
 export default {
   props: {
-    dialogVisibleResetRole: {
+    dialogVisible: {
       type: Boolean,
       default: false
     },
@@ -43,6 +43,16 @@ export default {
       type: Array,
       default: function () {
         return []
+      }
+    }
+  },
+  computed: {
+    visible: {
+      get () {
+        return this.dialogVisible
+      },
+      set (val) {
+        this.$emit('changeVisible', false)
       }
     }
   },
@@ -70,12 +80,26 @@ export default {
   methods: {
     getUserRole () {
       apiAdmin.getUserRole({ id: this.editItem.id }).then(response => {
-        if (response.id) {
-          this.userRoleItem = response
-          this.editform.roleId = response.role.id
+        var resBody = response.data
+        if (resBody.code === 0) {
+          if (resBody.data.id) {
+            this.userRoleItem = resBody.data
+            this.editform.role_id = resBody.data.role.id
+          }
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
         }
       }).catch((error) => {
-        console.log(error.message)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     commit () {
@@ -94,38 +118,65 @@ export default {
     },
     updateRoleUser () {
       this.loading = true
-      apiRoleuser.updateRoleUser({ id: this.userRoleItem.id, roleId: this.editform.roleId }).then(response => {
-        this.$message({
-          message: '用户角色关联编辑成功！',
-          type: 'success'
-        })
+      apiRoleuser.updateRoleUser({ id: this.userRoleItem.id, roleId: this.editform.role_id }).then(response => {
         this.loading = false
-        this.$emit('changeResetRoleVisible', false)
-        this.$emit('refresh')
-      }).catch(() => {
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('用户角色关联编辑成功！')
+          this.$emit('changeVisible', false)
+          this.$emit('refresh')
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
         this.loading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     createRoleUser () {
       this.loading = true
-      apiRoleuser.createRoleUser({ userId: this.editItem.id, roleId: this.editform.roleId }).then(response => {
-        this.$message({
-          message: '用户角色关联创建成功！',
-          type: 'success'
-        })
+      apiRoleuser.createRoleUser({ userId: this.editItem.id, roleId: this.editform.role_id }).then(response => {
         this.loading = false
-        this.$emit('changeResetRoleVisible', false)
-        this.$emit('refresh')
-      }).catch(() => {
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message({
+            message: '用户角色关联创建成功！',
+            type: 'success'
+          })
+          this.$emit('changeVisible', false)
+          this.$emit('refresh')
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
         this.loading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     reset () {
       this.$refs.form.resetFields()
-      this.$emit('changeResetRoleVisible', false)
+      this.$emit('changeVisible', false)
     },
     handleClose (done) {
-      this.$emit('changeResetRoleVisible', false)
+      this.$emit('changeVisible', false)
       // done()
     }
   }

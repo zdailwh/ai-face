@@ -1,16 +1,16 @@
 <template>
-  <div class="app-container">
+  <div class="taskContainer">
     <div class="formWrap">
-      <el-form ref="form" :model="currUser" :rules="ruleValidate" label-width="80px">
-        <el-form-item label="手机号" prop="mobile">
-          <el-input v-model="currUser.mobile" />
-        </el-form-item>
-        <el-form-item>
-          <el-button class="filter-item" type="primary" @click="commit">
+      <a-form-model ref="form" :model="currUser" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+        <a-form-model-item label="手机号" prop="mobile">
+          <a-input v-model="currUser.mobile" />
+        </a-form-model-item>
+        <a-form-model-item :wrapper-col="{ span: 14, offset: 4 }">
+          <a-button type="primary" :loading="loading" @click="commit">
             确定
-          </el-button>
-        </el-form-item>
-      </el-form>
+          </a-button>
+        </a-form-model-item>
+      </a-form-model>
     </div>
   </div>
 </template>
@@ -48,16 +48,27 @@ export default {
     updateUser () {
       this.loading = true
       apiAdmin.updateUser(this.currUser).then(response => {
-        this.$message({
-          message: '编辑成功！',
-          type: 'success'
-        })
-        this.$store.commit('user/SET_TOKEN', JSON.stringify(this.currUser))
-        setToken(JSON.stringify(this.currUser))
         this.loading = false
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('编辑成功！')
+          this.$store.commit('authentication/SET_TOKEN', JSON.stringify(this.currUser))
+          setToken(JSON.stringify(this.currUser))
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
       }).catch(error => {
         this.loading = false
-        console.log(error.response.data)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     }
   }
@@ -66,6 +77,7 @@ export default {
 <style scoped>
 .formWrap {
   width: 500px;
+  margin: 20px auto;
   padding: 20px;
   border: 1px solid #DCDFE6;
   border-radius: 10px;

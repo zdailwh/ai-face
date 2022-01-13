@@ -1,66 +1,135 @@
 <template>
-  <div class="app-container">
-    <el-form ref="filterForm" :model="filterForm" :inline="true" class="filter-form">
-      <el-form-item prop="name">
-        <el-input v-model="filterForm.name" placeholder="权限名称" style="width:120px" />
-      </el-form-item>
-      <el-form-item>
-        <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-          搜索
-        </el-button>
-      </el-form-item>
-      <el-form-item>
-        <el-button @click="resetForm('filterForm')">重置</el-button>
-      </el-form-item>
-      <el-button v-if="!isVisitor" class="filter-item" type="primary" icon="el-icon-plus" @click="dialogVisibleAdd = true">
-        创建权限
-      </el-button>
-      <el-button v-if="!isVisitor" class="filter-item" type="danger" icon="el-icon-delete" :disabled="!multipleSelection.length" @click="delSomeHandler">
-        批量删除
-      </el-button>
-    </el-form>
+<div class="taskContainer">
+    <!--搜索-->
+    <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
+      <a-form-model ref="filterForm" :model="filterForm" layout="inline">
+        <a-form-model-item label="权限名称" prop="name">
+          <a-input v-model="filterForm.name" style="width: 120px;" />
+        </a-form-model-item>
+        <!-- <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
+          <a-range-picker :locale="locale" v-model="filterForm.createTime" style="width: 220px;" />
+        </a-form-model-item> -->
+        <a-form-model-item>
+          <a-button type="primary" @click="handleFilter"><a-icon key="search" type="search"/>搜索</a-button>
+          <a-button style="margin-left: 10px;" @click="resetForm('filterForm')">重置</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建权限</a-button>
+          <a-popconfirm
+            title="确定要删除所选关联记录吗？"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delSome()"
+          >
+            <a-button style="margin-left: 10px;" type="danger" :disabled="!multipleSelection.length"><a-icon key="del" type="del"/>批量删除</a-button>
+          </a-popconfirm>
+        </a-form-model-item>
+      </a-form-model>
+    </div>
+    <!--搜索 end-->
+    <div class="tableWrap">
+      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false">
+        <span slot="create_time" slot-scope="create_time">
+          {{create_time | dateFormat}}
+        </span>
+        <span slot="action" slot-scope="action, record, idx">
+          <a @click="editHandle(record, idx)">编辑</a>
+          <a-divider type="vertical" />
+          <a-popconfirm
+            title="确定要删除该权限吗?"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delPrem(record.id, idx)"
+          >
+            <a>删除</a>
+          </a-popconfirm>
+        </span>
+      </a-table>
+      <div style="margin: 15px 0;text-align: right;">
+        <a-pagination
+          v-model="listQuery.page"
+          :page-size-options="pageSizeOptions"
+          :total="total"
+          show-size-changer
+          :page-size="listQuery.limit"
+          @showSizeChange="onShowSizeChange"
+          @change="onPageChange"
+        >
+          <template slot="buildOptionText" slot-scope="props">
+            <span v-if="props.value !== total">{{ props.value }}条/页</span>
+            <span v-if="props.value === total">全部</span>
+          </template>
+        </a-pagination>
+      </div>
+    </div>
 
-    <el-table v-loading="listLoading" :data="list" border fit highlight-current-row style="width: 1196px;" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" />
-      <el-table-column label="接口地址" align="center" width="150">
-        <template slot-scope="{row}">
-          <span>{{ row.name }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="权限描述" align="center" width="120">
-        <template slot-scope="{row}">
-          <span>{{ row.info }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="状态" align="center" width="100">
-        <template slot-scope="{row}">
-          <span>{{ row.statusstr }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column v-if="!isVisitor" label="操作" align="center" width="120">
-        <template slot-scope="{row, $index}">
-          <el-button type="text" size="medium" @click="editHandle(row, $index)">编辑</el-button>
-          <el-button type="text" size="medium" @click="delHandler(row.id, $index)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <Add :dialog-visible-add="dialogVisibleAdd" :routes-data="routesData" @changeAddVisible="changeAddVisible" @refresh="getList" />
-    <Edit :edit-item="editItem" :dialog-visible-edit="dialogVisibleEdit" :routes-data="routesData" @changeEditVisible="changeEditVisible" @refresh="getList" />
+    <Add :dialog-visible="dialogVisibleAdd" :routes-data="routesData" @changeVisible="changeAddVisible" @refresh="getList" />
+    <Edit :edit-item="editItem" :dialog-visible="dialogVisibleEdit" :routes-data="routesData" @changeVisible="changeEditVisible" @refresh="getList" />
   </div>
 </template>
 
 <script>
+import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import Cookies from 'js-cookie'
 import apiPermission from '@/api/mypermission'
 import { routes } from './routes.js'
 import Add from './add.vue'
 import Edit from './edit.vue'
 
+var moment = require('moment')
+const columns = [
+  // {
+  //   title: 'ID',
+  //   dataIndex: 'id',
+  //   key: 'id',
+  //   width: 50
+  // },
+  {
+    title: '接口地址',
+    dataIndex: 'name',
+    key: 'name',
+    width: 100
+  },
+  {
+    title: '权限描述',
+    dataIndex: 'info',
+    key: 'info',
+    width: 120
+  },
+  {
+    title: '状态',
+    dataIndex: 'statusstr',
+    key: 'statusstr',
+    scopedSlots: { customRender: 'statusstr' },
+    width: 100
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'create_time',
+    key: 'create_time',
+    scopedSlots: { customRender: 'create_time' },
+    width: 120
+  },
+  {
+    title: '操作',
+    key: 'action',
+    scopedSlots: { customRender: 'action' },
+    width: 120
+  }
+]
+
 export default {
   components: { Add, Edit },
+  filters: {
+    dateFormat (val) {
+      if (val === '' || val === null) return ''
+      return moment(val).format('YYYY-MM-DD HH:mm:ss')
+    }
+  },
   data () {
     return {
+      locale,
+      columns,
+      pageSizeOptions: ['10', '20', '30', '40', '50'],
+      smallLayout: false,
       isVisitor: (Cookies.get('Programme-isVisitor') && JSON.parse(Cookies.get('Programme-isVisitor'))) || false,
       list: null,
       total: 0,
@@ -86,22 +155,51 @@ export default {
     }
   },
   created () {
+    var ele = document.querySelectorAll('.file-main')
+    ele[0].style.backgroundColor = '#fff'
+    var viewWidth = document.documentElement.clientWidth
+    if (viewWidth < 540) {
+      this.smallLayout = true
+    }
+
     this.getRoutes()
     this.getList()
   },
   methods: {
+    onPageChange (current) {
+      this.listQuery.page = current
+      this.getList()
+    },
+    onShowSizeChange (current, pageSize) {
+      this.listQuery.limit = pageSize
+      this.getList()
+    },
     getList () {
       this.listLoading = true
-      apiPermission.fetchList(this.listQuery).then(data => {
-        this.list = data.items || []
-        this.list.map(item => {
-          item.menu = item.menu.split(',').filter(it => { return it.indexOf('_') === -1 })
-        })
-        this.total = data.total
-
+      apiPermission.fetchList(this.listQuery).then(res => {
         this.listLoading = false
-      }).catch(() => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.list = resBody.data.item || []
+          this.list.map(item => {
+            item.menu = item.menu.split(',').filter(it => { return it.indexOf('_') === -1 })
+          })
+          this.total = resBody.data.total
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
         this.listLoading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     async getRoutes () {
@@ -171,22 +269,26 @@ export default {
       this.$refs[formName].resetFields()
       this.handleFilter()
     },
-    delHandler (id, idx) {
-      this.$confirm('确定要删除此权限吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.delRole(id, idx)
-      })
-    },
-    delRole (id, idx) {
-      apiPermission.deletePermission({ id: id }).then(response => {
-        this.$message({
-          message: response.message || '删除成功！',
-          type: 'success'
-        })
-        this.getList()
+    delPrem (id, idx) {
+      apiPermission.deletePermission({ id: id }).then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.$message.success('删除成功！')
+          this.getList()
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     changeAddVisible (params) {
@@ -203,20 +305,16 @@ export default {
     handleSelectionChange (val) {
       this.multipleSelection = val
     },
-    delSomeHandler () {
-      this.$confirm('确定要删除所选关联记录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.delSome()
-      })
-    },
     delSome () {
       var requestList = this.multipleSelection.map(async item => {
         return new Promise((resolve, reject) => {
           apiPermission.deletePermission({ id: item.id }).then(response => {
-            resolve(response)
+            var resBody = response.data
+            if (resBody.code === 0) {
+              resolve(response)
+            } else {
+              reject(resBody.message || '请求出错！')
+            }
           }).catch((error) => {
             reject(error)
           })
@@ -224,10 +322,7 @@ export default {
       })
       Promise.all(requestList).then(result => {
         console.log(result)
-        this.$message({
-          message: '删除成功！',
-          type: 'success'
-        })
+        this.$message.success('删除成功！')
         this.getList()
       }).catch((result) => {
         console.log(result)
@@ -237,3 +332,15 @@ export default {
   }
 }
 </script>
+<style scoped>
+.taskContainer {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  background-color: #fff;
+}
+.tableWrap {
+  width: 100%;
+  margin-top: 20px;
+}
+</style>

@@ -1,11 +1,11 @@
 <template>
   <a-modal
     title="重置密码"
-    v-model="dialogVisibleResetPwd"
+    v-model="visible"
   >
     <div>
-      <a-form-model :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
-        <a-form-model-item label="新密码">
+      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+        <a-form-model-item label="新密码" prop="password">
           <a-input v-model="formadd.password" />
         </a-form-model-item>
       </a-form-model>
@@ -15,7 +15,7 @@
         取消
       </a-button>
       <a-button key="submit" type="primary" :loading="loading" @click="commit">
-        创建
+        确定
       </a-button>
     </template>
   </a-modal>
@@ -25,7 +25,7 @@ import apiAdmin from '@/api/admin'
 import Cookies from 'js-cookie'
 export default {
   props: {
-    dialogVisibleResetPwd: {
+    dialogVisible: {
       type: Boolean,
       default: false
     },
@@ -33,6 +33,16 @@ export default {
       type: Object,
       default () {
         return {}
+      }
+    }
+  },
+  computed: {
+    visible: {
+      get () {
+        return this.dialogVisible
+      },
+      set (val) {
+        this.$emit('changeVisible', false)
       }
     }
   },
@@ -93,25 +103,37 @@ export default {
       this.loading = true
       this.formadd.id = this.editItem.id
       apiAdmin.resetPwd(this.formadd).then(response => {
-        this.$message({
-          message: '密码重置成功！',
-          type: 'success'
-        })
-        this.formadd = {
-          password: ''
+        this.loading = false
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('密码重置成功！')
+          this.formadd = {
+            password: ''
+          }
+          this.$emit('changeVisible', false)
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
         }
+      }).catch((error) => {
         this.loading = false
-        this.$emit('changeResetPwdVisible', false)
-      }).catch(() => {
-        this.loading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     reset () {
       this.$refs.form.resetFields()
-      this.$emit('changeResetPwdVisible', false)
+      this.$emit('changeVisible', false)
     },
     handleClose (done) {
-      this.$emit('changeResetPwdVisible', false)
+      this.$emit('changeVisible', false)
       // done()
     }
   }

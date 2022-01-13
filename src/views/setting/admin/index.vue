@@ -6,9 +6,9 @@
         <a-form-model-item label="用户名" prop="username">
           <a-input v-model="filterForm.username" style="width: 120px;" />
         </a-form-model-item>
-        <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
+        <!-- <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
           <a-range-picker :locale="locale" v-model="filterForm.createTime" style="width: 220px;" />
-        </a-form-model-item>
+        </a-form-model-item> -->
         <a-form-model-item>
           <a-button type="primary" @click="handleFilter"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="resetForm('filterForm')">重置</a-button>
@@ -25,7 +25,7 @@
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
-        <span slot="action" slot-scope="action, record">
+        <span slot="action" slot-scope="action, record, idx">
           <template v-if="currUser.level !== '' && currUser.level > 3 && record.status !== 1">
             <a @click="actived(record.id, idx)">激活</a>
             <a-divider type="vertical" />
@@ -70,9 +70,9 @@
       </div>
     </div>
 
-    <Add :dialog-visible-add="dialogVisibleAdd" :options-roles="optionsRoles" @changeAddVisible="changeAddVisible" @refresh="getList" />
-    <ResetPwd :edit-item="editItem" :dialog-visible-reset-pwd="dialogVisibleResetPwd" @changeResetPwdVisible="changeResetPwdVisible" />
-    <ResetRole :edit-item="editItem" :options-roles="optionsRoles" :dialog-visible-reset-role="dialogVisibleResetRole" @changeResetRoleVisible="changeResetRoleVisible" @refresh="getList" />
+    <Add :dialog-visible="dialogVisibleAdd" :options-roles="optionsRoles" @changeVisible="changeAddVisible" @refresh="getList" />
+    <ResetPwd :edit-item="editItem" :dialog-visible="dialogVisibleResetPwd" @changeVisible="changeResetPwdVisible" />
+    <ResetRole :edit-item="editItem" :options-roles="optionsRoles" :dialog-visible="dialogVisibleResetRole" @changeVisible="changeResetRoleVisible" @refresh="getList" />
   </div>
 </template>
 
@@ -344,7 +344,16 @@ export default {
           this.$message.error(resBody.message || '请求出错！')
         }
       }).catch(error => {
-        console.log(error.response.data)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     }
   }

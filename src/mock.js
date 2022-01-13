@@ -224,6 +224,8 @@ let templatePermissions = {
 
 let templateRoleperm = {
   'id|2-10000': 2,
+  'role': { id: 12, name: '角色名' },
+  'perms': [{ id: 1, info: '权限1' }, { id: 2, info: '权限2' }, { id: 3, info: '权限3' }],
   'status|1': [0, 1, 2]
 }
 

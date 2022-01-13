@@ -1,32 +1,34 @@
 <template>
-  <el-dialog
+  <a-modal
     title="编辑权限"
-    :visible.sync="dialogVisibleEdit"
-    width="50%"
-    :before-close="handleClose"
+    v-model="visible"
   >
-    <div class="channelForm">
-      <el-form ref="form" :model="editItem" :rules="ruleValidate" label-width="80px">
-        <el-form-item label="接口地址" prop="name">
-          <el-input v-model="editItem.name" placeholder="请输入接口地址" />
-        </el-form-item>
-        <el-form-item label="权限描述" prop="info">
-          <el-input v-model="editItem.info" placeholder="请输入权限描述" />
-        </el-form-item>
-      </el-form>
+    <div>
+      <a-form-model ref="form" :model="editItem" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+        <a-form-model-item label="接口地址" prop="name">
+          <a-input v-model="editItem.name" placeholder="请输入接口地址" />
+        </a-form-model-item>
+        <a-form-model-item label="权限描述" prop="info">
+          <a-input v-model="editItem.info" placeholder="请输入角色描述" />
+        </a-form-model-item>
+      </a-form-model>
     </div>
-    <span slot="footer" class="dialog-footer">
-      <el-button @click="reset">取 消</el-button>
-      <el-button type="primary" :loading="loading" @click="commit">确 定</el-button>
-    </span>
-  </el-dialog>
+    <template slot="footer">
+      <a-button key="back" @click="reset">
+        取消
+      </a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="commit">
+        确定
+      </a-button>
+    </template>
+  </a-modal>
 </template>
 <script>
 import apiPermission from '@/api/mypermission'
 
 export default {
   props: {
-    dialogVisibleEdit: {
+    dialogVisible: {
       type: Boolean,
       default: false
     },
@@ -40,6 +42,16 @@ export default {
       type: Array,
       default: function () {
         return []
+      }
+    }
+  },
+  computed: {
+    visible: {
+      get () {
+        return this.dialogVisible
+      },
+      set (val) {
+        this.$emit('changeVisible', false)
       }
     }
   },
@@ -72,23 +84,35 @@ export default {
     updatePermission () {
       this.loading = true
       apiPermission.updatePermission(this.editItem).then(response => {
-        this.$message({
-          message: '编辑成功！',
-          type: 'success'
-        })
         this.loading = false
-        this.$emit('changeEditVisible', false)
-        this.$emit('refresh')
-      }).catch(() => {
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('编辑成功！')
+          this.$emit('changeVisible', false)
+          this.$emit('refresh')
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
         this.loading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     reset () {
       this.$refs.form.resetFields()
-      this.$emit('changeEditVisible', false)
+      this.$emit('changeVisible', false)
     },
     handleClose (done) {
-      this.$emit('changeEditVisible', false)
+      this.$emit('changeVisible', false)
       // done()
     }
   }

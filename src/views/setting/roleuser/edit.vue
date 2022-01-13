@@ -1,30 +1,34 @@
 <template>
-  <el-dialog
+  <a-modal
     title="编辑用户角色关联"
-    :visible.sync="dialogVisibleEdit"
-    width="50%"
-    :before-close="handleClose"
+    v-model="visible"
   >
     <div>
-      <el-form ref="form" :model="editform" :rules="ruleValidate" label-width="100px">
-        <el-form-item prop="roleId" label="角色">
-          <el-select v-model="editform.roleId" placeholder="请选择" style="width: 100%;">
-            <el-option v-for="item in optionsRoles" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+      <a-form-model ref="form" :model="editItem" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+        <a-form-model-item label="角色" prop="roleId">
+          <a-select v-model="editItem.roleId" :allowClear="true">
+            <a-select-option v-for="item in optionsRoles" :value="item.value" v-bind:key="item.value">
+              {{item.label}}
+            </a-select-option>
+          </a-select>
+        </a-form-model-item>
+      </a-form-model>
     </div>
-    <span slot="footer" class="dialog-footer">
-      <el-button @click="reset">取 消</el-button>
-      <el-button type="primary" :loading="loading" @click="commit">确 定</el-button>
-    </span>
-  </el-dialog>
+    <template slot="footer">
+      <a-button key="back" @click="reset">
+        取消
+      </a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="commit">
+        确定
+      </a-button>
+    </template>
+  </a-modal>
 </template>
 <script>
 import apiRoleuser from '@/api/roleuser'
 export default {
   props: {
-    dialogVisibleEdit: {
+    dialogVisible: {
       type: Boolean,
       default: false
     },
@@ -38,6 +42,16 @@ export default {
       type: Array,
       default: function () {
         return []
+      }
+    }
+  },
+  computed: {
+    visible: {
+      get () {
+        return this.dialogVisible
+      },
+      set (val) {
+        this.$emit('changeVisible', false)
       }
     }
   },
@@ -75,23 +89,35 @@ export default {
     updateRoleUser () {
       this.loading = true
       apiRoleuser.updateRoleUser({ id: this.editItem.id, roleId: this.editform.roleId }).then(response => {
-        this.$message({
-          message: '编辑成功！',
-          type: 'success'
-        })
         this.loading = false
-        this.$emit('changeEditVisible', false)
-        this.$emit('refresh')
-      }).catch(() => {
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('编辑成功！')
+          this.$emit('changeVisible', false)
+          this.$emit('refresh')
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
         this.loading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     reset () {
       this.$refs.form.resetFields()
-      this.$emit('changeEditVisible', false)
+      this.$emit('changeVisible', false)
     },
     handleClose (done) {
-      this.$emit('changeEditVisible', false)
+      this.$emit('changeVisible', false)
       // done()
     }
   }

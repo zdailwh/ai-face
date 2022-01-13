@@ -1,35 +1,41 @@
 <template>
-  <el-dialog
+  <a-modal
     title="创建用户角色关联"
-    :visible.sync="dialogVisibleAdd"
-    width="50%"
-    :before-close="handleClose"
+    v-model="visible"
   >
     <div>
-      <el-form ref="form" :model="formadd" :rules="ruleValidate" label-width="100px">
-        <el-form-item prop="userId" label="用户">
-          <el-select v-model="formadd.userId" placeholder="请选择" style="width: 100%;">
-            <el-option v-for="item in optionsUsers" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item prop="roleId" label="角色">
-          <el-select v-model="formadd.roleId" placeholder="请选择" style="width: 100%;">
-            <el-option v-for="item in optionsRoles" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+        <a-form-model-item label="用户" prop="userId">
+          <a-select v-model="formadd.userId" :allowClear="true">
+            <a-select-option v-for="item in optionsUsers" :value="item.value" v-bind:key="item.value">
+              {{item.label}}
+            </a-select-option>
+          </a-select>
+        </a-form-model-item>
+        <a-form-model-item label="角色" prop="roleId">
+          <a-select v-model="formadd.roleId" :allowClear="true">
+            <a-select-option v-for="item in optionsRoles" :value="item.value" v-bind:key="item.value">
+              {{item.label}}
+            </a-select-option>
+          </a-select>
+        </a-form-model-item>
+      </a-form-model>
     </div>
-    <span slot="footer" class="dialog-footer">
-      <el-button @click="reset">取 消</el-button>
-      <el-button type="primary" :loading="loading" @click="commit">确 定</el-button>
-    </span>
-  </el-dialog>
+    <template slot="footer">
+      <a-button key="back" @click="reset">
+        取消
+      </a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="commit">
+        创建
+      </a-button>
+    </template>
+  </a-modal>
 </template>
 <script>
 import apiRoleuser from '@/api/roleuser'
 export default {
   props: {
-    dialogVisibleAdd: {
+    dialogVisible: {
       type: Boolean,
       default: false
     },
@@ -43,6 +49,16 @@ export default {
       type: Array,
       default: function () {
         return []
+      }
+    }
+  },
+  computed: {
+    visible: {
+      get () {
+        return this.dialogVisible
+      },
+      set (val) {
+        this.$emit('changeVisible', false)
       }
     }
   },
@@ -79,27 +95,40 @@ export default {
     createRoleUser () {
       this.loading = true
       apiRoleuser.createRoleUser(this.formadd).then(response => {
-        this.$message({
-          message: '创建成功！',
-          type: 'success'
-        })
-        this.formadd = {
-          userId: '',
-          roleId: ''
+        this.loading = false
+        var resBody = response.data
+        if (resBody.code === 0) {
+          this.$message.success('创建成功！')
+
+          this.formadd = {
+            userId: '',
+            roleId: ''
+          }
+          this.$emit('changeVisible', false)
+          this.$emit('refresh')
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
         }
+      }).catch((error) => {
         this.loading = false
-        this.$emit('changeAddVisible', false)
-        this.$emit('refresh')
-      }).catch(() => {
-        this.loading = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     reset () {
       this.$refs.form.resetFields()
-      this.$emit('changeAddVisible', false)
+      this.$emit('changeVisible', false)
     },
     handleClose (done) {
-      this.$emit('changeAddVisible', false)
+      this.$emit('changeVisible', false)
       // done()
     }
   }
