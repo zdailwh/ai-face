@@ -478,6 +478,7 @@ export default {
         var resBody = res.data
         if (resBody.code === 0) {
           var groupArr = resBody.data.item
+          groupArr.unshift({ id: 0, name: '全部' })
           groupArr.map((item, key, arr) => {
             item.key = '' + item.id
             item.title = item.name

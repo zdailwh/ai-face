@@ -21,7 +21,7 @@
     <!--搜索 end-->
 
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="listPermsOfRole" :scroll="{ x: true }" rowKey="id" :pagination="false">
         <span slot="role" slot-scope="role">
           {{ role && role.name }}
         </span>

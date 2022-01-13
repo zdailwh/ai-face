@@ -42,9 +42,9 @@
             <a-select-option value="自定义">自定义</a-select-option>
           </a-select>
         </a-form-model-item>
-        <template v-if="mymode === '自定义'">
+        <template v-if="mymode !== ''">
           <a-form-model-item label="帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.frame_rate">
+            <a-select v-model="addForm.frame_rate" :disabled="mymode !== '自定义'">
               <a-select-option :value="1">1</a-select-option>
               <a-select-option :value="2">2</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -52,7 +52,7 @@
             </a-select>
           </a-form-model-item>
           <a-form-model-item label="优先级" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.prority">
+            <a-select v-model="addForm.prority" :disabled="mymode !== '自定义'">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
           </a-form-model-item>
@@ -152,7 +152,13 @@ export default {
         var selMode = opt.data.attrs.myitem
         this.addForm.frame_rate = selMode.frame_rate
         this.addForm.prority = selMode.prority
-        this.addForm.groupId = selMode.groupIds
+        this.addForm.groupId = selMode.group_ids
+        this.updateParentData('targetKeys', selMode.group_ids.split(','))
+      } else {
+        this.addForm.frame_rate = ''
+        this.addForm.prority = ''
+        this.addForm.groupId = ''
+        this.updateParentData('targetKeys', [])
       }
     },
     handleOk (e) {
@@ -187,10 +193,6 @@ export default {
         this.$message.error('请选择优先级！')
         return
       }
-      if (!this.addForm.groupId && !this.targetGroupIds.length) {
-        this.$message.error('请选择任务关联的人脸组！')
-        return
-      }
 
       var formdata = new FormData()
       var task = {
@@ -199,7 +201,7 @@ export default {
         description: this.addForm.description,
         frame_rate: this.addForm.frame_rate,
         prority: this.addForm.prority,
-        group_ids: this.addForm.groupId || this.targetGroupIds.join(',')
+        group_ids: this.addForm.groupId !== '' ? this.addForm.groupId : this.targetGroupIds.join(',')
       }
       if (this.addForm.type === 2) {
         task.url = this.addForm.url
@@ -223,7 +225,7 @@ export default {
           this.updateParentData('addVisible', false)
           this.addLoading = false
           this.addForm = {
-            type: '',
+            type: 1,
             url: '',
             name: '',
             description: '',
@@ -251,7 +253,7 @@ export default {
       // this.addVisible = false
       this.updateParentData('addVisible', false)
       this.addForm = {
-        type: '',
+        type: 1,
         url: '',
         name: '',
         description: '',

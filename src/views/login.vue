@@ -1,7 +1,8 @@
 <template>
   <div class="login_container">
+    <div class="login_bg"></div>
     <div class="login-wrap" :style="smallLayout?'width:369px':''">
-      <div class="login_bg" v-show="smallLayout === false">
+      <div class="login_slogan" v-show="smallLayout === false">
         <span>AI人脸审核系统</span>
       </div>
       <div class="login_box">
@@ -111,8 +112,18 @@ export default {
   height: 100%;
   width: 100%;
   overflow: auto;
-  background-color: #000;
+  background-color: #1f2026;
   font-family: "Microsoft yahei";
+}
+.login_container .login_bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-65%, -60%);
+  width: calc(1124px * 600 / 721);
+  height: 600px;
+  background: url(../assets/bg_login1.png) no-repeat scroll 0 0;
+  background-size: 100%;
 }
 .login_container .login-wrap {
   width: 1000px;
@@ -126,17 +137,16 @@ export default {
   margin-top: -217px;*/
   transform: translate(-50%, -50%);
 }
-.login_container .login-wrap .login_bg {
+.login_container .login-wrap .login_slogan {
   position: absolute;
   top: 0;
   left: 0;
   width: 789px;
   height: 434px;
-  background: url(../assets/bg_login.png);
 }
-.login_container .login-wrap .login_bg span {
+.login_container .login-wrap .login_slogan span {
   display: block;
-  margin: 235px 0 0 235px;
+  margin: 180px 0 0 235px;
   font-size: 36px;
   color: #e9e9e9;
   letter-spacing: 0;
@@ -147,7 +157,7 @@ export default {
   right: 0;
   width: 369px;
   height: 427px;
-  background-image: linear-gradient(0deg, #22262F 0%, #181A1E 99%);
+  background-image: linear-gradient(0deg, #2880ca 0%, #3963d2 99%);
 }
 .login_container .login-wrap .login_box .login-form {
   position: absolute;
@@ -161,7 +171,7 @@ export default {
   line-height: 40px;
   margin-bottom: 20px;
   font-size: 24px;
-  color: #a5aab3;
+  color: #fff;
 }
 .login_container .login-wrap .login_box .login-form input {
   height: 36px;

@@ -34,6 +34,12 @@
             <router-link :to="{ path: '/facegroup/face', query: { groupId: it.id }}" :key="k">{{it.name}}、</router-link>
           </template>
         </span>
+        <span slot="userIds" slot-scope="userIds">
+          <template v-for="(it, k) in userIds">
+            <span :key="k">{{it}}、</span>
+            <!-- <router-link :to="{ path: '/setting/admin/index', query: { groupId: it }}" :key="k">{{it}}、</router-link> -->
+          </template>
+        </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
@@ -48,8 +54,10 @@
           >
             <a>删除</a>
           </a-popconfirm>
+          <a-divider type="vertical" />
+          <a @click="toModeAssign(record, idx)">关联用户</a>
           <!-- <a-divider type="vertical" />
-          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看人脸<a-icon type="right" /></router-link> -->
+          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看关联用户<a-icon type="right" /></router-link> -->
         </span>
       </a-table>
       <div style="margin: 15px 0;text-align: right;">
@@ -227,12 +235,16 @@
         </a-button>
       </template>
     </a-modal>
+
+    <TempAssign :edit-item="editItem" :options-users="allUsers" :small-layout="smallLayout" :dialog-visible="modeAssignVisible" @changeVisible="changeModeAssignVisible" @refresh="getTemps" />
   </div>
 </template>
 <script>
 import difference from 'lodash/difference'
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import api from '../api'
+import apiAdmin from '@/api/admin'
+import TempAssign from '@/components/TempAssign'
 
 var moment = require('moment')
 const columns = [
@@ -261,6 +273,13 @@ const columns = [
     scopedSlots: { customRender: 'groups' }
   },
   {
+    title: '关联用户',
+    dataIndex: 'userIds',
+    key: 'userIds',
+    scopedSlots: { customRender: 'userIds' },
+    width: 120
+  },
+  {
     title: '创建时间',
     dataIndex: 'create_time',
     key: 'create_time',
@@ -276,6 +295,7 @@ const columns = [
 ]
 
 export default {
+  components: { TempAssign },
   beforeRouteEnter (to, from, next) {
     next()
   },
@@ -312,7 +332,9 @@ export default {
       targetGroupIds: [],
       targetKeys: [],
       selectedKeys: [],
-      groupsDatalist: []
+      groupsDatalist: [],
+      allUsers: [],
+      modeAssignVisible: false
     }
   },
   filters: {
@@ -329,6 +351,7 @@ export default {
 
     this.getTemps()
     this.getAllGroups()
+    this.getAllUsers()
   },
   methods: {
     onPageChange (current) {
@@ -581,6 +604,39 @@ export default {
 
       // console.log('sourceSelectedKeys: ', sourceSelectedKeys)
       // console.log('targetSelectedKeys: ', targetSelectedKeys)
+    },
+    getAllUsers () {
+      apiAdmin.getAllUsers().then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          var allUsers = resBody.data.item || []
+          allUsers.map((item, key, arr) => {
+            item.key = '' + item.id
+            item.title = item.username
+          })
+          this.allUsers = allUsers
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    toModeAssign (item, key) {
+      this.modeAssignVisible = true
+      this.editItem = item
+    },
+    changeModeAssignVisible (param) {
+      this.modeAssignVisible = param
     }
   }
 }

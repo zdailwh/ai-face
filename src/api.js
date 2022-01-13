@@ -343,7 +343,7 @@ export default {
         opts.page_no = params.page_no - 1
       }
       if (params && params.frame_rate) {
-        opts.frame_rate = params.frame_rate
+        opts.frameRate = params.frame_rate
       }
       if (params && params.prority) {
         opts.prority = params.prority
@@ -357,6 +357,19 @@ export default {
       return res
     } else {
       const data = await await timeout(200).then(() => mock.temps)
+      return { status: 200, data: data }
+    }
+  },
+
+  async tempAssign (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.put(`/api/face/v1/modeAssigned`, {
+        mode_id: params.mode_id,
+        user_ids: params.user_ids
+      })
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.temp)
       return { status: 200, data: data }
     }
   }

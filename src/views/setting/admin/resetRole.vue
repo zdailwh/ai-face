@@ -148,10 +148,7 @@ export default {
         this.loading = false
         var resBody = response.data
         if (resBody.code === 0) {
-          this.$message({
-            message: '用户角色关联创建成功！',
-            type: 'success'
-          })
+          this.$message.success('用户角色关联创建成功！')
           this.$emit('changeVisible', false)
           this.$emit('refresh')
         } else {

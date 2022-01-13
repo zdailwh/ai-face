@@ -44,7 +44,7 @@ export default {
       })
       return res
     } else {
-      const data = await await timeout(200).then(() => mock.user)
+      const data = await await timeout(200).then(() => mock.users)
       return { status: 200, data: data }
     }
   },
