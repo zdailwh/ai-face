@@ -32,7 +32,7 @@
             cancel-text="取消"
             @confirm="delSome()"
           >
-            <a-button style="margin-left: 10px;" type="danger" :disabled="!multipleSelection.length"><a-icon key="del" type="del"/>批量删除</a-button>
+            <a-button style="margin-left: 10px;" type="danger" :disabled="!multipleSelection.length"><a-icon key="delete" type="delete"/>批量删除</a-button>
           </a-popconfirm>
         </a-form-model-item>
       </a-form-model>
@@ -40,7 +40,7 @@
     <!--搜索 end-->
 
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false" :row-selection="{ selectedRowKeys: multipleSelection, onChange: handleSelectionChange, columnWidth: '10px' }">
         <span slot="user" slot-scope="user">
           {{ user && user.username }}
         </span>

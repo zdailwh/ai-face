@@ -250,6 +250,12 @@ export default {
       })
     },
     handleCancel (e) {
+      this.$notification.open({
+        key: 'uploadVideo',
+        duration: 0,
+        message: 'Notification Title',
+        description: `<a>123</a>`
+      })
       // this.addVisible = false
       this.updateParentData('addVisible', false)
       this.addForm = {
@@ -274,7 +280,7 @@ export default {
     },
     getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
       return {
-        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled } }),
+        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled || this.mymode !== '自定义' } }),
         onSelectAll (selected, selectedRows) {
           const treeSelectedKeys = selectedRows
             .filter(item => !item.disabled)

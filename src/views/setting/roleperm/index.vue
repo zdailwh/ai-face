@@ -13,7 +13,7 @@
             cancel-text="取消"
             @confirm="delSome()"
           >
-            <a-button style="margin-left: 10px;" type="danger" :disabled="!multipleSelection.length"><a-icon key="del" type="del"/>批量删除</a-button>
+            <a-button style="margin-left: 10px;" type="danger" :disabled="!multipleSelection.length"><a-icon key="delete" type="delete"/>批量删除</a-button>
           </a-popconfirm> -->
         </a-form-model-item>
       </a-form-model>
