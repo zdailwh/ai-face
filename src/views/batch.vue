@@ -3,13 +3,6 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="批次" prop="type">
-          <a-select v-model="searchForm.type" :dropdownMatchSelectWidth="false" style="width: 100px;">
-            <a-select-option :value="val.id" v-for="(val,key) in datalist" v-bind:key="key">
-              {{val.name}}
-            </a-select-option>
-          </a-select>
-        </a-form-model-item>
         <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
           <a-range-picker :locale="locale" v-model="searchForm.createTime" style="width: 220px;" />
         </a-form-model-item>
@@ -130,7 +123,6 @@ export default {
       smallLayout: false,
       spinning: false,
       searchForm: {
-        name: '',
         createTime: []
       },
       datalist: [],
@@ -189,12 +181,6 @@ export default {
       var params = {
         page_no: this.page_no,
         page_size: this.page_size
-      }
-      if (this.searchForm.type) {
-        params.type = this.searchForm.type
-      }
-      if (this.searchForm.name) {
-        params.name = this.searchForm.name
       }
       if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
         params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')

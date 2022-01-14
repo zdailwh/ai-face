@@ -31,12 +31,12 @@
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="id" :pagination="false">
         <span slot="groups" slot-scope="groups">
           <template v-for="(it, k) in groups">
-            <router-link :to="{ path: '/facegroup/face', query: { groupId: it.id }}" :key="k">{{it.name}}、</router-link>
+            <router-link :to="{ path: '/facegroup/face', query: { groupId: it.id }}" :key="k">{{it.name}}|</router-link>
           </template>
         </span>
-        <span slot="userIds" slot-scope="userIds">
-          <template v-for="(it, k) in userIds">
-            <span :key="k">{{it}}、</span>
+        <span slot="users" slot-scope="users">
+          <template v-for="(it, k) in users">
+            <span :key="k">{{it.username}}|</span>
             <!-- <router-link :to="{ path: '/setting/admin/index', query: { groupId: it }}" :key="k">{{it}}、</router-link> -->
           </template>
         </span>
@@ -274,9 +274,9 @@ const columns = [
   },
   {
     title: '关联用户',
-    dataIndex: 'userIds',
-    key: 'userIds',
-    scopedSlots: { customRender: 'userIds' },
+    dataIndex: 'users',
+    key: 'users',
+    scopedSlots: { customRender: 'users' },
     width: 120
   },
   {

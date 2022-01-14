@@ -10,7 +10,7 @@
     <div>
       <a-form-model ref="form" :model="addForm" :rules="ruleValidate">
         <a-form-model-item label="批次" prop="batch" :label-col="{span:3}" :wrapper-col="{span:21}">
-          <a-input v-model="addForm.batch" :disabled="!!(currBatch && currBatch.id)" />
+          <a-input v-model="addForm.batch" :disabled="!!(batch && batch.id)" />
         </a-form-model-item>
         <a-form-model-item label="上传视频" v-if="addForm.type === 1" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-upload
@@ -128,6 +128,16 @@ export default {
       this.addForm.batch = newVal.name
     }
   },
+  computed: {
+    batch: {
+      get () {
+        return this.currBatch
+      },
+      set (val) {
+        this.batch = val
+      }
+    }
+  },
   data () {
     return {
       leftColumns: leftTableColumns,
@@ -202,26 +212,18 @@ export default {
     commit () {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          // this.createTask()
-          api.addBatch({name: this.addForm.batch}).then(async res => {
-            if (res.data.code === 0) {
-              this.currBatch = res.data.data
-              await this.createTasks(this.filterList, 0)
-            } else {
-              this.$message.error(res.data.message || '请求出错！')
-            }
-          }).catch(error => {
-            if (error.response.status === 401) {
-              this.$store.dispatch('authentication/resetToken').then(() => {
-                this.$router.push({ path: '/login' })
-              })
-            }
-            if (error.response && error.response.data) {
-              this.$message.error(error.response.data.message || '删除出错！')
-            } else {
-              this.$message.error('接口调用失败！')
-            }
-          })
+          if (this.currBatch && this.currBatch.id) {
+            this.createTasks(this.filterList, 0)
+          } else {
+            api.addBatch({name: this.addForm.batch}).then(res => {
+              if (res.data.code === 0) {
+                this.batch = res.data.data
+                this.createTasks(this.filterList, 0)
+              } else {
+                this.$message.error(res.data.message || '请求出错！')
+              }
+            })
+          }
         } else {
           console.log('error submit!!')
           return false
@@ -388,7 +390,7 @@ export default {
         frame_rate: this.addForm.frame_rate,
         prority: this.addForm.prority,
         group_ids: this.addForm.groupId !== '' ? this.addForm.groupId : this.targetGroupIds.join(','),
-        batch_id: this.currBatch.id,
+        batch_id: this.batch.id,
         filename: fileItem.file.name,
         md5: md5,
         ext: fileItem.ext

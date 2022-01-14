@@ -238,14 +238,11 @@ export default {
       if (params && params.page_no) {
         opts.page_no = params.page_no - 1
       }
-      if (params && params.stream_type) {
-        opts.stream_type = params.stream_type
-      }
       if (params && params.name) {
         opts.name = params.name
       }
-      if (params && params.type) {
-        opts.type = params.type
+      if (params && params.batchId) {
+        opts.batchId = params.batchId
       }
       if (params && params.createTime) {
         opts.createTime = params.createTime
@@ -315,7 +312,7 @@ export default {
       var res = await axios.post(`/api/face/v1/batch`, params)
       return res
     } else {
-      const data = await await timeout(200).then(() => mock.batch)
+      const data = await await timeout(200).then(() => mock.createBatch)
       return { status: 200, data: data }
     }
   },

@@ -3,10 +3,10 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="任务类型" prop="type">
-          <a-select v-model="searchForm.type" :dropdownMatchSelectWidth="false" style="width: 100px;">
-            <a-select-option :value="key" v-for="(val,key) in typeArr_search" v-bind:key="key">
-              {{val}}
+        <a-form-model-item label="批次" prop="type">
+          <a-select v-model="searchForm.batchId" :dropdownMatchSelectWidth="false" style="width: 100px;">
+            <a-select-option :value="val.id" v-for="(val,key) in batchsDatalist" v-bind:key="key">
+              {{val.name}}
             </a-select-option>
           </a-select>
         </a-form-model-item>
@@ -19,7 +19,6 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
-          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true;targetKeys = []"><a-icon key="plus" type="plus"/>添加任务</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
@@ -103,16 +102,11 @@
       </div>
     </div>
 
-    <AddTask tag="offline" :datalist="datalist" :add-visible="addVisible" :faces-data="facesDatalist" :modes-data="modesDatalist" :groups-data="groupDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
-    <EditTask tag="offline" :datalist="datalist" :edit-visible="editVisible" :faces-data="facesDatalist" :groups-data="groupDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" @getList="getTasks" />
-
   </div>
 </template>
 <script>
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import api from '../api'
-import AddTask from '../components/AddTask.vue'
-import EditTask from '../components/EditTask.vue'
 var moment = require('moment')
 const columns = [
   {
@@ -195,7 +189,6 @@ const columns = [
 
 var timer = null
 export default {
-  components: { AddTask, EditTask },
   beforeRouteEnter (to, from, next) {
     next()
   },
@@ -211,7 +204,7 @@ export default {
       smallLayout: false,
       spinning: false,
       searchForm: {
-        type: 0,
+        batchId: '',
         name: '',
         createTime: []
       },
@@ -221,18 +214,7 @@ export default {
       page_no: 1,
       page_size: 20,
       columns,
-      addVisible: false,
-      editVisible: false,
-      typeArr_search: [ '任意', '文件', '实时直播流' ],
-      targetKeys: [],
-      selectedKeys: [],
-      editForm: {},
-      editItem: {},
-      editKey: '',
-      editTag: '', // 'edit' || 'copy'
-      facesDatalist: [],
-      modesDatalist: [],
-      groupDatalist: [],
+      batchsDatalist: [],
       continueCircle: true // 是否继续轮循
     }
   },
@@ -252,9 +234,6 @@ export default {
     }
 
     this.getTasks()
-    this.getAllFaces()
-    this.getAllTemps()
-    this.getAllGroups()
   },
   methods: {
     onPageChange (current) {
@@ -277,8 +256,8 @@ export default {
         page_no: this.page_no,
         page_size: this.page_size
       }
-      if (this.searchForm.type) {
-        params.type = this.searchForm.type
+      if (this.searchForm.batchId) {
+        params.batchId = this.searchForm.batchId
       }
       if (this.searchForm.name) {
         params.name = this.searchForm.name
@@ -429,61 +408,12 @@ export default {
     updateData (params) {
       this[params.key] = params.val
     },
-    getAllFaces () {
-      api.getFaces().then(res => {
+    getAllBatchs () {
+      api.getBatchs().then(res => {
         var resBody = res.data
         if (resBody.code === 0) {
-          var faceArr = resBody.data.item
-          faceArr.map((item, key, arr) => {
-            item.key = '' + item.id
-            item.title = item.name
-          })
-          this.facesDatalist = faceArr
-        }
-      }).catch(error => {
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        // if (error.response && error.response.data) {
-        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
-        // } else {
-        //   this.$message.error('接口调用失败！')
-        // }
-      })
-    },
-    getAllTemps () {
-      api.getTemps().then(res => {
-        var resBody = res.data
-        if (resBody.code === 0) {
-          var modeArr = resBody.data.item
-          this.modesDatalist = modeArr
-        }
-      }).catch(error => {
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        // if (error.response && error.response.data) {
-        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
-        // } else {
-        //   this.$message.error('接口调用失败！')
-        // }
-      })
-    },
-    getAllGroups () {
-      api.getGroups().then(res => {
-        var resBody = res.data
-        if (resBody.code === 0) {
-          var groupArr = resBody.data.item
-          groupArr.unshift({ id: 0, name: '全部' })
-          groupArr.map((item, key, arr) => {
-            item.key = '' + item.id
-            item.title = item.name
-          })
-          this.groupDatalist = groupArr
+          var batchArr = resBody.data.item
+          this.batchsDatalist = batchArr
         }
       }).catch(error => {
         if (error.response.status === 401) {
