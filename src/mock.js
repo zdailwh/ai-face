@@ -106,6 +106,11 @@ let templateTask = {
   'type': '1'
 }
 
+let templateCreateTask = {
+  'code': 0,
+  'data': templateTask
+}
+
 let templateTasks = {
   'code': 0,
   'data': {
@@ -275,6 +280,7 @@ let roleperm = Mock.mock(templateRoleperm)
 let roleperms = Mock.mock(templateRoleperms)
 let roleuser = Mock.mock(templateRoleuser)
 let roleusers = Mock.mock(templateRoleusers)
+let createTask = Mock.mock(templateCreateTask)
 
 module.exports = {
   face,
@@ -284,6 +290,7 @@ module.exports = {
   temp,
   temps,
   task,
+  createTask,
   tasks,
   feature,
   features,

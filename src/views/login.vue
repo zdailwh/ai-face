@@ -119,7 +119,7 @@ export default {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-65%, -60%);
+  transform: translate(-75%,-60%);
   width: calc(1124px * 600 / 721);
   height: 600px;
   background: url(../assets/bg_login1.png) no-repeat scroll 0 0;
@@ -146,7 +146,7 @@ export default {
 }
 .login_container .login-wrap .login_slogan span {
   display: block;
-  margin: 180px 0 0 235px;
+  margin: 224px 0 0 268px;
   font-size: 36px;
   color: #e9e9e9;
   letter-spacing: 0;
