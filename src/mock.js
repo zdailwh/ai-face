@@ -119,6 +119,21 @@ let templateTasks = {
   }
 }
 
+let templateBatch = {
+  'id|2-10000': 2,
+  create_time: '@datetime',
+  name: '@first',
+  'status|1': [0, 1, 2]
+}
+
+let templateBatchs = {
+  'code': 0,
+  'data': {
+    'total': 54,
+    'item|1-54': [templateBatch]
+  }
+}
+
 let templateFeature = {
   'create_time': '2020-10-15T18:43:24.842+08:00',
   'update_time': '2020-10-15T18:43:24.842+08:00',
@@ -281,6 +296,8 @@ let roleperms = Mock.mock(templateRoleperms)
 let roleuser = Mock.mock(templateRoleuser)
 let roleusers = Mock.mock(templateRoleusers)
 let createTask = Mock.mock(templateCreateTask)
+let batch = Mock.mock(templateBatch)
+let batchs = Mock.mock(templateBatchs)
 
 module.exports = {
   face,
@@ -308,5 +325,7 @@ module.exports = {
   roleperm,
   roleperms,
   roleuser,
-  roleusers
+  roleusers,
+  batch,
+  batchs
 }

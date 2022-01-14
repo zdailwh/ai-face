@@ -65,13 +65,33 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/task',
-    name: 'Task',
-    component: () => import('@/views/task'),
+    path: '/taskbatch',
+    name: 'TaskBatch',
+    component: () => import('@/views/taskBatch'),
     meta: {
-      title: '离线任务',
-      active: 'task'
-    }
+      title: '任务',
+      active: 'taskbatch'
+    },
+    children: [
+      {
+        path: 'batch',
+        name: 'Batch',
+        component: () => import('@/views/batch'),
+        meta: {
+          title: '批次',
+          active: 'taskbatch'
+        }
+      },
+      {
+        path: 'task',
+        name: 'Task',
+        component: () => import('@/views/task'),
+        meta: {
+          title: '离线任务',
+          active: 'taskbatch'
+        }
+      }
+    ]
   },
   {
     path: '/taskResult/:taskId',

@@ -7,7 +7,7 @@
         </div>
         <div v-if="$router.options.routes.length" class="opt mymenu" style="justify-content: center;">
           <a-menu theme="dark" v-model="current" mode="horizontal">
-            <a-menu-item key="task"><router-link to="/task">离线任务</router-link></a-menu-item>
+            <a-menu-item key="taskbatch"><router-link to="/taskbatch/batch">离线任务</router-link></a-menu-item>
             <a-menu-item key="facegroup"><router-link to="/facegroup/face">人脸库</router-link></a-menu-item>
             <a-sub-menu key="setting">
               <span slot="title">基础配置</span>

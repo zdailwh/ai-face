@@ -9,13 +9,9 @@
   >
     <div>
       <a-form-model ref="form" :model="addForm" :rules="ruleValidate">
-        <!-- <a-form-model-item label="任务类型" :label-col="{span:3}" :wrapper-col="{span:21}">
-          <a-select v-model="addForm.type">
-            <a-select-option :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
-              {{item.text}}
-            </a-select-option>
-          </a-select>
-        </a-form-model-item> -->
+        <a-form-model-item label="批次" prop="batch" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <a-input v-model="addForm.batch" :disabled="!!(currBatch && currBatch.id)" />
+        </a-form-model-item>
         <a-form-model-item label="上传视频" v-if="addForm.type === 1" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-upload
             list-type="text"
@@ -26,11 +22,6 @@
             <a-button> <a-icon type="upload" /> 选择视频文件 </a-button>
           </a-upload>
           <a-table :columns="filecolumns" :data-source="filterList" row-key="file.name" v-if="filterList.length" size="small" :pagination="false">
-          <!-- <a-button @click="folderCheckConfirm"><a-icon type="file" />选择文件所属目录</a-button>
-          <a-button @click="fileCheckConfirm" style="margin-left: 15px;"><a-icon type="folder-open" />选择文件</a-button>
-          <a-tag v-for="tag in enableFile" :key="tag" @close="() => handleCloseTag(tag)">{{ tag }}</a-tag>
-          <p><span v-for="tag in enableFile" :key="tag">{{ tag }}、</span></p>
-          <a-table :columns="filecolumns" :data-source="filterList" row-key="file.name" v-if="filterList.length" size="small" :pagination="false"> -->
           </a-table>
         </a-form-model-item>
         <a-form-model-item label="直播流地址" prop="url" v-if="addForm.type !== 1" :label-col="{span:3}" :wrapper-col="{span:21}">
@@ -131,13 +122,19 @@ import api from '../api'
 
 const SIZE = 32 * 1024 * 1024 // 切片大小
 export default {
-  props: [ 'tag', 'datalist', 'addVisible', 'facesData', 'modesData', 'groupsData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
+  props: [ 'tag', 'datalist', 'currBatch', 'addVisible', 'facesData', 'modesData', 'groupsData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
+  watch: {
+    currBatch (newVal, oldVal) {
+      this.addForm.batch = newVal.name
+    }
+  },
   data () {
     return {
       leftColumns: leftTableColumns,
       rightColumns: rightTableColumns,
       addLoading: false,
       addForm: {
+        batch: '',
         type: 1,
         url: '',
         name: '',
@@ -203,10 +200,28 @@ export default {
       }
     },
     commit () {
-      this.$refs.form.validate(async (valid) => {
+      this.$refs.form.validate((valid) => {
         if (valid) {
           // this.createTask()
-          await this.createTasks(this.filterList, 0)
+          api.addBatch({name: this.addForm.batch}).then(async res => {
+            if (res.data.code === 0) {
+              this.currBatch = res.data.data
+              await this.createTasks(this.filterList, 0)
+            } else {
+              this.$message.error(res.data.message || '请求出错！')
+            }
+          }).catch(error => {
+            if (error.response.status === 401) {
+              this.$store.dispatch('authentication/resetToken').then(() => {
+                this.$router.push({ path: '/login' })
+              })
+            }
+            if (error.response && error.response.data) {
+              this.$message.error(error.response.data.message || '删除出错！')
+            } else {
+              this.$message.error('接口调用失败！')
+            }
+          })
         } else {
           console.log('error submit!!')
           return false
@@ -373,6 +388,7 @@ export default {
         frame_rate: this.addForm.frame_rate,
         prority: this.addForm.prority,
         group_ids: this.addForm.groupId !== '' ? this.addForm.groupId : this.targetGroupIds.join(','),
+        batch_id: this.currBatch.id,
         filename: fileItem.file.name,
         md5: md5,
         ext: fileItem.ext

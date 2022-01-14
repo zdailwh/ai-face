@@ -310,6 +310,38 @@ export default {
     }
   },
 
+  async addBatch (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.post(`/api/face/v1/batch`, params)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.batch)
+      return { status: 200, data: data }
+    }
+  },
+
+  async getBatchs (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var opts = {}
+      if (params && params.page_size) {
+        opts.page_size = params.page_size
+      }
+      if (params && params.page_no) {
+        opts.page_no = params.page_no - 1
+      }
+      if (params && params.name) {
+        opts.name = params.name
+      }
+      var res = await axios.get(`/api/face/v1/batch`, {
+        params: opts
+      })
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.batchs)
+      return { status: 200, data: data }
+    }
+  },
+
   async addTemp (params) {
     if (process.env.NODE_ENV === 'production') {
       var res = await axios.post(`/api/face/v1/mode`, params)
