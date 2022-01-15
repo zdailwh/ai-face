@@ -234,6 +234,7 @@ export default {
     }
 
     this.getTasks()
+    this.getAllBatchs()
   },
   methods: {
     onPageChange (current) {

@@ -134,7 +134,7 @@ export default {
         return this.currBatch
       },
       set (val) {
-        this.batch = val
+        this.updateParentData('batchItem', val)
       }
     }
   },
@@ -210,15 +210,20 @@ export default {
       }
     },
     commit () {
-      this.$refs.form.validate((valid) => {
+      console.log(this.filterList)
+      if (!this.filterList.length) {
+        this.$message.error('请选择视频文件！')
+        return
+      }
+      this.$refs.form.validate(async (valid) => {
         if (valid) {
           if (this.currBatch && this.currBatch.id) {
-            this.createTasks(this.filterList, 0)
+            await this.createTasks(this.filterList, 0)
           } else {
-            api.addBatch({name: this.addForm.batch}).then(res => {
+            api.addBatch({name: this.addForm.batch}).then(async res => {
               if (res.data.code === 0) {
                 this.batch = res.data.data
-                this.createTasks(this.filterList, 0)
+                await this.createTasks(this.filterList, 0)
               } else {
                 this.$message.error(res.data.message || '请求出错！')
               }
