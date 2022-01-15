@@ -146,6 +146,16 @@ export default {
     }
   },
 
+  async getFace (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.get(`/api/admin/v1/face/${params.id}`)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.faces)
+      return { status: 200, data: data }
+    }
+  },
+
   async getGroupFaces (params) {
     if (process.env.NODE_ENV === 'production') {
       var opts = {}

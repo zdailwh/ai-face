@@ -20,6 +20,12 @@
             <!-- <div id="tcplayer"></div> -->
           </div>
         </div>
+        <div v-if="taskResItem" class="locationDetailWrap">
+          <h4>人脸详情</h4>
+          <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
+            <ResDetail :res-item="taskResItem" />
+          </div>
+        </div>
       </div>
     </div>
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
@@ -50,6 +56,7 @@ import api from '../api'
 import { TcPlayer } from 'tcplayer'
 import Setting from '../components/Setting'
 import Face from '../components/Face'
+import ResDetail from '../components/ResDetail'
 
 var timer = null
 export default {
@@ -61,7 +68,7 @@ export default {
     window.clearTimeout(timer)
     next()
   },
-  components: { Setting, Face },
+  components: { Setting, Face, ResDetail },
   data () {
     return {
       smallLayout: false,
@@ -214,24 +221,6 @@ export default {
       this.taskResItem = params.item
       var fixSecond = params.currentTime
       document.getElementById('myvideo').currentTime = fixSecond / 1000
-      // var timeStr = params.currentTime
-      // var h = 0
-      // var m = 0
-      // var s = 0
-      // if (timeStr.indexOf('时') !== -1) {
-      //   h = timeStr.substring(0, timeStr.indexOf('时'))
-      //   timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('时') + 1), '')
-      // }
-      // if (timeStr.indexOf('分') !== -1) {
-      //   m = timeStr.substring(0, timeStr.indexOf('分'))
-      //   timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('分') + 1), '')
-      // }
-      // if (timeStr.indexOf('秒') !== -1) {
-      //   s = timeStr.substring(0, timeStr.indexOf('秒'))
-      // }
-      // var time = parseInt(h * 3600) + parseInt(m * 60) + parseInt(s)
-      // console.log(h + ':' + m + ':' + s + ':::' + time)
-      // window.player.currentTime(time)
     },
     bofang () {
       document.getElementById('myvideo').play()
@@ -296,7 +285,7 @@ export default {
 }
 .playwrap {
   padding: 0 5px;
-  height: 500px;
+  height: 50%;
 }
 
 .cut_catalog_dropdown {
