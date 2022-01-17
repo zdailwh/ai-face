@@ -36,22 +36,33 @@
         <a-form-model-item label="模板" prop="mymode" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-select v-model="addForm.mymode" :allowClear="true" @change="handleChangeMode">
             <a-select-option :value="item.id" v-for="item in modesData" v-bind:key="item.id" :myitem="item">
-              帧率：{{item.frame_rate}} / 优先级：{{item.prority}} / 人脸组：{{item.group_ids}}
+              帧率：{{item.frame_rate}} / 动态帧率：{{item.dynamic_rate}} / 优先级：{{item.prority}} / 人脸组：{{item.group_ids}}
             </a-select-option>
-            <a-select-option value="自定义">自定义</a-select-option>
+            <a-select-option :value="0">自定义</a-select-option>
           </a-select>
         </a-form-model-item>
         <template v-if="addForm.mymode !== ''">
           <a-form-model-item label="帧率" prop="frame_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.frame_rate" :disabled="addForm.mymode !== '自定义'">
+            <a-select v-model="addForm.frame_rate" :disabled="addForm.mymode !== 0" @change="handleChangeFrameRate">
+              <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="1">1</a-select-option>
               <a-select-option :value="2">2</a-select-option>
               <a-select-option :value="5">5</a-select-option>
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
+          <a-form-model-item label="动态帧率" prop="dynamic_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="addForm.dynamic_rate" :disabled="addForm.mymode !== 0" @change="handleChangeDynamicRate">
+              <a-select-option :value="0">不启用</a-select-option>
+              <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="10">10</a-select-option>
+              <a-select-option :value="15">15</a-select-option>
+              <a-select-option :value="20">20</a-select-option>
+              <a-select-option :value="25">25</a-select-option>
+            </a-select>
+          </a-form-model-item>
           <a-form-model-item label="优先级" prop="prority" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.prority" :disabled="addForm.mymode !== '自定义'">
+            <a-select v-model="addForm.prority" :disabled="addForm.mymode !== 0">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
           </a-form-model-item>
@@ -150,7 +161,8 @@ export default {
         name: '',
         description: '',
         mymode: '',
-        frame_rate: '',
+        frame_rate: 25,
+        dynamic_rate: 0,
         prority: '',
         groupId: '',
         files: []
@@ -170,6 +182,9 @@ export default {
         // ],
         frame_rate: [
           { required: true, type: 'number', message: '帧率不能为空', trigger: 'change' }
+        ],
+        dynamic_rate: [
+          { required: true, type: 'number', message: '动态帧率不能为空', trigger: 'change' }
         ],
         prority: [
           { required: true, type: 'number', message: '优先级不能为空', trigger: 'change' }
@@ -196,17 +211,29 @@ export default {
   },
   methods: {
     handleChangeMode (val, opt) {
-      if (val !== '自定义') {
+      if (val !== 0) {
         var selMode = opt.data.attrs.myitem
         this.addForm.frame_rate = selMode.frame_rate
+        this.addForm.dynamic_rate = selMode.dynamic_rate
         this.addForm.prority = selMode.prority
         this.addForm.groupId = selMode.group_ids
         this.updateParentData('targetKeys', selMode.group_ids.split(','))
       } else {
-        this.addForm.frame_rate = ''
+        this.addForm.frame_rate = 25
+        this.addForm.dynamic_rate = 0
         this.addForm.prority = ''
         this.addForm.groupId = ''
         this.updateParentData('targetKeys', [])
+      }
+    },
+    handleChangeFrameRate (val) {
+      if (val !== 0) {
+        this.addForm.dynamic_rate = 0
+      }
+    },
+    handleChangeDynamicRate (val) {
+      if (val !== 0) {
+        this.addForm.frame_rate = 0
       }
     },
     commit () {
@@ -236,7 +263,7 @@ export default {
           if (this.currBatch && this.currBatch.id) {
             await this.createTasks(this.filterList, 0)
           } else {
-            api.addBatch({name: this.addForm.batch}).then(async res => {
+            api.addBatch({name: this.addForm.batch, mode_id: this.addForm.mymode}).then(async res => {
               if (res.data.code === 0) {
                 this.batch = res.data.data
                 await this.createTasks(this.filterList, 0)
@@ -332,7 +359,7 @@ export default {
     },
     getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
       return {
-        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled || this.addForm.mymode !== '自定义' } }),
+        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled || this.addForm.mymode !== 0 } }),
         onSelectAll (selected, selectedRows) {
           const treeSelectedKeys = selectedRows
             .filter(item => !item.disabled)
@@ -389,7 +416,7 @@ export default {
       listItem.hash = await this.calculateHash(fileChunkList, filelist, startIdx)
       await this.createTask(listItem, startIdx).then(async (response) => {
         console.log('创建任务返回' + startIdx + '/' + response.data.id)
-        listItem.taskid = response.id
+        listItem.taskid = response.data.id
 
         this.uploadFiles(filelist, startIdx)
       }).catch((error) => {
@@ -409,6 +436,7 @@ export default {
         name: this.addForm.name,
         description: this.addForm.description,
         frame_rate: this.addForm.frame_rate,
+        dynamic_rate: this.addForm.dynamic_rate,
         prority: this.addForm.prority,
         group_ids: this.addForm.groupId !== '' ? this.addForm.groupId : this.targetGroupIds.join(','),
         batch_id: this.batch.id,
@@ -447,6 +475,8 @@ export default {
 
       requestList = await this.uploadChunks(filelist, startIdx, this.chunkData)
       await Promise.all(requestList).then(async (result) => {
+        console.log('上传分片结果')
+        console.log(result)
         // 合并切片
         await this.mergeRequest(listItem.taskid)
       }).catch((error) => {
@@ -460,11 +490,11 @@ export default {
         .filter(({ hash }) => !uploadedList.includes(hash))
         .map(({ taskid, fileHash, chunk, hash, index, size }) => {
           const formData = new FormData()
-          formData.append('taskId', taskid)
-          formData.append('chunk', chunk)
-          formData.append('hash', hash)
+          formData.append('taskid', taskid)
+          formData.append('chunk', index)
+          formData.append('guid', hash)
           formData.append('chunkTotal', chunkData.length)
-          formData.append('fileHash', fileHash)
+          formData.append('file', chunk)
           formData.append('size', size)
           return { formData, index }
         })
@@ -481,6 +511,8 @@ export default {
     },
     // xhr
     myRequest ({ url, method, data, headers = {}, onProgress = e => e, requestList }) {
+      console.log('myrequest')
+      console.log(requestList)
       return new Promise(resolve => {
         const xhr = new XMLHttpRequest()
         xhr.upload.onprogress = onProgress

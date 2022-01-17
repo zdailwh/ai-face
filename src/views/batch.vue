@@ -9,7 +9,7 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
-          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true;batchItem = {};targetKeys = []"><a-icon key="plus" type="plus"/>新建任务</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true;batchItem = {};targetKeys = []"><a-icon key="plus" type="plus"/>创建任务</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
@@ -38,7 +38,7 @@
             <a :disabled="record.status === 2">删除</a>
           </a-popconfirm>
           <a-divider type="vertical" /> -->
-          <a @click="toAddTask(record, idx)">新建任务</a>
+          <a @click="toAddTask(record, idx)">追加任务</a>
           <a-divider type="vertical" />
           <router-link :to="{ path: '/taskBatch/task', query: { batchId: record.id }}">查看任务<a-icon type="right" /></router-link>
         </span>

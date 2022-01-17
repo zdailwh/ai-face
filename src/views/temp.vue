@@ -86,10 +86,21 @@
       <div>
         <a-form-model :model="addForm">
           <a-form-model-item label="帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.frame_rate">
+            <a-select v-model="addForm.frame_rate" @change="handleChangeFrameRate">
+              <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="1">1</a-select-option>
               <a-select-option :value="2">2</a-select-option>
               <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="25">25</a-select-option>
+            </a-select>
+          </a-form-model-item>
+          <a-form-model-item label="动态帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="addForm.dynamic_rate" @change="handleChangeDynamicRate">
+              <a-select-option :value="0">不启用</a-select-option>
+              <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="10">10</a-select-option>
+              <a-select-option :value="15">15</a-select-option>
+              <a-select-option :value="20">20</a-select-option>
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
@@ -165,10 +176,21 @@
       <div>
         <a-form-model :model="editForm" :label-col="{span:0}">
           <a-form-model-item label="帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="editForm.frame_rate">
+            <a-select v-model="editForm.frame_rate" @change="handleChangeFrameRate_edit">
+              <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="1">1</a-select-option>
               <a-select-option :value="2">2</a-select-option>
               <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="25">25</a-select-option>
+            </a-select>
+          </a-form-model-item>
+          <a-form-model-item label="动态帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="editForm.dynamic_rate" @change="handleChangeDynamicRate_edit">
+              <a-select-option :value="0">不启用</a-select-option>
+              <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="10">10</a-select-option>
+              <a-select-option :value="15">15</a-select-option>
+              <a-select-option :value="20">20</a-select-option>
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
@@ -261,6 +283,12 @@ const columns = [
     width: 120
   },
   {
+    title: '动态帧率',
+    dataIndex: 'dynamic_rate',
+    key: 'dynamic_rate',
+    width: 120
+  },
+  {
     title: '优先级',
     dataIndex: 'prority',
     key: 'prority',
@@ -312,6 +340,7 @@ export default {
       columns,
       addForm: {
         frame_rate: 25,
+        dynamic_rate: 0,
         prority: 0
       },
       addLoading: false,
@@ -416,8 +445,8 @@ export default {
       }
     },
     handleAdd (e) {
-      if (this.addForm.frame_rate === '') {
-        this.$message.error('请选择帧率！')
+      if (!this.addForm.frame_rate && !this.addForm.dynamic_rate) {
+        this.$message.error('请选择帧率或动态帧率！')
         return
       }
       if (this.addForm.prority === '') {
@@ -430,7 +459,7 @@ export default {
       } else {
         this.addForm.group_ids = this.targetGroupIds.join(',')
       }
-
+      console.log(this.addForm)
       this.addLoading = true
       api.addTemp(this.addForm).then(res => {
         if (res.data.code === 0) {
@@ -440,8 +469,9 @@ export default {
           this.addVisible = false
           this.addLoading = false
           this.addForm = {
-            name: '',
-            description: ''
+            frame_rate: 25,
+            dynamic_rate: 0,
+            prority: 0
           }
           this.$message.success('模板创建成功')
         } else {
@@ -467,6 +497,7 @@ export default {
       this.editKey = key
       this.editForm = item
       this.targetKeys = this.editForm.group_ids.split(',')
+      this.targetGroupIds = this.targetKeys
     },
     handleCancel_edit () {
       this.editVisible = false
@@ -474,10 +505,11 @@ export default {
       this.editItem = {}
       this.editKey = ''
       this.targetKeys = []
+      this.targetGroupIds = []
     },
     handleEdit () {
-      if (this.editForm.frame_rate === '') {
-        this.$message.error('请选择帧率！')
+      if (!this.editForm.frame_rate && !this.editForm.dynamic_rate) {
+        this.$message.error('请选择帧率或动态帧率！')
         return
       }
       if (this.editForm.prority === '') {
@@ -491,6 +523,7 @@ export default {
       var params = {
         id: this.editItem.id,
         frame_rate: this.editForm.frame_rate,
+        dynamic_rate: this.editForm.dynamic_rate,
         prority: this.editForm.prority,
         group_ids: this.targetGroupIds.join(',')
       }
@@ -637,6 +670,26 @@ export default {
     },
     changeModeAssignVisible (param) {
       this.modeAssignVisible = param
+    },
+    handleChangeFrameRate (val) {
+      if (val !== 0) {
+        this.addForm.dynamic_rate = 0
+      }
+    },
+    handleChangeDynamicRate (val) {
+      if (val !== 0) {
+        this.addForm.frame_rate = 0
+      }
+    },
+    handleChangeFrameRate_edit (val) {
+      if (val !== 0) {
+        this.editForm.dynamic_rate = 0
+      }
+    },
+    handleChangeDynamicRate_edit (val) {
+      if (val !== 0) {
+        this.editForm.frame_rate = 0
+      }
     }
   }
 }

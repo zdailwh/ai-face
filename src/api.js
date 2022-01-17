@@ -363,6 +363,7 @@ export default {
     if (process.env.NODE_ENV === 'production') {
       var res = await axios.put(`/api/face/v1/mode/${params.id}`, {
         frame_rate: params.frame_rate,
+        dynamic_rate: params.dynamic_rate,
         prority: params.prority,
         group_ids: params.group_ids
       })
