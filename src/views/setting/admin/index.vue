@@ -132,7 +132,7 @@ const columns = [
     title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' },
-    width: 120
+    width: 240
   }
 ]
 

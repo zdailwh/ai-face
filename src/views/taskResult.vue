@@ -30,8 +30,11 @@
     </div>
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <a-tabs default-active-key="1" size="small" @change="tabChange">
-        <a-tab-pane key="1" :tab="'任务结果（共' + resDataTotal + '条）'">
-          <div class="searchWrap_video">
+        <a-tab-pane key="1" :tab="'任务结果'">
+          <Timeline :taskresult="resTimeFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
+        </a-tab-pane>
+        <a-tab-pane key="2" tab="按人像查看">
+          <!-- <div class="searchWrap_video">
             <a-form-model ref="searchForm" :model="searchForm" layout="inline">
               <a-form-model-item label="人脸">
                 <a-input v-model="searchForm.name" placeholder="姓名" allow-clear style="width: 110px;" />
@@ -40,11 +43,10 @@
                 <a-button type="primary" ghost @click="searchHandleOk">搜索</a-button>
               </a-form-model-item>
             </a-form-model>
-          </div>
-          <!-- <div v-if="resDataTotal === ''" class="loadingWrap"><img src="static/loading_.gif"></div> -->
-          <Face :taskresult="filtedResDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
+          </div> -->
+          <Face :taskresult="resFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
-        <a-tab-pane key="2" tab="任务基本信息">
+        <a-tab-pane key="3" tab="任务基本信息">
           <Setting :taskinfo="task"/>
         </a-tab-pane>
       </a-tabs>
@@ -56,6 +58,7 @@ import api from '../api'
 import { TcPlayer } from 'tcplayer'
 import Setting from '../components/Setting'
 import Face from '../components/Face'
+import Timeline from '../components/Timeline'
 import ResDetail from '../components/ResDetail'
 
 var timer = null
@@ -68,13 +71,14 @@ export default {
     window.clearTimeout(timer)
     next()
   },
-  components: { Setting, Face, ResDetail },
+  components: { Setting, Timeline, Face, ResDetail },
   data () {
     return {
       smallLayout: false,
       page_no: 1,
       page_size: 500,
-      resDatalist: [],
+      resTimeFaces: {},
+      resFaces: {},
       filtedResDatalist: {},
       task: {},
       taskId: '',
@@ -140,10 +144,11 @@ export default {
       api.getTaskResults(params).then(res => {
         var resBody = res.data
         if (resBody.code === 0) {
-          this.resDatalist = resBody.data.timefaces
+          this.resTimeFaces = resBody.data.timefaces
           // this.resDataTotal = resBody.data.timefaces.length
+          this.resFaces = resBody.data.faces
           this.page_no += 1
-          this.filtedResDatalist = this.resDatalist
+          this.filtedResDatalist = this.resFaces
 
           // var that = this
           // window.clearTimeout(timer)
@@ -200,13 +205,13 @@ export default {
     searchHandleOk () {
       var filterName = this.searchForm.name
       if (filterName === '') {
-        // this.filtedResDatalist = this.resDatalist
+        // this.filtedResDatalist = this.resTimeFaces
         this.continueCircle = true
         this.getTaskResults(this.taskId)
       } else {
         this.continueCircle = false
         window.clearTimeout(timer)
-        var arr = this.resDatalist
+        var arr = this.resTimeFaces
         arr = arr.filter((item, val, array) => {
           if (item.face_name && item.face_name === filterName) {
             return true
@@ -219,7 +224,7 @@ export default {
     },
     videoFixed (params) {
       this.taskResItem = params.item
-      var fixSecond = params.currentTime
+      var fixSecond = params.currentTime || params.timepos
       document.getElementById('myvideo').currentTime = fixSecond / 1000
     },
     bofang () {

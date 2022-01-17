@@ -286,4 +286,13 @@ i {
   background-color: rgba(125, 125, 125, 0.7);
   -webkit-border-radius: 2px; }
 
-  .ant-table td { white-space: nowrap; }
+.ant-table td { white-space: nowrap; }
+.faceWrap .ant-collapse > .ant-collapse-item > .ant-collapse-header {
+  color: #ddd;
+}
+.faceWrap .ant-collapse-borderless {
+  background-color: transparent;
+}
+.faceWrap .ant-collapse-borderless > .ant-collapse-item {
+  border-bottom: 1px solid #555;
+}

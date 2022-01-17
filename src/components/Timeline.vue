@@ -1,18 +1,34 @@
 <template>
   <div class="faceWrap" :style="smalllayout? 'height: auto;': ''">
-    <a-collapse :bordered="false" v-if="taskresult" @change="changeActivekey">
+    <ul class="listWrap" v-if="taskresult">
       <template v-for="(fItem, second) in taskresult">
-        <a-collapse-panel :key="second" :header="`${fItem[0].name} ${fItem.length}次`">
-          <div class="faceList">
-            <p class="faceItem" v-for="(it, k) in fItem" :key="k" @click="changeBox(it, it.timepos)">
-              <img v-if="it.image" v-lazy="it.image" alt="人脸图">
-              <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
-              <span>时间：{{ it.timepos | formateSeconds }}</span>
-            </p>
+        <li class="list-item" :class="{ currBox: currBoxKey === second + '-' + k }" v-bind:key="second + '-' + k" v-for="(it, k) in fItem.items">
+          <div class="img-box" @click="changeBox(fItem, second)">
+            <img v-if="fItem.image" v-lazy="fItem.image" alt="人脸图">
+            <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
           </div>
-        </a-collapse-panel>
+          <div class="desc-box">
+            <div class="timeWrap">
+              <a-popover :title="it.name" trigger="click">
+                <template slot="content">
+                  <template v-if="clickFace"></template>
+                  <p>人名：{{clickFace.name}}</p>
+                  <p>描述：{{clickFace.description}}</p>
+                  <p>性别：{{!clickFace.gender? '未知':(clickFace.gender === 1)? '男': '女'}}</p>
+                  <p>生日：{{clickFace.birthday}}</p>
+                  <p>别名：{{clickFace.title}}</p>
+                  <p>履历：{{clickFace.history}}</p>
+                  <p><img class="tablePopImg" v-for="(i,k) in clickFace.features" :key="k" :src="i.fileuri" /></p>
+                </template>
+                <p><a href="javascript:;" @click="getFace(it.faceId)">{{it.name}}</a></p>
+              </a-popover>
+              <p>时间：{{ second | formateSeconds }}</p>
+
+            </div>
+          </div>
+        </li>
       </template>
-    </a-collapse>
+    </ul>
     <!-- <div v-else><p>还没有识别结果！</p></div> -->
   </div>
 </template>
@@ -92,26 +108,58 @@ export default {
   overflow-y: scroll;
   padding: 0 10px;
 }
-.faceList {
+.listWrap {
   display: flex;
   flex-wrap: wrap;
 }
-.faceItem {
-  margin: 0 5px;
-}
-.faceItem img {
-  display: block;
-  max-width: 60px;
-  max-height: 60px;
-  margin: 0 auto;
+.list-item {
+  width: 220px;
+  height: 130px;
   border: 1px solid #555;
-}
-.faceItem span {
-  display: block;
-  text-align: center;
-  font-size: 12px;
+  margin: 0 5px 10px;
   color: #ddd;
-  height: 25px;
-  line-height: 25px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.list-item.currBox {
+  box-shadow: 0 0 10px 0 rgba(255,255,255,.7);
+}
+.list-item .img-box {
+  width: 100px;
+  position: relative;
+  text-align: center;
+  margin: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.list-item .img-box img {
+  max-width: 100px;
+  max-height: 120px;
+  border: 0;
+}
+.list-item .img-box p {
+  line-height: 50px;
+}
+.desc-box {
+  flex: 1;
+  margin-top: 10px;
+}
+.operate-box {
+  width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.desc-box .timeWrap {
+  display: flex;
+  margin: 8px 0;
+  flex-direction: column;
+}
+.tablePopImg {
+  max-width: 70px;
+  max-height: 70px;
+  margin-right: 5px;
 }
 </style>

@@ -210,6 +210,22 @@ export default {
       }
     },
     commit () {
+      // var t = [{name: '文件1', percent: 20}, {name: '文件2', percent: 50}]
+      // this.$notification.open({
+      //   message: `视频上传任务`,
+      //   duration: 0,
+      //   placement: 'bottomRight',
+      //   description: (h) => {
+      //     var pers = t.map(item => {
+      //       return h('div', null, [
+      //         h('a-progress', {props: { size: 'small', status: 'active', percent: item.percent }}),
+      //         h('p', null, [h('span', null, item.name)])
+      //       ])
+      //     })
+      //     return h('div', null, pers)
+      //   }
+      // })
+
       console.log(this.filterList)
       if (!this.filterList.length) {
         this.$message.error('请选择视频文件！')
