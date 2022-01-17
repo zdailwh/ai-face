@@ -36,23 +36,24 @@
         <a-form-model-item label="模板" prop="mymode" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-select v-model="addForm.mymode" :allowClear="true" @change="handleChangeMode">
             <a-select-option :value="item.id" v-for="item in modesData" v-bind:key="item.id" :myitem="item">
-              帧率：{{item.frame_rate}} / 动态帧率：{{item.dynamic_rate}} / 优先级：{{item.prority}} / 人脸组：{{item.group_ids}}
+              固定帧率：{{item.frame_rate}} / 动态帧率：{{item.dynamic_rate}} / 优先级：{{item.prority}} / 人脸组：{{item.group_ids}}
             </a-select-option>
             <a-select-option :value="0">自定义</a-select-option>
           </a-select>
         </a-form-model-item>
         <template v-if="addForm.mymode !== ''">
-          <a-form-model-item label="帧率" prop="frame_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.frame_rate" :disabled="addForm.mymode !== 0" @change="handleChangeFrameRate">
-              <a-select-option :value="0">不启用</a-select-option>
-              <a-select-option :value="1">1</a-select-option>
-              <a-select-option :value="2">2</a-select-option>
+          <a-form-model-item label="固定帧率" prop="frame_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="addForm.frame_rate" :disabled="addForm.mymode !== 0 || addForm.dynamic_rate > 0" @change="handleChangeFrameRate">
+              <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="10">10</a-select-option>
+              <a-select-option :value="15">15</a-select-option>
+              <a-select-option :value="20">20</a-select-option>
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
           <a-form-model-item label="动态帧率" prop="dynamic_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.dynamic_rate" :disabled="addForm.mymode !== 0" @change="handleChangeDynamicRate">
+            <a-select v-model="addForm.dynamic_rate" :disabled="addForm.mymode !== 0 || addForm.frame_rate > 0" @change="handleChangeDynamicRate">
               <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="5">5</a-select-option>
               <a-select-option :value="10">10</a-select-option>
@@ -181,7 +182,7 @@ export default {
         //   { required: true, type: 'string', message: '任务描述不能为空', trigger: 'blur' }
         // ],
         frame_rate: [
-          { required: true, type: 'number', message: '帧率不能为空', trigger: 'change' }
+          { required: true, type: 'number', message: '固定帧率不能为空', trigger: 'change' }
         ],
         dynamic_rate: [
           { required: true, type: 'number', message: '动态帧率不能为空', trigger: 'change' }

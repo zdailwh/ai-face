@@ -85,17 +85,18 @@
     >
       <div>
         <a-form-model :model="addForm">
-          <a-form-model-item label="帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.frame_rate" @change="handleChangeFrameRate">
-              <a-select-option :value="0">不启用</a-select-option>
-              <a-select-option :value="1">1</a-select-option>
-              <a-select-option :value="2">2</a-select-option>
+          <a-form-model-item label="固定帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="addForm.frame_rate" :disabled="addForm.dynamic_rate > 0" @change="handleChangeFrameRate">
+              <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="10">10</a-select-option>
+              <a-select-option :value="15">15</a-select-option>
+              <a-select-option :value="20">20</a-select-option>
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
           <a-form-model-item label="动态帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.dynamic_rate" @change="handleChangeDynamicRate">
+            <a-select v-model="addForm.dynamic_rate" :disabled="addForm.frame_rate > 0" @change="handleChangeDynamicRate">
               <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="5">5</a-select-option>
               <a-select-option :value="10">10</a-select-option>
@@ -175,17 +176,18 @@
     >
       <div>
         <a-form-model :model="editForm" :label-col="{span:0}">
-          <a-form-model-item label="帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="editForm.frame_rate" @change="handleChangeFrameRate_edit">
-              <a-select-option :value="0">不启用</a-select-option>
-              <a-select-option :value="1">1</a-select-option>
-              <a-select-option :value="2">2</a-select-option>
+          <a-form-model-item label="固定帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="editForm.frame_rate" :disabled="editForm.dynamic_rate > 0" @change="handleChangeFrameRate_edit">
+              <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
+              <a-select-option :value="10">10</a-select-option>
+              <a-select-option :value="15">15</a-select-option>
+              <a-select-option :value="20">20</a-select-option>
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
           <a-form-model-item label="动态帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="editForm.dynamic_rate" @change="handleChangeDynamicRate_edit">
+            <a-select v-model="editForm.dynamic_rate" :disabled="editForm.frame_rate > 0" @change="handleChangeDynamicRate_edit">
               <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="5">5</a-select-option>
               <a-select-option :value="10">10</a-select-option>
@@ -446,7 +448,7 @@ export default {
     },
     handleAdd (e) {
       if (!this.addForm.frame_rate && !this.addForm.dynamic_rate) {
-        this.$message.error('请选择帧率或动态帧率！')
+        this.$message.error('请选择固定帧率或动态帧率！')
         return
       }
       if (this.addForm.prority === '') {
@@ -509,7 +511,7 @@ export default {
     },
     handleEdit () {
       if (!this.editForm.frame_rate && !this.editForm.dynamic_rate) {
-        this.$message.error('请选择帧率或动态帧率！')
+        this.$message.error('请选择固定帧率或动态帧率！')
         return
       }
       if (this.editForm.prority === '') {

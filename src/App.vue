@@ -3,26 +3,26 @@
     <div class="lager-layout">
       <div class="header">
         <div class="opt">
-          <div class="logo" v-show="smallLayout === false"><!-- <img src="./assets/ks_logo.png"> --><span class="logo_title">中广恒通 AI实验室</span></div>
+          <div class="logo" v-show="smallLayout === false"><!-- <img src="./assets/ks_logo.png"> --><span class="logo_title">广电专业人像检索系统</span></div>
         </div>
-        <div v-if="$router.options.routes.length" class="opt mymenu" style="justify-content: center;">
+        <!-- <div v-if="$router.options.routes.length" class="opt mymenu" style="justify-content: center;">
           <a-menu theme="dark" v-model="current" mode="horizontal">
-            <a-menu-item key="taskbatch"><router-link to="/taskbatch/batch">离线任务</router-link></a-menu-item>
-            <a-menu-item key="facegroup"><router-link to="/facegroup/face">人脸库</router-link></a-menu-item>
-            <a-sub-menu key="setting">
+            <a-menu-item key="/taskbatch/batch">离线任务</a-menu-item>
+            <a-menu-item key="/facegroup/face">人脸库</a-menu-item>
+            <a-sub-menu key="/setting">
               <span slot="title">基础配置</span>
-              <a-menu-item key="admin"><router-link to="/setting/admin/index">用户设置</router-link></a-menu-item>
-              <a-menu-item key="role"><router-link to="/setting/role/index">角色配置</router-link></a-menu-item>
-              <a-menu-item key="permission"><router-link to="/setting/permission/index">权限配置</router-link></a-menu-item>
-              <a-menu-item key="roleuser"><router-link to="/setting/roleuser/index">用户角色</router-link></a-menu-item>
-              <a-menu-item key="roleperm"><router-link to="/setting/roleperm/index">角色权限</router-link></a-menu-item>
+              <a-menu-item key="/setting/admin/index">用户设置</a-menu-item>
+              <a-menu-item key="/setting/role/index">角色配置</a-menu-item>
+              <a-menu-item key="/setting/permission/index">权限配置</a-menu-item>
+              <a-menu-item key="/setting/roleuser/index">用户角色</a-menu-item>
+              <a-menu-item key="/setting/roleperm/index">角色权限</a-menu-item>
             </a-sub-menu>
           </a-menu>
-        </div>
+        </div> -->
         <div class="opt" style="justify-content: flex-end;flex:1;margin-right: 10px;">
-          <a-dropdown>
+          <a-dropdown v-if="currUser.id">
             <a class="ant-dropdown-link" @click="e => e.preventDefault()">
-              <img src="./assets/user.png" alt=""> admin <a-icon type="down" />
+              <img src="./assets/user.png" alt=""> {{currUser.username}} <a-icon type="down" />
             </a>
             <a-menu slot="overlay">
               <a-menu-item>
@@ -37,23 +37,18 @@
             </a-menu>
           </a-dropdown>
         </div>
-        <!-- <div class="opt" style="justify-content: flex-end;flex:1;">
-          <div class="person-info">
-            <div class="avatar"><img src="./assets/user.png" alt=""></div>
-            <div class="my-name" v-show="current.indexOf('/login') === -1">
-              <span class="userName_title" title="" v-on:mouseover="showMenus=true">admin</span>
-              <ul class="my-opt" v-show="showMenus">
-                <li @click="logout" v-on:mouseout="showMenus=false"><span>退出登录</span></li>
-              </ul>
-            </div>
-          </div>
-        </div> -->
       </div>
     </div>
     <div class="container">
       <div class="file-page">
         <div class="file-slider">
-          <ul><li>视频1</li></ul>
+          <a-menu theme="dark" v-model="current">
+            <template v-if="permission_routes.length">
+              <a-menu-item v-if="!route.hidden" v-for="route in permission_routes" :key="route.path">
+                <a-icon :type="route.meta.icon" />{{route.meta.title}}
+              </a-menu-item>
+            </template>
+          </a-menu>
         </div>
         <div class="file-main">
           <router-view/>
@@ -64,18 +59,30 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+import { getToken } from '@/utils/auth'
 export default {
   name: 'App',
   data: function () {
     return {
       smallLayout: false,
-      showMenus: false
+      showMenus: false,
+      currUser: getToken() ? JSON.parse(getToken()) : {}
     }
   },
   computed: {
-    current () {
-      return [this.$route.meta.active || '']
-    }
+    current: {
+      get () {
+        return [this.$route.meta.active || '']
+      },
+      set (val) {
+        console.log(val)
+        this.$router.push({ path: val[0] || '/' })
+      }
+    },
+    ...mapGetters([
+      'permission_routes'
+    ])
   },
   mounted () {
     var viewWidth = document.documentElement.clientWidth
@@ -247,7 +254,7 @@ export default {
   padding-top: 60px;
 }
 .file-slider {
-  width: 0px;
+  width: 150px;
   height: 100%;
   overflow: auto;
   background: #222426;
@@ -264,7 +271,7 @@ export default {
   height: 100%;
   /*background-color: #171819;*/
   overflow: auto;
-  padding: 0 0 0 0px;
+  padding: 0 0 0 150px;
 }
 
 /* 覆盖ant样式 */

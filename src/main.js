@@ -39,16 +39,18 @@ router.beforeEach(async (to, from, next) => {
       try {
         var currUser = JSON.parse(hasToken)
         var roles = []
-        if (parseInt(currUser.isadmin) > 3) {
+        if (parseInt(currUser.level) > 3) {
           roles = ['admin']
         } else {
           roles = ['editor']
         }
         await store.dispatch('authentication/setRole', roles)
-        // const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
-        // router.addRoutes(accessRoutes)
-        // next({ ...to, replace: true })
-        next()
+        const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
+        // router.resetRouter()
+        router.addRoutes(accessRoutes)
+        console.log(router.options.routes)
+        // next()
+        next({ ...to, replace: true })
       } catch (error) {
         // remove token and go to login page to re-login
         await store.dispatch('authentication/resetToken')

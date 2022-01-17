@@ -14,7 +14,9 @@ const store = new Vuex.Store({
     groupTotal: 0,
     hosturl: (window.localStorage && window.localStorage.getItem('KS_host')) || '182.92.115.19:8001'
   },
-  getters: {},
+  getters: {
+    permission_routes: state => state.permission.routes
+  },
   mutations: {
     increment (state) {
       state.count++

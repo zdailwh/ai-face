@@ -1,66 +1,58 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
+const originalPush = Router.prototype.push
+Router.prototype.push = function push (location, onResolve, onReject) {
+  if (onResolve || onReject) return originalPush.call(this, location, onResolve, onReject)
+  return originalPush.call(this, location).catch(err => err)
+}
+
 Vue.use(Router)
 
 export const constantRoutes = [
   {
     path: '/',
-    redirect: '/facegroup/group'
+    redirect: '/facegroup/group',
+    hidden: true
   },
   {
     path: '/index',
     name: 'Index',
     component: () => import('@/views/index'),
-    meta: {
-      title: '首页',
-      active: 'index'
-    }
+    meta: { title: '首页', active: 'index' },
+    hidden: true
   },
   {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/login'),
-    meta: {
-      title: '登录',
-      active: 'login'
-    }
+    meta: { title: '登录', active: 'login' },
+    hidden: true
   },
   {
     path: '/facegroup',
     name: 'FaceGroup',
     component: () => import('@/views/faceGroup'),
-    meta: {
-      title: '人脸库',
-      active: 'facegroup'
-    },
+    meta: { title: '人脸库', active: 'facegroup', icon: 'smile' },
+    redirect: '/facegroup/group',
     children: [
       {
         path: 'group',
         name: 'Group',
         component: () => import('@/views/group'),
-        meta: {
-          title: '人脸库',
-          active: 'facegroup'
-        }
+        meta: { title: '人脸库', active: 'facegroup' }
       },
       {
         path: 'face',
         name: 'Face',
         component: () => import('@/views/face'),
-        meta: {
-          title: '人脸',
-          active: 'facegroup'
-        }
+        meta: { title: '人脸', active: 'facegroup' }
       },
       {
         path: 'temp',
         name: 'Temp',
         component: () => import('@/views/temp'),
-        meta: {
-          title: '模板',
-          active: 'facegroup'
-        }
+        meta: { title: '模板', active: 'facegroup' }
       }
     ]
   },
@@ -68,28 +60,20 @@ export const constantRoutes = [
     path: '/taskbatch',
     name: 'TaskBatch',
     component: () => import('@/views/taskBatch'),
-    meta: {
-      title: '任务',
-      active: 'taskbatch'
-    },
+    meta: { title: '任务', active: 'taskbatch', icon: 'schedule' },
+    redirect: '/taskbatch/batch',
     children: [
       {
         path: 'batch',
         name: 'Batch',
         component: () => import('@/views/batch'),
-        meta: {
-          title: '批次',
-          active: 'taskbatch'
-        }
+        meta: { title: '批次', active: 'taskbatch' }
       },
       {
         path: 'task',
         name: 'Task',
         component: () => import('@/views/task'),
-        meta: {
-          title: '离线任务',
-          active: 'taskbatch'
-        }
+        meta: { title: '离线任务', active: 'taskbatch' }
       }
     ]
   },
@@ -97,19 +81,8 @@ export const constantRoutes = [
     path: '/taskResult/:taskId',
     name: 'TaskResult',
     component: () => import('@/views/taskResult'),
-    meta: {
-      title: '查看任务结果',
-      active: 'task'
-    }
-  },
-  {
-    path: '/live',
-    name: 'Live',
-    component: () => import('@/views/live'),
-    meta: {
-      title: '直播流',
-      active: 'live'
-    }
+    meta: { title: '查看任务结果', active: 'task' },
+    hidden: true
   },
   {
     path: '/my',
@@ -132,52 +105,52 @@ export const constantRoutes = [
         meta: { title: '修改密码', active: 'my' }
       }
     ]
-  },
-  {
-    path: '/setting',
-    name: 'Setting',
-    component: () => import('@/views/setting/admin/layout'),
-    redirect: '/setting/admin/index',
-    meta: { title: '基本配置', active: 'setting', roles: ['admin'] },
-    children: [
-      {
-        path: 'admin/index',
-        component: () => import('@/views/setting/admin/index'),
-        name: 'AdminList',
-        meta: { title: '用户设置', active: 'admin' }
-      },
-      {
-        path: 'pwdSet/index',
-        component: () => import('@/views/setting/admin/pwdSet'),
-        name: 'AdminPwdSet',
-        meta: { title: '密码强度设置', active: 'setting' }
-      },
-      {
-        path: 'role/index',
-        component: () => import('@/views/setting/role/index'),
-        name: 'RoleList',
-        meta: { title: '角色配置', active: 'role' }
-      },
-      {
-        path: 'permission/index',
-        component: () => import('@/views/setting/permission/index'),
-        name: 'PermissionList',
-        meta: { title: '权限配置', active: 'permission' }
-      },
-      {
-        path: 'roleuser/index',
-        component: () => import('@/views/setting/roleuser/index'),
-        name: 'RoleUser',
-        meta: { title: '用户角色', active: 'roleuser' }
-      },
-      {
-        path: 'roleperm/index',
-        component: () => import('@/views/setting/roleperm/index'),
-        name: 'RolePerm',
-        meta: { title: '角色权限', active: 'roleperm' }
-      }
-    ]
   }
+  // {
+  //   path: '/setting',
+  //   name: 'Setting',
+  //   component: () => import('@/views/setting/admin/layout'),
+  //   meta: { title: '基本配置', active: 'setting', icon: 'user', roles: ['admin'] },
+  //   redirect: '/setting/admin/index',
+  //   children: [
+  //     {
+  //       path: 'admin/index',
+  //       component: () => import('@/views/setting/admin/index'),
+  //       name: 'AdminList',
+  //       meta: { title: '用户设置', active: 'setting' }
+  //     },
+  //     {
+  //       path: 'pwdSet/index',
+  //       component: () => import('@/views/setting/admin/pwdSet'),
+  //       name: 'AdminPwdSet',
+  //       meta: { title: '密码强度设置', active: 'setting' }
+  //     },
+  //     {
+  //       path: 'role/index',
+  //       component: () => import('@/views/setting/role/index'),
+  //       name: 'RoleList',
+  //       meta: { title: '角色配置', active: 'setting' }
+  //     },
+  //     {
+  //       path: 'permission/index',
+  //       component: () => import('@/views/setting/permission/index'),
+  //       name: 'PermissionList',
+  //       meta: { title: '权限配置', active: 'setting' }
+  //     },
+  //     {
+  //       path: 'roleuser/index',
+  //       component: () => import('@/views/setting/roleuser/index'),
+  //       name: 'RoleUser',
+  //       meta: { title: '用户角色', active: 'setting' }
+  //     },
+  //     {
+  //       path: 'roleperm/index',
+  //       component: () => import('@/views/setting/roleperm/index'),
+  //       name: 'RolePerm',
+  //       meta: { title: '角色权限', active: 'setting' }
+  //     }
+  //   ]
+  // }
 ]
 
 export const asyncRoutes = [
@@ -185,8 +158,8 @@ export const asyncRoutes = [
     path: '/setting',
     name: 'Setting',
     component: () => import('@/views/setting/admin/layout'),
+    meta: { title: '基本配置', active: 'setting', icon: 'user', roles: ['admin'] },
     redirect: '/setting/admin/index',
-    meta: { title: '基本配置', active: 'setting', roles: ['admin'] },
     children: [
       {
         path: 'admin/index',
