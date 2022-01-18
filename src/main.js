@@ -36,25 +36,27 @@ router.beforeEach(async (to, from, next) => {
       next({ path: '/' })
     } else {
       // determine whether the user has obtained his permission roles through getInfo
-      try {
-        var currUser = JSON.parse(hasToken)
-        var roles = []
-        if (parseInt(currUser.level) > 3) {
-          roles = ['admin']
-        } else {
-          roles = ['editor']
+      const hasRoles = store.getters.roles && store.getters.roles.length > 0
+      if (hasRoles) {
+        next()
+      } else {
+        try {
+          var currUser = JSON.parse(hasToken)
+          var roles = []
+          if (parseInt(currUser.level) > 3) {
+            roles = ['admin']
+          } else {
+            roles = ['editor']
+          }
+          await store.dispatch('authentication/setRole', roles)
+          const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
+          router.addRoutes(accessRoutes)
+          next({ ...to, replace: true })
+        } catch (error) {
+          // remove token and go to login page to re-login
+          await store.dispatch('authentication/resetToken')
+          next(`/login?redirect=${to.path}`)
         }
-        await store.dispatch('authentication/setRole', roles)
-        const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
-        // router.resetRouter()
-        router.addRoutes(accessRoutes)
-        console.log(router.options.routes)
-        // next()
-        next({ ...to, replace: true })
-      } catch (error) {
-        // remove token and go to login page to re-login
-        await store.dispatch('authentication/resetToken')
-        next(`/login?redirect=${to.path}`)
       }
     }
   } else {

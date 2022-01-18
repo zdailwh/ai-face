@@ -42,15 +42,20 @@
     <div class="container">
       <div class="file-page">
         <div class="file-slider">
-          <a-menu theme="dark" v-model="current">
+          <a-menu theme="dark" v-model="current" @click="menuClick">
             <template v-if="permission_routes.length">
-              <a-menu-item v-if="!route.hidden" v-for="route in permission_routes" :key="route.path">
-                <a-icon :type="route.meta.icon" />{{route.meta.title}}
+              <a-menu-item v-if="!route.hidden" v-for="route in permission_routes" :key="route.meta.active">
+                <router-link :to="route.redirect" :data-top-route="JSON.stringify(route)"><a-icon :type="route.meta.icon" />{{route.meta.title}}</router-link>
               </a-menu-item>
             </template>
           </a-menu>
         </div>
         <div class="file-main">
+          <a-menu v-model="currentChild" mode="horizontal">
+          <a-menu-item v-if="!rou.hidden" v-for="rou in topRoute.children" :key="`${topRoute.path}/${rou.path}`">
+              {{rou.meta.title}}
+            </a-menu-item>
+          </a-menu>
           <router-view/>
         </div>
       </div>
@@ -67,7 +72,8 @@ export default {
     return {
       smallLayout: false,
       showMenus: false,
-      currUser: getToken() ? JSON.parse(getToken()) : {}
+      currUser: getToken() ? JSON.parse(getToken()) : {},
+      topRoute: {}
     }
   },
   computed: {
@@ -76,13 +82,28 @@ export default {
         return [this.$route.meta.active || '']
       },
       set (val) {
-        console.log(val)
+        // this.$router.push({ path: val[0] || '/' })
+      }
+    },
+    currentChild: {
+      get () {
+        return [this.$route.path]
+      },
+      set (val) {
         this.$router.push({ path: val[0] || '/' })
       }
     },
     ...mapGetters([
       'permission_routes'
     ])
+  },
+  watch: {
+    '$route' (val) {
+      var topRouteName = val.matched[0].name
+      this.topRoute = this.permission_routes.filter(item => {
+        return item.name === topRouteName
+      })[0]
+    }
   },
   mounted () {
     var viewWidth = document.documentElement.clientWidth
@@ -91,6 +112,13 @@ export default {
     }
   },
   methods: {
+    menuClick ({domEvent, item, key, keyPath}) {
+      // console.log(item)
+      // console.log(key)
+      // console.log(keyPath)
+      var currTopRoute = domEvent.target.dataset.topRoute
+      this.topRoute = JSON.parse(currTopRoute)
+    },
     logout () {
       this.showMenus = false
       this.$store.dispatch('authentication/logout').then((res) => {
@@ -257,7 +285,7 @@ export default {
   width: 150px;
   height: 100%;
   overflow: auto;
-  background: #222426;
+  background: #001529;
   color: #fff;
   position: fixed;
   left: 0;

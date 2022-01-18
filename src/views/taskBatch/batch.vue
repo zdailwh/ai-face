@@ -1,5 +1,5 @@
 <template>
-  <div class="taskContainer">
+  <div class="faceContainer">
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
@@ -67,8 +67,8 @@
 </template>
 <script>
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
-import api from '../api'
-import AddTask from '../components/AddTask.vue'
+import api from '@/api'
+import AddTask from '@/components/AddTask.vue'
 var moment = require('moment')
 const columns = [
   {
@@ -288,10 +288,9 @@ export default {
 
 </script>
 <style scoped>
-.taskContainer {
+.faceContainer {
   width: 100%;
   height: 100%;
-  padding: 20px;
   background-color: #fff;
 }
 .tableWrap {

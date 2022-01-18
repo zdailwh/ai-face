@@ -1,12 +1,13 @@
 <template>
-  <div class="taskContainer">
+  <div class="faceContainer">
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="filterForm" :model="filterForm" layout="inline">
         <a-form-model-item>
           <!-- <a-button type="primary" @click="handleFilter"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="resetForm('filterForm')">重置</a-button> -->
-          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建关联记录</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>配置角色接口权限</a-button>
+          <a-button style="margin-left: 10px;" type="primary"><a-icon key="plus" type="plus"/>配置角色菜单权限</a-button>
           <!-- <a-popconfirm
             title="确定要删除所选关联记录吗？"
             ok-text="删除"
@@ -390,10 +391,9 @@ export default {
 }
 </script>
 <style scoped>
-.taskContainer {
+.faceContainer {
   width: 100%;
   height: 100%;
-  padding: 20px;
   background-color: #fff;
 }
 .tableWrap {

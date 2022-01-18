@@ -3,6 +3,14 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
+        <a-form-model-item label="人脸组" prop="groupId">
+          <a-select v-model="searchForm.groupId" :dropdownMatchSelectWidth="false" style="width: 100px;">
+            <a-select-option value="">全部</a-select-option>
+            <a-select-option :value="item.id" v-for="item in groupsData" v-bind:key="item.id">
+              {{item.name}}
+            </a-select-option>
+          </a-select>
+        </a-form-model-item>
         <a-form-model-item label="人名" prop="name">
           <a-input v-model="searchForm.name" style="width: 120px;" />
         </a-form-model-item>
@@ -12,15 +20,27 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
-          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建分组</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建人脸</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="id" :pagination="false">
-        <span slot="faceIds" slot-scope="faceIds">
-          {{faceIds.join(',')}}
+        <span slot="gender" slot-scope="gender">
+          {{!gender? '未知':(gender === 1)? '男': '女'}}
+        </span>
+        <span slot="features" slot-scope="text, record, index">
+          <!-- <a-popover title="" v-for="(i,k) in features" :key="k">
+            <template slot="content">
+              <img class="tablePopImg" :src="i.fileuri" />
+            </template>
+            <img class="tableImg" :src="i.fileuri" />
+          </a-popover> -->
+          <Feature :face="record" @getfacelist="getFaces"></Feature>
+        </span>
+        <span slot="birthday" slot-scope="birthday">
+          {{birthday | birthFormat}}
         </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
@@ -29,15 +49,13 @@
           <a @click="toEdit(record, idx)">编辑</a>
           <a-divider type="vertical" />
           <a-popconfirm
-            title="确定要删除该分组吗?"
+            title="确定要删除该人脸吗?"
             ok-text="删除"
             cancel-text="取消"
-            @confirm="delGroup(record, idx)"
+            @confirm="delFace(record, idx)"
           >
             <a>删除</a>
           </a-popconfirm>
-          <a-divider type="vertical" />
-          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看人脸<a-icon type="right" /></router-link>
         </span>
       </a-table>
       <div style="margin: 15px 0;text-align: right;">
@@ -57,18 +75,32 @@
         </a-pagination>
       </div>
     </div>
-    <!--创建分组-->
+    <!--创建人脸-->
     <a-modal
-      title="创建分组"
+      title="创建人脸"
       v-model="addVisible"
     >
       <div>
         <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
-          <a-form-model-item label="名称">
+          <a-form-model-item label="人名">
             <a-input v-model="addForm.name" />
           </a-form-model-item>
           <a-form-model-item label="描述">
             <a-input v-model="addForm.description" />
+          </a-form-model-item>
+          <a-form-model-item label="性别">
+            <a-radio-group name="gender" v-model="addForm.gender">
+              <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
+            </a-radio-group>
+          </a-form-model-item>
+          <a-form-model-item label="生日">
+            <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="addForm.birthday" />
+          </a-form-model-item>
+          <a-form-model-item label="别名">
+            <Tag :curr-tags="addForm.title" @commitTag="commitAddTitle"></Tag>
+          </a-form-model-item>
+          <a-form-model-item label="履历">
+            <Tag :curr-tags="addForm.history" @commitTag="commitAddHistory"></Tag>
           </a-form-model-item>
         </a-form-model>
       </div>
@@ -81,62 +113,32 @@
         </a-button>
       </template>
     </a-modal>
-    <!--编辑分组-->
+    <!--编辑人脸-->
     <a-modal
-      title="分组维护"
-      width="800px"
+      title="编辑人脸"
       v-model="editVisible"
     >
       <div>
-        <a-form-model :model="editForm" :label-col="{span:0}">
-          <a-form-model-item label="选择人脸">
-            <a-transfer
-              :data-source="facesDatalist"
-              :filter-option="filterOption"
-              :showSelectAll="false"
-              :showSearch="true"
-              :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-              :titles="['人脸库', '目标']"
-              :target-keys="targetKeys"
-              :selected-keys="selectedKeys"
-              :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
-              @change="handleChange"
-              @selectChange="handleSelectChange">
-              <template
-                slot="children"
-                slot-scope="{
-                  props: { direction, filteredItems, selectedKeys, disabled: listDisabled },
-                  on: { itemSelectAll, itemSelect },
-                }"
-              >
-                <a-table
-                  :row-selection="
-                    getRowSelection({ disabled: listDisabled, selectedKeys, itemSelectAll, itemSelect })
-                  "
-                  :columns="direction === 'left' ? leftColumns : rightColumns"
-                  :data-source="filteredItems"
-                  :pagination="{ pageSize: 10 }"
-                  size="small"
-                  :style="{ pointerEvents: listDisabled ? 'none' : null }"
-                  :custom-row="
-                    ({ key, disabled: itemDisabled }) => ({
-                      on: {
-                        click: () => {
-                          if (itemDisabled || listDisabled) return;
-                          itemSelect(key, !selectedKeys.includes(key));
-                        },
-                      },
-                    })
-                  "
-                  >
-                  <template slot="features" slot-scope="features">
-                    <template v-for="(fe, key) in features">
-                      <img :src="fe.fileuri" :key="key" style="max-width: 50px;max-height: 50px;">
-                    </template>
-                  </template>
-                </a-table>
-              </template>
-            </a-transfer>
+        <a-form-model :model="editForm" :label-col="{span:4}" :wrapper-col="{span:14}">
+          <!-- <a-form-model-item label="人名">
+            <a-input v-model="editForm.Name" />
+          </a-form-model-item> -->
+          <a-form-model-item label="描述">
+            <a-input v-model="editForm.description" />
+          </a-form-model-item>
+          <a-form-model-item label="性别">
+            <a-radio-group name="gender" v-model="editForm.gender">
+              <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
+            </a-radio-group>
+          </a-form-model-item>
+          <a-form-model-item label="生日">
+            <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="editForm.birthday" />
+          </a-form-model-item>
+          <a-form-model-item label="别名">
+            <Tag :curr-tags="editForm.title" @commitTag="commitEditTitle"></Tag>
+          </a-form-model-item>
+          <a-form-model-item label="履历">
+            <Tag :curr-tags="editForm.history" @commitTag="commitEditHistory"></Tag>
           </a-form-model-item>
         </a-form-model>
       </div>
@@ -156,9 +158,11 @@
   </div>
 </template>
 <script>
-import difference from 'lodash/difference'
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
-import api from '../api'
+import api from '@/api'
+import Tag from '@/components/Tag.vue'
+import CropperImage from '@/components/Cropper.vue'
+import Feature from '@/components/Feature.vue'
 
 var moment = require('moment')
 const columns = [
@@ -166,13 +170,13 @@ const columns = [
     title: 'ID',
     dataIndex: 'id',
     key: 'id',
-    width: 100
+    width: 50
   },
   {
-    title: '名称',
+    title: '人名',
     dataIndex: 'name',
     key: 'name',
-    width: 120
+    width: 100
   },
   {
     title: '描述',
@@ -181,10 +185,38 @@ const columns = [
     width: 120
   },
   {
-    title: '人脸',
-    dataIndex: 'faceIds',
-    key: 'faceIds',
-    scopedSlots: { customRender: 'faceIds' }
+    title: '生日',
+    dataIndex: 'birthday',
+    key: 'birthday',
+    scopedSlots: { customRender: 'birthday' },
+    width: 100
+  },
+  {
+    title: '性别',
+    dataIndex: 'gender',
+    key: 'gender',
+    scopedSlots: { customRender: 'gender' },
+    width: 60
+  },
+  {
+    title: '别名',
+    dataIndex: 'title',
+    key: 'title',
+    scopedSlots: { customRender: 'title' },
+    width: 100
+  },
+  {
+    title: '履历',
+    dataIndex: 'history',
+    key: 'history',
+    scopedSlots: { customRender: 'history' },
+    width: 100
+  },
+  {
+    title: '人脸特征图',
+    dataIndex: 'features',
+    key: 'features',
+    scopedSlots: { customRender: 'features' }
   },
   {
     title: '创建时间',
@@ -205,9 +237,11 @@ export default {
   beforeRouteEnter (to, from, next) {
     next()
   },
+  components: { CropperImage, Feature, Tag },
   data () {
     return {
       locale,
+      imgMaxLength: 5, // 最多上传5张人脸图
       smallLayout: false,
       spinning: false,
       datalist: [],
@@ -218,15 +252,24 @@ export default {
       columns,
       addForm: {
         name: '',
-        description: ''
+        description: '',
+        gender: '',
+        birthday: null,
+        title: [],
+        history: []
       },
       addLoading: false,
       addVisible: false,
       searchForm: {
         name: '',
+        groupId: '',
         createTime: []
       },
       editForm: {
+        // name: '',
+        // description: '',
+        // gender: '',
+        // birthday: ''
       },
       editLoading: false,
       editItem: {},
@@ -234,21 +277,33 @@ export default {
       editVisible: false,
       previewVisible: false,
       previewImage: '',
-      leftColumns: leftTableColumns,
-      rightColumns: rightTableColumns,
-      targetFaceIds: [],
-      targetKeys: [],
-      selectedKeys: [],
-      facesDatalist: []
+      groupsData: []
     }
   },
   filters: {
+    birthFormat (val) {
+      if (val === '' || val === null) return ''
+      return moment(val).format('YYYY-MM-DD')
+    },
     dateFormat (val) {
       if (val === '' || val === null) return ''
       return moment(val).format('YYYY-MM-DD HH:mm:ss')
     }
   },
+  watch: {
+    $route (newVal, oldVal) {
+      if (newVal.query && newVal.query.groupId) {
+        // 查询分组人脸列表
+        this.searchForm.groupId = newVal.query.groupId
+      }
+    }
+  },
   mounted () {
+    if (this.$route.query && this.$route.query.groupId) {
+      // 查询分组人脸列表
+      this.searchForm.groupId = this.$route.query.groupId
+    }
+
     var ele = document.querySelectorAll('.file-main')
     ele[0].style.backgroundColor = '#fff'
 
@@ -256,27 +311,26 @@ export default {
     if (viewWidth < 540) {
       this.smallLayout = true
     }
-
-    this.getGroups()
-    this.getAllFaces()
+    this.getAllGroups()
+    this.getFaces()
   },
   methods: {
     onPageChange (current) {
       this.page_no = current
-      this.getGroups()
+      this.getFaces()
     },
     onShowSizeChange (current, pageSize) {
       this.page_size = pageSize
-      this.getGroups()
+      this.getFaces()
     },
     searchHandleOk () {
       this.page_no = 1
-      this.getGroups()
+      this.getFaces()
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
     },
-    getGroups () {
+    getFaces () {
       var params = {
         page_no: this.page_no,
         page_size: this.page_size
@@ -284,63 +338,123 @@ export default {
       if (this.searchForm.name) {
         params.name = this.searchForm.name
       }
+      if (this.searchForm.groupId) {
+        params.groupId = this.searchForm.groupId
+      }
       if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
         params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')
       }
 
       this.spinning = true
-      api.getGroups(params).then(res => {
-        var resBody = res.data
-        if (resBody.code === 0) {
-          this.datalist = resBody.data.item
-          if (this.page_no === 1) {
-            this.dataTotal = resBody.data.total
-            this.$store.commit('setGroupTotal', resBody.data.total)
+      if (params.groupId) {
+        api.getGroupFaces(params).then(res => {
+          var resBody = res.data
+          if (resBody.code === 0) {
+            this.datalist = resBody.data.item
+            if (this.page_no === 1) {
+              this.dataTotal = resBody.data.total
+            }
+            this.spinning = false
+          } else {
+            this.$message.error(resBody.message || '请求出错！')
           }
+        }).catch(error => {
           this.spinning = false
-        } else {
-          this.$message.error(resBody.message || '请求出错！')
-        }
-      }).catch(error => {
-        this.spinning = false
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '获取人脸库出错！')
-        } else {
-          this.$message.error('接口调用失败！')
-        }
-      })
+          if (error.response.status === 401) {
+            this.$store.dispatch('authentication/resetToken').then(() => {
+              this.$router.push({ path: '/login' })
+            })
+          }
+          if (error.response && error.response.data) {
+            this.$message.error(error.response.data.message || '获取人脸库出错！')
+          } else {
+            this.$message.error('接口调用失败！')
+          }
+        })
+      } else {
+        api.getFaces(params).then(res => {
+          var resBody = res.data
+          if (resBody.code === 0) {
+            this.datalist = resBody.data.item
+            if (this.page_no === 1) {
+              this.dataTotal = resBody.data.total
+              this.$store.commit('setFaceTotal', resBody.total)
+            }
+            this.spinning = false
+          } else {
+            this.$message.error(resBody.message || '请求出错！')
+          }
+        }).catch(error => {
+          this.spinning = false
+          if (error.response.status === 401) {
+            this.$store.dispatch('authentication/resetToken').then(() => {
+              this.$router.push({ path: '/login' })
+            })
+          }
+          if (error.response && error.response.data) {
+            this.$message.error(error.response.data.message || '获取人脸库出错！')
+          } else {
+            this.$message.error('接口调用失败！')
+          }
+        })
+      }
+    },
+    commitAddTitle (params) {
+      this.addForm.title = params
+    },
+    commitAddHistory (params) {
+      this.addForm.history = params
+    },
+    commitEditTitle (params) {
+      this.editForm.title = params
+    },
+    commitEditHistory (params) {
+      this.editForm.history = params
     },
     handleCancel_add () {
       this.addVisible = false
+      this.fileList_add = []
       this.addForm = {
         name: '',
-        description: ''
+        description: '',
+        gender: '',
+        birthday: null,
+        title: [],
+        history: []
       }
     },
     handleAdd (e) {
       if (this.addForm.name === '') {
-        this.$message.error('请填写分组名称！')
+        this.$message.error('请填写人名！')
         return
+      }
+      var formdata = {
+        name: this.addForm.name,
+        description: this.addForm.description,
+        gender: this.addForm.gender,
+        birthday: this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DDTHH:mm:ss') : '',
+        title: this.addForm.title.join('|'),
+        history: this.addForm.history.join('|')
       }
 
       this.addLoading = true
-      api.addGroup(this.addForm).then(res => {
+      api.addFace(formdata).then(res => {
         if (res.data.code === 0) {
           this.page_no = 1
-          this.getGroups()
+          this.getFaces()
 
           this.addVisible = false
           this.addLoading = false
+          this.fileList_add = []
           this.addForm = {
             name: '',
-            description: ''
+            description: '',
+            gender: '',
+            birthday: null,
+            title: [],
+            history: []
           }
-          this.$message.success('分组创建成功')
+          this.$message.success('人脸创建成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
@@ -363,35 +477,33 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-      this.targetKeys = this.editForm.faceIds
     },
     handleCancel_edit () {
       this.editVisible = false
       this.editForm = {}
       this.editItem = {}
       this.editKey = ''
-      this.targetKeys = []
     },
     handleEdit () {
-      if (!this.targetFaceIds.length) {
-        this.$message.error('请选择人脸！')
-        return
-      }
-      var params = {
-        id: this.editItem.id,
-        faceIds: this.targetFaceIds
+      var formdata = {
+        id: this.editForm.id,
+        description: this.editForm.description,
+        gender: this.editForm.gender,
+        birthday: this.editForm.birthday ? moment(this.editForm.birthday).format('YYYY-MM-DDTHH:mm:ss') : '',
+        title: this.editForm.title.join('|'),
+        history: this.editForm.history.join('|')
       }
 
       this.editLoading = true
-      api.editGroup(params).then(res => {
+      api.editFace(formdata).then(res => {
         if (res.data.code === 0) {
           this.page_no = 1
-          this.getGroups()
+          this.getFaces()
 
           this.editVisible = false
           this.editLoading = false
           this.editForm = {}
-          this.$message.success('分组编辑成功')
+          this.$message.success('人脸编辑成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
@@ -416,11 +528,11 @@ export default {
       this.previewImage = file.url || file.preview
       this.previewVisible = true
     },
-    delGroup (record, idx) {
-      api.delGroup({id: record.id}).then(res => {
+    delFace (record, idx) {
+      api.delFace({ id: record.id }).then(res => {
         if (res.data.code === 0) {
-          this.datalist.splice(idx, 1)
-          this.$message.success('分组删除成功')
+          this.getFaces()
+          this.$message.success('人脸删除成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
@@ -437,18 +549,12 @@ export default {
         }
       })
     },
-    getAllFaces () {
-      api.getFaces().then(res => {
+    getAllGroups () {
+      api.getGroups().then(res => {
         var resBody = res.data
         if (resBody.code === 0) {
-          var faceArr = resBody.data.item
-          faceArr.map((item, key, arr) => {
-            item.key = item.id
-            item.title = item.name
-          })
-          this.facesDatalist = faceArr
-        } else {
-          this.$message.error(resBody.message || '请求出错！')
+          var groupArr = resBody.data.item
+          this.groupsData = groupArr
         }
       }).catch(error => {
         console.log(error)
@@ -463,73 +569,9 @@ export default {
         //   this.$message.error('接口调用失败！')
         // }
       })
-    },
-    filterOption (inputValue, option) {
-      return option.title.indexOf(inputValue) > -1
-    },
-    getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
-      return {
-        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled } }),
-        onSelectAll (selected, selectedRows) {
-          const treeSelectedKeys = selectedRows
-            .filter(item => !item.disabled)
-            .map(({ key }) => key)
-          const diffKeys = selected
-            ? difference(treeSelectedKeys, selectedKeys)
-            : difference(selectedKeys, treeSelectedKeys)
-          itemSelectAll(diffKeys, selected)
-        },
-        onSelect ({ key }, selected) {
-          itemSelect(key, selected)
-        },
-        selectedRowKeys: selectedKeys
-      }
-    },
-    handleChange (nextTargetKeys, direction, moveKeys) {
-      this.targetKeys = nextTargetKeys
-      this.targetFaceIds = nextTargetKeys
-
-      // console.log('targetKeys: ', nextTargetKeys)
-      // console.log('direction: ', direction)
-      // console.log('moveKeys: ', moveKeys)
-    },
-    handleSelectChange (sourceSelectedKeys, targetSelectedKeys) {
-      this.selectedKeys = [...sourceSelectedKeys, ...targetSelectedKeys]
-
-      // console.log('sourceSelectedKeys: ', sourceSelectedKeys)
-      // console.log('targetSelectedKeys: ', targetSelectedKeys)
     }
   }
 }
-
-const leftTableColumns = [
-  {
-    dataIndex: 'title',
-    title: '姓名',
-    width: '50px',
-    scopedSlots: { customRender: 'name' }
-  },
-  {
-    dataIndex: 'features',
-    title: '特征图',
-    width: '150px',
-    scopedSlots: { customRender: 'features' }
-  }
-]
-const rightTableColumns = [
-  {
-    dataIndex: 'title',
-    title: '姓名',
-    width: '50px',
-    scopedSlots: { customRender: 'name' }
-  },
-  {
-    dataIndex: 'features',
-    title: '特征图',
-    width: '150px',
-    scopedSlots: { customRender: 'features' }
-  }
-]
 
 function getBase64 (file) {
   return new Promise((resolve, reject) => {
@@ -539,6 +581,7 @@ function getBase64 (file) {
     reader.onerror = error => reject(error)
   })
 }
+
 </script>
 <style scoped>
 .faceContainer {
@@ -555,9 +598,6 @@ function getBase64 (file) {
 }
 .tableImg + .tableImg {
   margin-left: 5px;
-}
-.tablePopImg {
-  max-width: 280px;
 }
 
 .searchWrap {

@@ -34,8 +34,6 @@ const actions = {
       api.login({ username: username.trim(), password: password }).then(response => {
         if (response.data.code === 0) {
           const item = response.data.data
-          console.log('用户')
-          console.log(item)
           commit('SET_INFO', item.user)
           commit('SET_TOKEN', JSON.stringify(item.user))
           setToken(JSON.stringify(item.user))

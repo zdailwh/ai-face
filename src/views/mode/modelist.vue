@@ -266,7 +266,7 @@
 <script>
 import difference from 'lodash/difference'
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
-import api from '../api'
+import api from '@/api'
 import apiAdmin from '@/api/admin'
 import TempAssign from '@/components/TempAssign'
 

@@ -15,6 +15,7 @@ const store = new Vuex.Store({
     hosturl: (window.localStorage && window.localStorage.getItem('KS_host')) || '182.92.115.19:8001'
   },
   getters: {
+    roles: state => state.authentication.roles,
     permission_routes: state => state.permission.routes
   },
   mutations: {

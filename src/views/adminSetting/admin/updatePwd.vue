@@ -1,5 +1,5 @@
 <template>
-  <div class="taskContainer">
+  <div class="faceContainer">
     <div class="formWrap">
       <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
         <a-form-model-item label="原密码" prop="old">
@@ -128,6 +128,11 @@ export default {
 }
 </script>
 <style scoped>
+.faceContainer {
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+}
 .formWrap {
   width: 500px;
   margin: 20px auto;

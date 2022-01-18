@@ -1,23 +1,10 @@
 <template>
-  <div class="taskContainer">
+<div class="faceContainer">
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="filterForm" :model="filterForm" layout="inline">
-        <a-form-model-item label="用户" prop="userId">
-          <a-select v-model="filterForm.userId" :allowClear="true">
-            <a-select-option value="">全部用户</a-select-option>
-            <a-select-option v-for="item in optionsUsers" :value="item.value" v-bind:key="item.value">
-              {{item.label}}
-            </a-select-option>
-          </a-select>
-        </a-form-model-item>
-        <a-form-model-item label="角色" prop="roleId">
-          <a-select v-model="filterForm.roleId" :allowClear="true">
-            <a-select-option value="">全部角色</a-select-option>
-            <a-select-option v-for="item in optionsRoles" :value="item.value" v-bind:key="item.value">
-              {{item.label}}
-            </a-select-option>
-          </a-select>
+        <a-form-model-item label="权限名称" prop="name">
+          <a-input v-model="filterForm.name" style="width: 120px;" />
         </a-form-model-item>
         <!-- <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
           <a-range-picker :locale="locale" v-model="filterForm.createTime" style="width: 220px;" />
@@ -25,7 +12,7 @@
         <a-form-model-item>
           <a-button type="primary" @click="handleFilter"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="resetForm('filterForm')">重置</a-button>
-          <!-- <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建关联记录</a-button> -->
+          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建权限</a-button>
           <a-popconfirm
             title="确定要删除所选关联记录吗？"
             ok-text="删除"
@@ -38,26 +25,19 @@
       </a-form-model>
     </div>
     <!--搜索 end-->
-
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false" :row-selection="{ selectedRowKeys: multipleSelection, onChange: handleSelectionChange, columnWidth: '10px' }">
-        <span slot="user" slot-scope="user">
-          {{ user && user.username }}
-        </span>
-        <span slot="role" slot-scope="role">
-          {{ role && role.name }}
-        </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="action, record, idx">
-          <!-- <a @click="editHandle(record, idx)">编辑</a>
-          <a-divider type="vertical" /> -->
+          <a @click="editHandle(record, idx)">编辑</a>
+          <a-divider type="vertical" />
           <a-popconfirm
-            title="确定要删除此关联吗？"
+            title="确定要删除该权限吗?"
             ok-text="删除"
             cancel-text="取消"
-            @confirm="delRoleUser(record.id, idx)"
+            @confirm="delPrem(record.id, idx)"
           >
             <a>删除</a>
           </a-popconfirm>
@@ -81,18 +61,16 @@
       </div>
     </div>
 
-    <Add :dialog-visible="dialogVisibleAdd" :options-users="optionsUsers" :options-roles="optionsRoles" @changeVisible="changeAddVisible" @refresh="getList" />
-    <Edit :edit-item="editItem" :dialog-visible="dialogVisibleEdit" :options-roles="optionsRoles" @changeVisible="changeEditVisible" @refresh="getList" />
+    <Add :dialog-visible="dialogVisibleAdd" :routes-data="routesData" @changeVisible="changeAddVisible" @refresh="getList" />
+    <Edit :edit-item="editItem" :dialog-visible="dialogVisibleEdit" :routes-data="routesData" @changeVisible="changeEditVisible" @refresh="getList" />
   </div>
 </template>
 
 <script>
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import Cookies from 'js-cookie'
-import apiAdmin from '@/api/admin'
-import apiRole from '@/api/myrole'
-import apiRoleuser from '@/api/roleuser'
-
+import apiPermission from '@/api/mypermission'
+import { routes } from './routes.js'
 import Add from './add.vue'
 import Edit from './edit.vue'
 
@@ -105,18 +83,16 @@ const columns = [
   //   width: 50
   // },
   {
-    title: '用户名',
-    dataIndex: 'user',
-    key: 'user',
-    scopedSlots: { customRender: 'user' },
-    width: 120
+    title: '接口地址',
+    dataIndex: 'name',
+    key: 'name',
+    width: 100
   },
   {
-    title: '角色名',
-    dataIndex: 'role',
-    key: 'role',
-    scopedSlots: { customRender: 'role' },
-    width: 100
+    title: '权限描述',
+    dataIndex: 'info',
+    key: 'info',
+    width: 120
   },
   {
     title: '状态',
@@ -163,40 +139,19 @@ export default {
         limit: 20
       },
       filterForm: {
-        userId: '',
-        roleId: ''
+        name: ''
       },
-      dialogVisibleAdd: false,
-      allUsers: [],
-      optionsUsers: [],
-      allRoles: [],
-      optionsRoles: [],
       editItem: {},
       editIndex: '',
+      dialogVisibleAdd: false,
       dialogVisibleEdit: false,
+      routes: [],
       multipleSelection: []
     }
   },
-  watch: {
-    allUsers: function (newVal) {
-      if (newVal.length) {
-        this.optionsUsers = newVal.map((item, idx, arr) => {
-          return {
-            label: item.username,
-            value: item.id
-          }
-        })
-      }
-    },
-    allRoles: function (newVal) {
-      if (newVal.length) {
-        this.optionsRoles = newVal.map((item, idx, arr) => {
-          return {
-            label: item.name,
-            value: item.id
-          }
-        })
-      }
+  computed: {
+    routesData () {
+      return this.routes
     }
   },
   created () {
@@ -207,8 +162,7 @@ export default {
       this.smallLayout = true
     }
 
-    this.getAllUsers()
-    this.getAllRoles()
+    this.getRoutes()
     this.getList()
   },
   methods: {
@@ -222,11 +176,14 @@ export default {
     },
     getList () {
       this.listLoading = true
-      apiRoleuser.fetchList(this.listQuery).then(res => {
+      apiPermission.fetchList(this.listQuery).then(res => {
         this.listLoading = false
         var resBody = res.data
         if (resBody.code === 0) {
           this.list = resBody.data.item || []
+          this.list.map(item => {
+            item.menu = item.menu.split(',').filter(it => { return it.indexOf('_') === -1 })
+          })
           this.total = resBody.data.total
         } else {
           this.$message.error(resBody.message || '请求出错！')
@@ -245,22 +202,94 @@ export default {
         }
       })
     },
+    async getRoutes () {
+      this.serviceRoutes = routes
+      this.routes = this.generateRoutes(routes)
+    },
+
+    // Reshape the routes structure so that it looks the same as the sidebar
+    generateRoutes (routes, basePath = '/') {
+      const res = []
+
+      for (let route of routes) {
+        // skip some route
+        if (route.hidden) { continue }
+
+        const onlyOneShowingChild = this.onlyOneShowingChild(route.children, route)
+
+        if (route.children && onlyOneShowingChild && !route.alwaysShow) {
+          route = onlyOneShowingChild
+        }
+
+        const data = {
+          title: route.title,
+          name: route.name
+        }
+        if (route.parent) {
+          data.parent = route.parent
+        }
+
+        // recursive child routes
+        if (route.children) {
+          data.children = this.generateRoutes(route.children, data.path)
+        }
+        res.push(data)
+      }
+      return res
+    },
+    onlyOneShowingChild (children = [], parent) {
+      let onlyOneChild = null
+      const showingChildren = children.filter(item => !item.hidden)
+
+      // When there is only one child route, the child route is displayed by default
+      if (showingChildren.length === 1) {
+        onlyOneChild = showingChildren[0]
+        return onlyOneChild
+      }
+
+      // Show parent if there are no child route to display
+      if (showingChildren.length === 0) {
+        onlyOneChild = { title: parent.title, name: parent.name }
+        return onlyOneChild
+      }
+
+      return false
+    },
     handleFilter () {
       this.listQuery = {
         page: 1,
         limit: 20
       }
-      if (this.filterForm.userId !== '') {
-        this.listQuery.userId = this.filterForm.userId
-      }
-      if (this.filterForm.roleId !== '') {
-        this.listQuery.roleId = this.filterForm.roleId
+      if (this.filterForm.name !== '') {
+        this.listQuery.name = this.filterForm.name
       }
       this.getList()
     },
     resetForm (formName) {
       this.$refs[formName].resetFields()
       this.handleFilter()
+    },
+    delPrem (id, idx) {
+      apiPermission.deletePermission({ id: id }).then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.$message.success('删除成功！')
+          this.getList()
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
     },
     changeAddVisible (params) {
       this.dialogVisibleAdd = params
@@ -273,77 +302,13 @@ export default {
     changeEditVisible (params) {
       this.dialogVisibleEdit = params
     },
-    getAllUsers () {
-      apiAdmin.getAllUsers().then(res => {
-        var resBody = res.data
-        if (resBody.code === 0) {
-          this.allUsers = resBody.data.item || []
-        } else {
-          this.$message.error(resBody.message || '请求出错！')
-        }
-      }).catch(error => {
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || error.response.data)
-        } else {
-          this.$message.error('接口调用失败！')
-        }
-      })
-    },
-    getAllRoles () {
-      apiRole.getAllRoles().then(res => {
-        var resBody = res.data
-        if (resBody.code === 0) {
-          this.allRoles = resBody.data.item || []
-        } else {
-          this.$message.error(resBody.message || '请求出错！')
-        }
-      }).catch(error => {
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || error.response.data)
-        } else {
-          this.$message.error('接口调用失败！')
-        }
-      })
-    },
-    delRoleUser (id, idx) {
-      apiRoleuser.deleteRoleUser({ id: id }).then(res => {
-        var resBody = res.data
-        if (resBody.code === 0) {
-          this.$message.success('删除成功！')
-          this.getList()
-        } else {
-          this.$message.error(resBody.message || '请求出错！')
-        }
-      }).catch(error => {
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || error.response.data)
-        } else {
-          this.$message.error('接口调用失败！')
-        }
-      })
-    },
     handleSelectionChange (val) {
       this.multipleSelection = val
     },
     delSome () {
       var requestList = this.multipleSelection.map(async item => {
         return new Promise((resolve, reject) => {
-          apiRoleuser.deleteRoleUser({ id: item.id }).then(response => {
+          apiPermission.deletePermission({ id: item.id }).then(response => {
             var resBody = response.data
             if (resBody.code === 0) {
               resolve(response)
@@ -368,10 +333,9 @@ export default {
 }
 </script>
 <style scoped>
-.taskContainer {
+.faceContainer {
   width: 100%;
   height: 100%;
-  padding: 20px;
   background-color: #fff;
 }
 .tableWrap {

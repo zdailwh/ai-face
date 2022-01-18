@@ -1,10 +1,23 @@
 <template>
-  <div class="taskContainer">
+  <div class="faceContainer">
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="filterForm" :model="filterForm" layout="inline">
-        <a-form-model-item label="用户名" prop="username">
-          <a-input v-model="filterForm.username" style="width: 120px;" />
+        <a-form-model-item label="用户" prop="userId">
+          <a-select v-model="filterForm.userId" :allowClear="true">
+            <a-select-option value="">全部用户</a-select-option>
+            <a-select-option v-for="item in optionsUsers" :value="item.value" v-bind:key="item.value">
+              {{item.label}}
+            </a-select-option>
+          </a-select>
+        </a-form-model-item>
+        <a-form-model-item label="角色" prop="roleId">
+          <a-select v-model="filterForm.roleId" :allowClear="true">
+            <a-select-option value="">全部角色</a-select-option>
+            <a-select-option v-for="item in optionsRoles" :value="item.value" v-bind:key="item.value">
+              {{item.label}}
+            </a-select-option>
+          </a-select>
         </a-form-model-item>
         <!-- <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
           <a-range-picker :locale="locale" v-model="filterForm.createTime" style="width: 220px;" />
@@ -12,41 +25,39 @@
         <a-form-model-item>
           <a-button type="primary" @click="handleFilter"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="resetForm('filterForm')">重置</a-button>
-          <a-button v-if="currUser.level !== '' && currUser.level > 3" style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建用户</a-button>
+          <!-- <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建关联记录</a-button> -->
+          <a-popconfirm
+            title="确定要删除所选关联记录吗？"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delSome()"
+          >
+            <a-button style="margin-left: 10px;" type="danger" :disabled="!multipleSelection.length"><a-icon key="delete" type="delete"/>批量删除</a-button>
+          </a-popconfirm>
         </a-form-model-item>
       </a-form-model>
     </div>
     <!--搜索 end-->
+
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false">
-        <span slot="level" slot-scope="level">
-          {{level | levelFilter}}
+      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false" :row-selection="{ selectedRowKeys: multipleSelection, onChange: handleSelectionChange, columnWidth: '10px' }">
+        <span slot="user" slot-scope="user">
+          {{ user && user.username }}
+        </span>
+        <span slot="role" slot-scope="role">
+          {{ role && role.name }}
         </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="action, record, idx">
-          <template v-if="currUser.level !== '' && currUser.level > 3 && record.status !== 1">
-            <a @click="actived(record.id, idx)">激活</a>
-            <a-divider type="vertical" />
-          </template>
-          <template v-if="currUser.level !== '' && currUser.level > 3 && record.status !== 2">
-            <a @click="inactived(record.id, idx)">禁用</a>
-            <a-divider type="vertical" />
-          </template>
-          <template v-if="currUser.level !== '' && currUser.level > 3 && record.status === 2">
-            <a @click="resetPwdHandle(record, idx)">重置密码</a>
-            <a-divider type="vertical" />
-          </template>
-          <template v-if="currUser.level !== '' && currUser.level > 3 && record.status === 2">
-            <a @click="resetRoleHandle(record, idx)">修改角色</a>
-            <a-divider type="vertical" />
-          </template>
+          <!-- <a @click="editHandle(record, idx)">编辑</a>
+          <a-divider type="vertical" /> -->
           <a-popconfirm
-            title="确定要删除该用户吗?"
+            title="确定要删除此关联吗？"
             ok-text="删除"
             cancel-text="取消"
-            @confirm="delUser(record.id, idx)"
+            @confirm="delRoleUser(record.id, idx)"
           >
             <a>删除</a>
           </a-popconfirm>
@@ -70,9 +81,8 @@
       </div>
     </div>
 
-    <Add :dialog-visible="dialogVisibleAdd" :options-roles="optionsRoles" @changeVisible="changeAddVisible" @refresh="getList" />
-    <ResetPwd :edit-item="editItem" :dialog-visible="dialogVisibleResetPwd" @changeVisible="changeResetPwdVisible" />
-    <ResetRole :edit-item="editItem" :options-roles="optionsRoles" :dialog-visible="dialogVisibleResetRole" @changeVisible="changeResetRoleVisible" @refresh="getList" />
+    <Add :dialog-visible="dialogVisibleAdd" :options-users="optionsUsers" :options-roles="optionsRoles" @changeVisible="changeAddVisible" @refresh="getList" />
+    <Edit :edit-item="editItem" :dialog-visible="dialogVisibleEdit" :options-roles="optionsRoles" @changeVisible="changeEditVisible" @refresh="getList" />
   </div>
 </template>
 
@@ -81,38 +91,32 @@ import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import Cookies from 'js-cookie'
 import apiAdmin from '@/api/admin'
 import apiRole from '@/api/myrole'
+import apiRoleuser from '@/api/roleuser'
 
 import Add from './add.vue'
-import ResetPwd from './resetPwd.vue'
-import ResetRole from './resetRole.vue'
-import { getToken } from '@/utils/auth'
+import Edit from './edit.vue'
 
 var moment = require('moment')
 const columns = [
-  {
-    title: 'ID',
-    dataIndex: 'id',
-    key: 'id',
-    width: 50
-  },
+  // {
+  //   title: 'ID',
+  //   dataIndex: 'id',
+  //   key: 'id',
+  //   width: 50
+  // },
   {
     title: '用户名',
-    dataIndex: 'username',
-    key: 'username',
+    dataIndex: 'user',
+    key: 'user',
+    scopedSlots: { customRender: 'user' },
+    width: 120
+  },
+  {
+    title: '角色名',
+    dataIndex: 'role',
+    key: 'role',
+    scopedSlots: { customRender: 'role' },
     width: 100
-  },
-  {
-    title: '手机号',
-    dataIndex: 'mobile',
-    key: 'mobile',
-    width: 120
-  },
-  {
-    title: '管理员标识',
-    dataIndex: 'level',
-    key: 'level',
-    scopedSlots: { customRender: 'level' },
-    width: 120
   },
   {
     title: '状态',
@@ -132,22 +136,13 @@ const columns = [
     title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' },
-    width: 240
+    width: 120
   }
 ]
 
 export default {
-  components: { Add, ResetPwd, ResetRole },
+  components: { Add, Edit },
   filters: {
-    levelFilter (val) {
-      const typeObj = {
-        2: '普通',
-        3: '操作员',
-        4: '管理员',
-        5: '超级管理员'
-      }
-      return typeObj[val]
-    },
     dateFormat (val) {
       if (val === '' || val === null) return ''
       return moment(val).format('YYYY-MM-DD HH:mm:ss')
@@ -159,8 +154,7 @@ export default {
       columns,
       pageSizeOptions: ['10', '20', '30', '40', '50'],
       smallLayout: false,
-      isVisitor: (Cookies.get('MultiDisplay-isVisitor') && JSON.parse(Cookies.get('MultiDisplay-isVisitor'))) || false,
-      currUser: JSON.parse(getToken()),
+      isVisitor: (Cookies.get('Programme-isVisitor') && JSON.parse(Cookies.get('Programme-isVisitor'))) || false,
       list: null,
       total: 0,
       listLoading: true,
@@ -169,19 +163,31 @@ export default {
         limit: 20
       },
       filterForm: {
-        createTime: [],
-        username: ''
+        userId: '',
+        roleId: ''
       },
+      dialogVisibleAdd: false,
+      allUsers: [],
+      optionsUsers: [],
+      allRoles: [],
+      optionsRoles: [],
       editItem: {},
       editIndex: '',
-      dialogVisibleAdd: false,
-      dialogVisibleResetPwd: false,
-      dialogVisibleResetRole: false,
-      allRoles: [],
-      optionsRoles: []
+      dialogVisibleEdit: false,
+      multipleSelection: []
     }
   },
   watch: {
+    allUsers: function (newVal) {
+      if (newVal.length) {
+        this.optionsUsers = newVal.map((item, idx, arr) => {
+          return {
+            label: item.username,
+            value: item.id
+          }
+        })
+      }
+    },
     allRoles: function (newVal) {
       if (newVal.length) {
         this.optionsRoles = newVal.map((item, idx, arr) => {
@@ -201,8 +207,9 @@ export default {
       this.smallLayout = true
     }
 
-    this.getList()
+    this.getAllUsers()
     this.getAllRoles()
+    this.getList()
   },
   methods: {
     onPageChange (current) {
@@ -215,16 +222,16 @@ export default {
     },
     getList () {
       this.listLoading = true
-      apiAdmin.fetchList(this.listQuery).then(res => {
+      apiRoleuser.fetchList(this.listQuery).then(res => {
         this.listLoading = false
         var resBody = res.data
         if (resBody.code === 0) {
-          this.list = resBody.data.item
+          this.list = resBody.data.item || []
           this.total = resBody.data.total
         } else {
           this.$message.error(resBody.message || '请求出错！')
         }
-      }).catch(error => {
+      }).catch((error) => {
         this.listLoading = false
         if (error.response.status === 401) {
           this.$store.dispatch('authentication/resetToken').then(() => {
@@ -243,11 +250,11 @@ export default {
         page: 1,
         limit: 20
       }
-      if (this.filterForm.createTime && this.filterForm.createTime.length) {
-        this.listQuery.createTime = this.filterForm.createTime
+      if (this.filterForm.userId !== '') {
+        this.listQuery.userId = this.filterForm.userId
       }
-      if (this.filterForm.username !== '') {
-        this.listQuery.username = this.filterForm.username
+      if (this.filterForm.roleId !== '') {
+        this.listQuery.roleId = this.filterForm.roleId
       }
       this.getList()
     },
@@ -255,85 +262,37 @@ export default {
       this.$refs[formName].resetFields()
       this.handleFilter()
     },
-    actived (id, idx) {
-      apiAdmin.actived({ id: id }).then(res => {
-        if (res.data.code === 0) {
-          this.$message.success('激活成功！')
-          this.getList()
-        } else {
-          this.$message.error(res.data.message || '请求出错！')
-        }
-      }).catch(error => {
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || error.response.data)
-        } else {
-          this.$message.error('接口调用失败！')
-        }
-      })
-    },
-    inactived (id, idx) {
-      apiAdmin.inactived({ id: id }).then(res => {
-        if (res.data.code === 0) {
-          this.$message.success('禁用成功！')
-          this.getList()
-        } else {
-          this.$message.error(res.data.message || '请求出错！')
-        }
-      }).catch(error => {
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || error.response.data)
-        } else {
-          this.$message.error('接口调用失败！')
-        }
-      })
-    },
-    delUser (id, idx) {
-      apiAdmin.deleteUser({ id: id }).then(res => {
-        if (res.data.code === 0) {
-          this.$message.success('删除成功！')
-          this.getList()
-        } else {
-          this.$message.error(res.data.message || '请求出错！')
-        }
-      }).catch(error => {
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || error.response.data)
-        } else {
-          this.$message.error('接口调用失败！')
-        }
-      })
-    },
     changeAddVisible (params) {
       this.dialogVisibleAdd = params
     },
-    resetPwdHandle (item, idx) {
-      this.editItem = item
-      this.dialogVisibleResetPwd = true
+    editHandle (item, idx) {
+      this.editItem = JSON.parse(JSON.stringify(item))
+      this.editIndex = idx
+      this.dialogVisibleEdit = true
     },
-    changeResetPwdVisible (params) {
-      this.dialogVisibleResetPwd = params
+    changeEditVisible (params) {
+      this.dialogVisibleEdit = params
     },
-    resetRoleHandle (item, idx) {
-      this.editItem = item
-      this.dialogVisibleResetRole = true
-    },
-    changeResetRoleVisible (params) {
-      this.dialogVisibleResetRole = params
+    getAllUsers () {
+      apiAdmin.getAllUsers().then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.allUsers = resBody.data.item || []
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
     },
     getAllRoles () {
       apiRole.getAllRoles().then(res => {
@@ -355,15 +314,63 @@ export default {
           this.$message.error('接口调用失败！')
         }
       })
+    },
+    delRoleUser (id, idx) {
+      apiRoleuser.deleteRoleUser({ id: id }).then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.$message.success('删除成功！')
+          this.getList()
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || error.response.data)
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    handleSelectionChange (val) {
+      this.multipleSelection = val
+    },
+    delSome () {
+      var requestList = this.multipleSelection.map(async item => {
+        return new Promise((resolve, reject) => {
+          apiRoleuser.deleteRoleUser({ id: item.id }).then(response => {
+            var resBody = response.data
+            if (resBody.code === 0) {
+              resolve(response)
+            } else {
+              reject(resBody.message || '请求出错！')
+            }
+          }).catch((error) => {
+            reject(error)
+          })
+        })
+      })
+      Promise.all(requestList).then(result => {
+        console.log(result)
+        this.$message.success('删除成功！')
+        this.getList()
+      }).catch((result) => {
+        console.log(result)
+        console.log('失败了')
+      })
     }
   }
 }
 </script>
 <style scoped>
-.taskContainer {
+.faceContainer {
   width: 100%;
   height: 100%;
-  padding: 20px;
   background-color: #fff;
 }
 .tableWrap {
