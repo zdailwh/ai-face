@@ -212,7 +212,7 @@ export default {
 
   async taskMergeFile (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.put(`/api/admin/v1/task/${params.id}/merge`)
+      var res = await axios.post(`/api/admin/v1/task/merge`, params)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.task)

@@ -238,22 +238,6 @@ export default {
       }
     },
     commit () {
-      // var t = [{name: '文件1', percent: 20}, {name: '文件2', percent: 50}]
-      // this.$notification.open({
-      //   message: `视频上传任务`,
-      //   duration: 0,
-      //   placement: 'bottomRight',
-      //   description: (h) => {
-      //     var pers = t.map(item => {
-      //       return h('div', null, [
-      //         h('a-progress', {props: { size: 'small', status: 'active', percent: item.percent }}),
-      //         h('p', null, [h('span', null, item.name)])
-      //       ])
-      //     })
-      //     return h('div', null, pers)
-      //   }
-      // })
-
       console.log(this.filterList)
       if (!this.filterList.length) {
         this.$message.error('请选择视频文件！')
@@ -263,11 +247,15 @@ export default {
         if (valid) {
           if (this.currBatch && this.currBatch.id) {
             await this.createTasks(this.filterList, 0)
+            this.updateParentData('addVisible', false) // 创建窗口消失
+            this.createNotification(this.filterList) // 显示进度浮窗
           } else {
             api.addBatch({name: this.addForm.batch, mode_id: this.addForm.mymode}).then(async res => {
               if (res.data.code === 0) {
                 this.batch = res.data.data
                 await this.createTasks(this.filterList, 0)
+                this.updateParentData('addVisible', false) // 创建窗口消失
+                this.createNotification(this.filterList) // 显示进度浮窗
               } else {
                 this.$message.error(res.data.message || '请求出错！')
               }
@@ -279,65 +267,34 @@ export default {
         }
       })
     },
-    // createTask (e) {
-    //   var formdata = new FormData()
-    //   var task = {
-    //     type: this.addForm.type,
-    //     name: this.addForm.name,
-    //     description: this.addForm.description,
-    //     frame_rate: this.addForm.frame_rate,
-    //     prority: this.addForm.prority,
-    //     group_ids: this.addForm.groupId !== '' ? this.addForm.groupId : this.targetGroupIds.join(',')
-    //   }
-    //   if (this.addForm.type === 2) {
-    //     task.url = this.addForm.url
-    //   }
-
-    //   task = JSON.stringify(task)
-
-    //   formdata.append('task', task)
-    //   if (this.addForm.type === 1) {
-    //     this.addForm.files.map((item, key, arr) => {
-    //       formdata.append('file', item.originFileObj, item.originFileObj.name)
-    //     })
-    //   }
-
-    //   this.addLoading = true
-    //   api.addTask(formdata).then(res => {
-    //     this.addLoading = false
-    //     if (res.data.code === 0) {
-    //       this.updateParentData('page_no', 1)
-    //       this.$emit('getList')
-
-    //       this.updateParentData('addVisible', false)
-    //       this.addForm = {
-    //         type: 1,
-    //         url: '',
-    //         name: '',
-    //         description: '',
-    //         frame_rate: '',
-    //         prority: '',
-    //         groupId: '',
-    //         files: []
-    //       }
-    //       this.targetGroupIds = []
-    //       this.$message.success('任务创建成功')
-    //     } else {
-    //       this.$message.error(res.data.message || '请求出错！')
-    //     }
-    //   }).catch(error => {
-    //     this.addLoading = false
-    //     if (error.response.status === 401) {
-    //       this.$store.dispatch('authentication/resetToken').then(() => {
-    //         this.$router.push({ path: '/login' })
-    //       })
-    //     }
-    //     this.$message.error(error.response.data.message || '创建出错！')
-    //   })
-    // },
+    createNotification (list) {
+      this.$notification.open({
+        message: `上传进度`,
+        key: 'uploadProgress',
+        duration: 0,
+        placement: 'bottomRight',
+        description: (h) => {
+          var pers = list.map(item => {
+            return h('div', null, [
+              h('div', null, [h('p', { style: { color: '#1890ff' } }, item.file.name)]),
+              h('div', { style: { display: 'flex' } }, [
+                h('p', { style: { width: '90px', color: '#999' } }, 'hash进度'),
+                h('a-progress', {props: { size: 'small', status: 'active', percent: item.percentageHash }})
+              ]),
+              h('div', { style: { display: 'flex' } }, [
+                h('p', { style: { width: '90px', color: '#999' } }, '上传进度'),
+                h('a-progress', {props: { size: 'small', status: 'active', percent: item.percentage }})
+              ])
+            ])
+          })
+          return h('div', null, pers)
+        }
+      })
+    },
     reset (e) {
       // this.addVisible = false
       this.$refs.form.resetFields()
+      this.filterList = []
       this.updateParentData('addVisible', false)
     },
     beforeUpload (file, fileList) {
@@ -412,16 +369,17 @@ export default {
 
       const listItem = filelist[startIdx]
       const fileChunkList = await this.createFileChunk(listItem.file)
-      listItem.fileChunkList = fileChunkList
+      filelist[startIdx].fileChunkList = fileChunkList
       console.log(startIdx + '切片个数：' + fileChunkList.length)
-      listItem.hash = await this.calculateHash(fileChunkList, filelist, startIdx)
+      filelist[startIdx].hash = await this.calculateHash(fileChunkList, filelist, startIdx)
+      console.log(startIdx + 'hash：' + filelist[startIdx].hash)
       await this.createTask(listItem, startIdx).then(async (response) => {
         console.log('创建任务返回' + startIdx + '/' + response.data.id)
-        listItem.taskid = response.data.id
+        filelist[startIdx].taskid = response.data.id
 
         this.uploadFiles(filelist, startIdx)
       }).catch((error) => {
-        filelist[startIdx].createRes = (error.response && error.response.data) || '节目创建执行失败'
+        filelist[startIdx].createRes = (error.response && error.response.data) || '任务创建执行失败'
       })
 
       if (startIdx < filelist.length - 1) {
@@ -479,7 +437,7 @@ export default {
         console.log('上传分片结果')
         console.log(result)
         // 合并切片
-        await this.mergeRequest(listItem.taskid)
+        await this.mergeRequest(listItem)
       }).catch((error) => {
         console.log('分片上传失败了')
         console.log(error)
@@ -493,10 +451,9 @@ export default {
           const formData = new FormData()
           formData.append('taskid', taskid)
           formData.append('chunk', index)
-          formData.append('guid', hash)
+          formData.append('guid', fileHash)
           formData.append('chunkTotal', chunkData.length)
           formData.append('file', chunk)
-          formData.append('size', size)
           return { formData, index }
         })
         .map(async ({ formData, index }) =>
@@ -512,8 +469,6 @@ export default {
     },
     // xhr
     myRequest ({ url, method, data, headers = {}, onProgress = e => e, requestList }) {
-      console.log('myrequest')
-      console.log(requestList)
       return new Promise(resolve => {
         const xhr = new XMLHttpRequest()
         xhr.upload.onprogress = onProgress
@@ -537,12 +492,21 @@ export default {
       })
     },
     // 通知服务端合并切片
-    async mergeRequest (id) {
-      api.taskMergeFile({ id: id }).then(res => {
+    async mergeRequest (item) {
+      api.taskMergeFile({ taskid: item.taskid, guid: item.hash, fileName: item.file.name }).then(res => {
         if (res.data.code === 0) {
+          item.percentage = 100
+          // 合并成功后 将上传进度 从99 置为100
+          var notFinish = this.filterList.filter(it => {
+            return it.percentage !== 100
+          })
+          if (!notFinish.length) {
+            this.$notification.close('uploadProgress')
+            this.reset()
+          }
           this.$message.success('合并成功！')
         } else {
-          this.$message.error(res.data.message || '请求出错！')
+          this.$message.error(res.data.message || '合并出错！')
         }
       }).catch(error => {
         if (error.response.status === 401) {
@@ -551,7 +515,7 @@ export default {
           })
         }
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '任务恢复出错！')
+          this.$message.error(error.response.data.message || '文件合并出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
@@ -560,13 +524,13 @@ export default {
     // 用闭包保存每个 chunk 的进度数据
     createProgressHandler (item, filelist, startIdx, chunkData) {
       return e => {
-        item.percentage = parseInt(String((e.loaded / e.total) * 100))
+        item.percentage = parseInt(String((e.loaded / e.total) * 99))
 
         const loaded = chunkData
           .map(item => item.size * item.percentage)
           .reduce((acc, cur) => acc + cur)
         const per = parseInt((loaded / filelist[startIdx].file.size).toFixed(2))
-        filelist[startIdx].percentage = per > 100 ? 100 : per
+        filelist[startIdx].percentage = per > 99 ? 99 : per
       }
     },
     // 生成文件切片
