@@ -275,6 +275,66 @@ let templateRoleusers = {
   }
 }
 
+let templateLog = {
+  'id|2-10000': 2,
+  'ip': null,
+  'userId': 2,
+  'url': 'http://192.168.1.202:86/api/face/v1/batch',
+  'methodType': 'POST',
+  'requestParam': '{\'name\':\'20220117-2\',\'mode_id\':0}',
+  'info': '新增任务批次',
+  'log': null,
+  'deleteId': 0,
+  'create_time': '2022-01-17T17:01:51',
+  'update_time': '2022-01-17T17:01:51',
+  'userName': 'easycom'
+}
+
+let templateLogs = {
+  'code': 0,
+  'data': {
+    'total': 54,
+    'item|1-54': [templateLog]
+  }
+}
+
+let templateDeviceInfo = {
+  'code': 0,
+  'data': {
+    'software': {
+      'name': '广电专业人像检索系统',
+      'version': '2.0'
+    },
+    'system': {
+      'uptime': '19:54:30 up 8 days',
+      'CPU': '3.7 us,  1.9 sy,  0.0 ni, 94.3 id',
+      'Mem': '263463610 total, 66792900 free,  9309352 used, 187534148 buff/cache'
+    },
+    'facedata': {
+      'total': 100,
+      'total_images': 103,
+      'version': 1896315661,
+      'update_time': '2022-01-03 12:03:30'
+    }
+  }
+}
+
+let templateNetwork = {
+  'name': 'eth0',
+  'BOOTPROTO': 'STATIC',
+  'IPADDR': '192.168.6.111',
+  'GATEWAY': '192.168.6.1',
+  'NETMASK': '255.255.255.0'
+}
+
+let templateNetworks = {
+  'code': 0,
+  'data': {
+    'total': 54,
+    'item|1-54': [templateNetwork]
+  }
+}
+
 let face = Mock.mock(templateFace)
 let faces = Mock.mock(templateFaces)
 let group = Mock.mock(templateGroup)
@@ -304,6 +364,11 @@ let createTask = Mock.mock(templateCreateTask)
 let batch = Mock.mock(templateBatch)
 let batchs = Mock.mock(templateBatchs)
 let createBatch = Mock.mock(templateCreateBatch)
+let log = Mock.mock(templateLog)
+let logs = Mock.mock(templateLogs)
+let deviceinfo = Mock.mock(templateDeviceInfo)
+let network = Mock.mock(templateNetwork)
+let networks = Mock.mock(templateNetworks)
 
 module.exports = {
   face,
@@ -334,5 +399,10 @@ module.exports = {
   roleusers,
   batch,
   batchs,
-  createBatch
+  createBatch,
+  log,
+  logs,
+  deviceinfo,
+  network,
+  networks
 }

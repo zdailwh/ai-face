@@ -41,7 +41,7 @@
     </div>
     <div class="container">
       <div class="file-page">
-        <div class="file-slider">
+        <div v-if="$route.path !== '/login'" class="file-slider">
           <a-menu theme="dark" v-model="current" @click="menuClick">
             <template v-if="permission_routes.length">
               <a-menu-item v-if="!route.hidden" v-for="route in permission_routes" :key="route.meta.active">
@@ -50,9 +50,9 @@
             </template>
           </a-menu>
         </div>
-        <div class="file-main">
-          <a-menu v-model="currentChild" mode="horizontal">
-          <a-menu-item v-if="!rou.hidden" v-for="rou in topRoute.children" :key="`${topRoute.path}/${rou.path}`">
+        <div class="file-main" :style="{ paddingLeft: $route.path !== '/login'? '150px': '0px' }">
+          <a-menu v-if="topRoute && topRoute.children && topRoute.children.length" v-model="currentChild" mode="horizontal">
+            <a-menu-item v-if="!rou.hidden" v-for="rou in topRoute.children" :key="`${topRoute.path}/${rou.path}`">
               {{rou.meta.title}}
             </a-menu-item>
           </a-menu>
@@ -299,7 +299,7 @@ export default {
   height: 100%;
   /*background-color: #171819;*/
   overflow: auto;
-  padding: 0 0 0 150px;
+  padding: 0 0 0 0;
 }
 
 /* 覆盖ant样式 */
