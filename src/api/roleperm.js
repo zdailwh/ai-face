@@ -49,7 +49,7 @@ export default {
   },
   async updateRolePerm (data) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.put(`/api/admin/v1/rolepermissions/${data.roleId}`, data)
+      var res = await axios.put(`/api/admin/v1/rolepermissions`, data)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.roleperm)
