@@ -1,45 +1,52 @@
 <template>
   <div class="faceWrap" :style="smalllayout? 'height: auto;': ''">
-    <ul class="listWrap" v-if="taskresult">
-      <template v-for="(fItem, second) in taskresult">
+    <ul class="listWrap" v-infinite-scroll="handleInfiniteOnLoad" :infinite-scroll-disabled="busy" :infinite-scroll-distance="10">
+      <template v-for="(fItem, second) in slicedTaskresult">
+        <li :key="second" :id="'point_' + second"></li>
         <li class="list-item" :class="{ currBox: currBoxKey === second + '-' + k }" v-bind:key="second + '-' + k" v-for="(it, k) in fItem.items">
-          <div class="img-box" @click="changeBox(fItem, second)">
-            <img v-if="fItem.image" v-lazy="fItem.image" alt="人脸图">
+          <div class="img-box" @click="changeBox(fItem, second, k)">
+            <img v-if="fItem.image" v-lazy="`/api/admin/v1/getResultImage?filepath=${fItem.image}`" alt="人脸图">
             <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
           </div>
           <div class="desc-box">
             <div class="timeWrap">
-              <a-popover :title="it.name" trigger="click">
+              <a-popover :title="it.name" trigger="click" arrow-point-at-center>
                 <template slot="content">
-                  <template v-if="clickFace"></template>
-                  <p>人名：{{clickFace.name}}</p>
-                  <p>描述：{{clickFace.description}}</p>
-                  <p>性别：{{!clickFace.gender? '未知':(clickFace.gender === 1)? '男': '女'}}</p>
-                  <p>生日：{{clickFace.birthday}}</p>
-                  <p>别名：{{clickFace.title}}</p>
-                  <p>履历：{{clickFace.history}}</p>
-                  <p><img class="tablePopImg" v-for="(i,k) in clickFace.features" :key="k" :src="i.fileuri" /></p>
+                  <template v-if="clickFace">
+                    <p>人名：{{clickFace.name}}</p>
+                    <p>描述：{{clickFace.description}}</p>
+                    <p>性别：{{!clickFace.gender? '未知':(clickFace.gender === 1)? '男': '女'}}</p>
+                    <p>生日：{{clickFace.birthday}}</p>
+                    <p>别名：{{clickFace.title}}</p>
+                    <p>履历：{{clickFace.history}}</p>
+                    <p><img class="tablePopImg" v-for="(i,k) in clickFace.features" :key="k" :src="i.fileuri" /></p>
+                  </template>
                 </template>
                 <p><a href="javascript:;" @click="getFace(it.faceId)">{{it.name}}</a></p>
               </a-popover>
-              <p>时间：{{ second | formateSeconds }}</p>
+              <p>{{ second | formateSeconds }}</p>
 
             </div>
           </div>
         </li>
       </template>
+      <div v-if="loading && !busy" class="loading-container">
+        <a-spin />
+      </div>
     </ul>
     <!-- <div v-else><p>还没有识别结果！</p></div> -->
   </div>
 </template>
 <script>
+import infiniteScroll from 'vue-infinite-scroll'
 import api from '../api'
 export default {
+  directives: { infiniteScroll },
   props: [ 'taskresult', 'smalllayout' ],
   filters: {
     formateSeconds (second) {
       let secondTime = parseInt(second / 1000)
-      // var haomiao = parseInt(second % 1000)
+      var haomiao = parseInt(second % 1000)
       let min = 0 // 初始化分
       let h = 0 // 初始化小时
       let result = ''
@@ -51,29 +58,42 @@ export default {
           min = parseInt(min % 60) // 获取小时后取佘的分，获取分钟除以60取佘的分
         }
       }
-      result = `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${secondTime.toString().padStart(2, '0')}`
+      result = `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${secondTime.toString().padStart(2, '0')}.${haomiao}`
       return result
     }
   },
   data () {
     return {
       currBoxKey: 0,
-      clickFace: {}
+      clickFace: {},
+      slicedTaskresult: {},
+      loading: false,
+      busy: false,
+      limit: 100,
+      page: 0
     }
   },
   watch: {
     taskresult (val, oldVal) {
-      // if (val.length) {
-      //   this.currBoxKey = 0
-      //   var fItem = val[0]
-      //   this.$emit('videofixed', { currentTime: fItem.time, item: fItem })
-      // }
+      this.loading = true
+      var sliceKeys = Object.keys(this.taskresult).slice(this.page * this.limit, this.page * this.limit + this.limit)
+      var sliceRes = {}
+      for (var i = 0; i < this.limit; i++) {
+        var k = sliceKeys[i] + ''
+        sliceRes[k] = this.taskresult[k]
+      }
+      this.slicedTaskresult = {...this.slicedTaskresult, ...sliceRes}
+
+      this.loading = false
+      this.page++
     }
   },
+  mounted () {
+  },
   methods: {
-    changeBox (fItem, second) {
+    changeBox (fItem, second, k) {
       this.$emit('videofixed', { currentTime: second, item: fItem })
-      this.currBoxKey = second
+      this.currBoxKey = second + '-' + k
     },
     getFace (faceId) {
       this.spinning = true
@@ -98,6 +118,26 @@ export default {
           this.$message.error('接口调用失败！')
         }
       })
+    },
+    handleInfiniteOnLoad () {
+      this.loading = true
+      if (Object.keys(this.slicedTaskresult).length >= Object.keys(this.taskresult).length) {
+        this.$message.warning('没有更多数据了~')
+        this.busy = true
+        this.loading = false
+        return
+      }
+
+      var sliceKeys = Object.keys(this.taskresult).slice(this.page * this.limit, this.page * this.limit + this.limit)
+      var sliceRes = {}
+      for (var i = 0; i < this.limit; i++) {
+        var k = sliceKeys[i] + ''
+        sliceRes[k] = this.taskresult[k]
+      }
+      this.slicedTaskresult = {...this.slicedTaskresult, ...sliceRes}
+
+      this.loading = false
+      this.page++
     }
   }
 }
@@ -113,12 +153,13 @@ export default {
   flex-wrap: wrap;
 }
 .list-item {
-  width: 220px;
-  height: 130px;
+  /*width: 220px;
+  height: 130px;*/
   border: 1px solid #555;
-  margin: 0 5px 10px;
+  margin: 0 2px 5px;
   color: #ddd;
   display: flex;
+  flex-direction: column;
   align-items: center;
   cursor: pointer;
 }
@@ -144,7 +185,6 @@ export default {
 }
 .desc-box {
   flex: 1;
-  margin-top: 10px;
 }
 .operate-box {
   width: 80px;
@@ -154,12 +194,17 @@ export default {
 }
 .desc-box .timeWrap {
   display: flex;
-  margin: 8px 0;
   flex-direction: column;
 }
 .tablePopImg {
   max-width: 70px;
   max-height: 70px;
   margin-right: 5px;
+}
+.loading-container {
+  position: absolute;
+  bottom: 40px;
+  width: 100%;
+  text-align: center;
 }
 </style>

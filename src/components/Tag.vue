@@ -29,17 +29,29 @@
 export default {
   props: {
     currTags: {
-      type: Array,
+      type: String,
       default () {
-        return []
+        return ''
       }
     }
   },
   data () {
     return {
-      tags: this.currTags,
       inputVisible: false,
       inputValue: ''
+    }
+  },
+  computed: {
+    tags: {
+      get () {
+        if (this.currTags) {
+          return this.currTags.split('|')
+        } else {
+          return []
+        }
+      },
+      set () {
+      }
     }
   },
   methods: {

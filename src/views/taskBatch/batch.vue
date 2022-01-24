@@ -9,7 +9,7 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
-          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true;batchItem = {};targetKeys = []"><a-icon key="plus" type="plus"/>创建任务</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true;batchItem = {};targetKeys = []"><a-icon key="plus" type="plus"/>新建任务</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
@@ -105,15 +105,9 @@ const columns = [
   }
 ]
 
-var timer = null
 export default {
   components: { AddTask },
   beforeRouteEnter (to, from, next) {
-    next()
-  },
-  beforeRouteLeave (to, from, next) {
-    this.continueCircle = false
-    window.clearTimeout(timer)
     next()
   },
   data () {

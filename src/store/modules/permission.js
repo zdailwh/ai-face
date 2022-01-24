@@ -34,6 +34,32 @@ export function filterAsyncRoutes (routes, roles) {
   return res
 }
 
+export function filterAsyncRoutesMenu (routes, perms) {
+  const res = []
+
+  routes.forEach(route => {
+    const tmp = { ...route }
+    if (hasPermissionMenu(perms, tmp)) {
+      if (tmp.children) {
+        tmp.children = filterAsyncRoutesMenu(tmp.children, perms)
+      }
+      res.push(tmp)
+    }
+  })
+
+  return res
+}
+
+function hasPermissionMenu (perms, route) {
+  if (route.name) {
+    // console.log(route)
+    // console.log(perms.includes(route.name))
+    return perms.includes(route.name)
+  } else {
+    return false
+  }
+}
+
 const state = {
   routes: [],
   addRoutes: []
@@ -54,6 +80,18 @@ const actions = {
         accessedRoutes = asyncRoutes || []
       } else {
         accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
+      }
+      commit('SET_ROUTES', accessedRoutes)
+      resolve(accessedRoutes)
+    })
+  },
+  generateRoutesByMenu ({ commit }, { roles, perms }) {
+    return new Promise(resolve => {
+      let accessedRoutes
+      if (roles.includes('admin')) {
+        accessedRoutes = asyncRoutes || []
+      } else {
+        accessedRoutes = filterAsyncRoutesMenu(asyncRoutes, perms)
       }
       commit('SET_ROUTES', accessedRoutes)
       resolve(accessedRoutes)

@@ -49,7 +49,7 @@ export default {
   },
   async updateRolePerm (data) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.put(`/api/admin/v1/rolepermissions/${data.id}`, data)
+      var res = await axios.put(`/api/admin/v1/rolepermissions/${data.roleId}`, data)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.roleperm)
@@ -62,6 +62,33 @@ export default {
       return res
     } else {
       return { status: 200 }
+    }
+  },
+  async createRoleMenu (data) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.post(`/api/admin/v1/addMenu`, data)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.roleperm)
+      return { status: 200, data: data }
+    }
+  },
+  async updateRoleMenu (data) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.put(`/api/admin/v1/updateMenu`, data)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.roleperm)
+      return { status: 200, data: data }
+    }
+  },
+  async getRoleMenus (data) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.get(`/api/admin/v1/menu`)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.roleperm)
+      return { status: 200, data: data }
     }
   }
 }

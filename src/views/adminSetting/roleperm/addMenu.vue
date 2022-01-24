@@ -1,6 +1,6 @@
 <template>
   <a-modal
-    title="创建角色权限关联"
+    title="创建角色菜单关联"
     width="600px"
     v-model="visible"
   >
@@ -13,20 +13,17 @@
             </a-select-option>
           </a-select>
         </a-form-model-item>
-        <a-form-model-item label="权限">
-          <a-transfer
-            :data-source="optionsPermissions"
-            :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-            :titles="['所有权限', '已选权限']"
-            :list-style="{width: smallLayout?'100%':'200px', height: '300px'}"
-            show-search
-            :filter-option="filterOption"
-            :target-keys="formadd.permissionIds"
-            :render="item => item.label"
-            @change="handleChange"
-            @search="handleSearch"
+        <a-form-model-item label="菜单" prop="menu">
+          <a-tree
+            v-model="checkedKeys"
+            checkable
+            :defaultExpandAll="true"
+            :replace-fields="replaceFields"
+            :tree-data="routesData"
+            @check="onCheckTree"
           />
         </a-form-model-item>
+
       </a-form-model>
     </div>
     <template slot="footer">
@@ -47,7 +44,7 @@ export default {
       type: Boolean,
       default: false
     },
-    optionsPermissions: {
+    routesData: {
       type: Array,
       default: function () {
         return []
@@ -78,46 +75,60 @@ export default {
     return {
       loading: false,
       formadd: {
-        permissionIds: [],
+        menu: [],
         roleId: ''
       },
       ruleValidate: {
-        permissionIds: [
-          { required: true, type: Array, message: '请选择权限', trigger: 'change' }
+        menu: [
+          { required: true, message: '请选择菜单', trigger: 'change' }
         ],
         roleId: [
           { required: true, message: '请选择角色', trigger: 'change' }
         ]
+      },
+      checkedKeys: [],
+      replaceFields: {
+        key: 'name'
       }
     }
   },
   mounted () {
-    console.log(this.optionsPermissions)
   },
   methods: {
+    onCheckTree (checkedKeys, info) {
+      var checkedNodes = info.checkedNodes
+      var names = []
+      checkedNodes.map(item => {
+        names.push(item.key)
+        if (item.data.props.parent && !names.includes(item.data.props.parent)) {
+          names.push(item.data.props.parent + '_')
+        }
+      })
+      this.formadd.menu = names
+    },
     commit () {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          if (!this.formadd.permissionIds.length) {
-            this.$message.error('请选择权限！')
+          if (!this.formadd.menu.length) {
+            this.$message.error('请选择菜单！')
             return
           }
           this.loading = true
-          var requestList = this.formadd.permissionIds.map(async item => {
-            return this.createRolePerm({ permissionId: item, roleId: this.formadd.roleId })
-          })
-          Promise.all(requestList).then(result => {
-            console.log(result)
+          apiRoleperm.createRoleMenu({ menu: this.formadd.menu.join(','), role_id: this.formadd.roleId }).then(response => {
             this.loading = false
-            this.$message.success('创建成功！')
-            this.formadd = {
-              permissionIds: [],
-              roleId: ''
+            var resBody = response.data
+            if (resBody.code === 0) {
+              this.$message.success('创建成功！')
+              this.formadd = {
+                menu: [],
+                roleId: ''
+              }
+              this.$emit('changeVisible', false)
+              this.$emit('refresh')
+            } else {
+              this.$message.error(resBody.message || '请求出错！')
             }
-
-            this.$emit('changeVisible', false)
-            this.$emit('refresh')
-          }).catch(error => {
+          }).catch((error) => {
             this.loading = false
             if (error.response.status === 401) {
               this.$store.dispatch('authentication/resetToken').then(() => {
@@ -135,30 +146,6 @@ export default {
           return false
         }
       })
-    },
-    createRolePerm (formdata) {
-      return new Promise((resolve, reject) => {
-        apiRoleperm.createRolePerm(formdata).then(response => {
-          var resBody = response.data
-          if (resBody.code === 0) {
-            resolve(response)
-          } else {
-            reject(resBody.message || '请求出错！')
-          }
-        }).catch((error) => {
-          reject(error)
-        })
-      })
-    },
-    filterOption (inputValue, option) {
-      return option.label.indexOf(inputValue) > -1
-    },
-    handleChange (targetKeys, direction, moveKeys) {
-      console.log(targetKeys, direction, moveKeys)
-      this.formadd.permissionIds = targetKeys
-    },
-    handleSearch (dir, value) {
-      console.log('search:', dir, value)
     },
     reset () {
       this.$refs.form.resetFields()

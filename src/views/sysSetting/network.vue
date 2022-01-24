@@ -32,19 +32,19 @@
     >
       <div>
         <a-form-model ref="editform" :model="editForm" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
-          <a-form-model-item label="BOOTPROTO" prop="BOOTPROTO">
+          <a-form-model-item label="连接模式" prop="BOOTPROTO">
             <a-select v-model="editForm.BOOTPROTO">
               <a-select-option value="STATIC">STATIC</a-select-option>
               <a-select-option value="DHCP">DHCP</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="IPADDR" prop="IPADDR">
+          <a-form-model-item label="IP地址" prop="IPADDR">
           <a-input v-model="editForm.IPADDR" />
         </a-form-model-item>
-        <a-form-model-item label="GATEWAY" prop="GATEWAY">
+        <a-form-model-item label="网关地址" prop="GATEWAY">
           <a-input v-model="editForm.GATEWAY" />
         </a-form-model-item>
-        <a-form-model-item label="NETMASK" prop="NETMASK">
+        <a-form-model-item label="子网掩码" prop="NETMASK">
           <a-input v-model="editForm.NETMASK" />
         </a-form-model-item>
         </a-form-model>
@@ -68,31 +68,37 @@ var moment = require('moment')
 
 const columns = [
   {
-    title: '名称',
-    dataIndex: 'name',
-    key: 'name',
-    width: 120
+    title: '网络接口',
+    dataIndex: 'NAME',
+    key: 'NAME',
+    width: 100
   },
   {
-    title: 'BOOTPROTO',
+    title: '设备',
+    dataIndex: 'DEVICE',
+    key: 'DEVICE',
+    width: 100
+  },
+  {
+    title: '连接模式',
     dataIndex: 'BOOTPROTO',
     key: 'BOOTPROTO',
     width: 120
   },
   {
-    title: 'IPADDR',
+    title: 'IP地址',
     dataIndex: 'IPADDR',
     key: 'IPADDR',
     width: 120
   },
   {
-    title: 'GATEWAY',
+    title: '网关地址',
     dataIndex: 'GATEWAY',
     key: 'GATEWAY',
     width: 120
   },
   {
-    title: 'NETMASK',
+    title: '子网掩码',
     dataIndex: 'NETMASK',
     key: 'NETMASK',
     width: 120
@@ -124,16 +130,16 @@ export default {
       },
       ruleValidate: {
         BOOTPROTO: [
-          { required: true, message: 'BOOTPROTO不能为空', trigger: 'change' }
+          { required: true, message: '连接模式不能为空', trigger: 'change' }
         ]
         // IPADDR: [
-        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'STATIC'), message: 'IPADDR不能为空', trigger: 'blur' }
+        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'STATIC'), message: 'IP地址不能为空', trigger: 'blur' }
         // ],
         // GATEWAY: [
-        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'STATIC'), message: 'GATEWAY不能为空', trigger: 'blur' }
+        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'STATIC'), message: '网关地址不能为空', trigger: 'blur' }
         // ],
         // NETMASK: [
-        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'STATIC'), message: 'NETMASK不能为空', trigger: 'blur' }
+        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'STATIC'), message: '子网掩码不能为空', trigger: 'blur' }
         // ]
       },
       editForm: {
@@ -185,6 +191,11 @@ export default {
         var resBody = res.data
         if (resBody.code === 0) {
           this.datalist = resBody.data.item
+          this.datalist.map(item => {
+            if (item.BOOTPROTO === 'none') {
+              item.BOOTPROTO = 'STATIC'
+            }
+          })
           this.dataTotal = resBody.data.total
           this.spinning = false
         } else {
@@ -219,20 +230,20 @@ export default {
         if (valid) {
           if (this.editForm.BOOTPROTO === 'STATIC') {
             if (this.editForm.IPADDR === '') {
-              this.$message.error('请填写IPADDR！')
+              this.$message.error('请填写IP地址！')
               return
             }
             if (this.editForm.GATEWAY === '') {
-              this.$message.error('请填写GATEWAY！')
+              this.$message.error('请填写网关地址！')
               return
             }
             if (this.editForm.NETMASK === '') {
-              this.$message.error('请填写NETMASK！')
+              this.$message.error('请填写子网掩码！')
               return
             }
           }
           var params = {
-            name: this.editForm.name,
+            name: this.editForm.NAME,
             BOOTPROTO: this.editForm.BOOTPROTO,
             IPADDR: this.editForm.IPADDR,
             GATEWAY: this.editForm.GATEWAY,

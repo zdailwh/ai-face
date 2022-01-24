@@ -1,7 +1,7 @@
 <template>
   <div class="taskContainer">
     <div class="formWrap">
-      <a-form-model ref="form" :model="currUser" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+      <a-form-model ref="form" :model="currUser" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
         <a-form-model-item label="手机号" prop="mobile">
           <a-input v-model="currUser.mobile" />
         </a-form-model-item>

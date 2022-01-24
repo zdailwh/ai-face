@@ -4,7 +4,7 @@
     v-model="visible"
   >
     <div>
-      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
         <a-form-model-item label="新密码" prop="password">
           <a-input v-model="formadd.password" />
         </a-form-model-item>

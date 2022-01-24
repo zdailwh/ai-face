@@ -30,6 +30,16 @@
         <span slot="gender" slot-scope="gender">
           {{!gender? '未知':(gender === 1)? '男': '女'}}
         </span>
+        <span slot="groups" slot-scope="groups">
+          <a-popover title="所属分组" trigger="hover" arrow-point-at-center>
+            <template slot="content">
+              <template v-if="groups">
+                <p v-for="(it, k) in groups" :key="k">{{it.name}}</p>
+              </template>
+            </template>
+            <a href="javascript:;" v-if="groups.length">查看分组</a>
+          </a-popover>
+        </span>
         <span slot="features" slot-scope="text, record, index">
           <!-- <a-popover title="" v-for="(i,k) in features" :key="k">
             <template slot="content">
@@ -81,25 +91,25 @@
       v-model="addVisible"
     >
       <div>
-        <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
-          <a-form-model-item label="人名">
+        <a-form-model ref="addform" :model="addForm" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
+          <a-form-model-item label="人名" prop="name">
             <a-input v-model="addForm.name" />
           </a-form-model-item>
-          <a-form-model-item label="描述">
+          <a-form-model-item label="描述" prop="description">
             <a-input v-model="addForm.description" />
           </a-form-model-item>
-          <a-form-model-item label="性别">
+          <a-form-model-item label="性别" prop="gender">
             <a-radio-group name="gender" v-model="addForm.gender">
               <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
             </a-radio-group>
           </a-form-model-item>
-          <a-form-model-item label="生日">
+          <a-form-model-item label="生日" prop="birthday">
             <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="addForm.birthday" />
           </a-form-model-item>
-          <a-form-model-item label="别名">
+          <a-form-model-item label="别名" prop="title">
             <Tag :curr-tags="addForm.title" @commitTag="commitAddTitle"></Tag>
           </a-form-model-item>
-          <a-form-model-item label="履历">
+          <a-form-model-item label="履历" prop="history">
             <Tag :curr-tags="addForm.history" @commitTag="commitAddHistory"></Tag>
           </a-form-model-item>
         </a-form-model>
@@ -119,25 +129,25 @@
       v-model="editVisible"
     >
       <div>
-        <a-form-model :model="editForm" :label-col="{span:4}" :wrapper-col="{span:14}">
-          <!-- <a-form-model-item label="人名">
-            <a-input v-model="editForm.Name" />
-          </a-form-model-item> -->
-          <a-form-model-item label="描述">
+        <a-form-model ref="editform" :model="editForm" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
+          <a-form-model-item label="人名" prop="name">
+            <a-input v-model="editForm.name" />
+          </a-form-model-item>
+          <a-form-model-item label="描述" prop="description">
             <a-input v-model="editForm.description" />
           </a-form-model-item>
-          <a-form-model-item label="性别">
+          <a-form-model-item label="性别" prop="gender">
             <a-radio-group name="gender" v-model="editForm.gender">
               <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
             </a-radio-group>
           </a-form-model-item>
-          <a-form-model-item label="生日">
+          <a-form-model-item label="生日" prop="birthday">
             <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="editForm.birthday" />
           </a-form-model-item>
-          <a-form-model-item label="别名">
+          <a-form-model-item label="别名" prop="title">
             <Tag :curr-tags="editForm.title" @commitTag="commitEditTitle"></Tag>
           </a-form-model-item>
-          <a-form-model-item label="履历">
+          <a-form-model-item label="履历" prop="history">
             <Tag :curr-tags="editForm.history" @commitTag="commitEditHistory"></Tag>
           </a-form-model-item>
         </a-form-model>
@@ -219,6 +229,13 @@ const columns = [
     scopedSlots: { customRender: 'features' }
   },
   {
+    title: '所属分组',
+    dataIndex: 'groups',
+    key: 'groups',
+    scopedSlots: { customRender: 'groups' },
+    width: 100
+  },
+  {
     title: '创建时间',
     dataIndex: 'create_time',
     key: 'create_time',
@@ -250,13 +267,21 @@ export default {
       page_no: 1,
       page_size: 20,
       columns,
+      ruleValidate: {
+        name: [
+          { required: true, message: '请填写人名', trigger: 'blur' }
+        ],
+        gender: [
+          { required: true, message: '请选择性别', trigger: 'change' }
+        ]
+      },
       addForm: {
         name: '',
         description: '',
         gender: '',
         birthday: null,
-        title: [],
-        history: []
+        title: '',
+        history: ''
       },
       addLoading: false,
       addVisible: false,
@@ -400,75 +425,69 @@ export default {
       }
     },
     commitAddTitle (params) {
-      this.addForm.title = params
+      this.addForm.title = params.join('|')
     },
     commitAddHistory (params) {
-      this.addForm.history = params
+      this.addForm.history = params.join('|')
     },
     commitEditTitle (params) {
-      this.editForm.title = params
+      this.editForm.title = params.join('|')
     },
     commitEditHistory (params) {
-      this.editForm.history = params
+      this.editForm.history = params.join('|')
     },
     handleCancel_add () {
       this.addVisible = false
-      this.fileList_add = []
-      this.addForm = {
-        name: '',
-        description: '',
-        gender: '',
-        birthday: null,
-        title: [],
-        history: []
-      }
+      this.$refs.addform.resetFields()
     },
     handleAdd (e) {
-      if (this.addForm.name === '') {
-        this.$message.error('请填写人名！')
-        return
-      }
-      var formdata = {
-        name: this.addForm.name,
-        description: this.addForm.description,
-        gender: this.addForm.gender,
-        birthday: this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DDTHH:mm:ss') : '',
-        title: this.addForm.title.join('|'),
-        history: this.addForm.history.join('|')
-      }
-
-      this.addLoading = true
-      api.addFace(formdata).then(res => {
-        if (res.data.code === 0) {
-          this.page_no = 1
-          this.getFaces()
-
-          this.addVisible = false
-          this.addLoading = false
-          this.fileList_add = []
-          this.addForm = {
-            name: '',
-            description: '',
-            gender: '',
-            birthday: null,
-            title: [],
-            history: []
+      this.$refs.addform.validate((valid) => {
+        if (valid) {
+          var formdata = {
+            name: this.addForm.name,
+            description: this.addForm.description,
+            gender: this.addForm.gender,
+            birthday: this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DD') : '',
+            title: this.addForm.title,
+            history: this.addForm.history
           }
-          this.$message.success('人脸创建成功')
-        } else {
-          this.$message.error(res.data.message || '请求出错！')
-        }
-      }).catch(error => {
-        this.addLoading = false
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
+
+          this.addLoading = true
+          api.addFace(formdata).then(res => {
+            if (res.data.code === 0) {
+              this.page_no = 1
+              this.getFaces()
+
+              this.addVisible = false
+              this.addLoading = false
+              this.addForm = {
+                name: '',
+                description: '',
+                gender: '',
+                birthday: null,
+                title: [],
+                history: []
+              }
+              this.$message.success('人脸创建成功')
+            } else {
+              this.$message.error(res.data.message || '请求出错！')
+            }
+          }).catch(error => {
+            this.addLoading = false
+            if (error.response.status === 401) {
+              this.$store.dispatch('authentication/resetToken').then(() => {
+                this.$router.push({ path: '/login' })
+              })
+            }
+            if (error.response && error.response.data) {
+              this.$message.error(error.response.data.message || '创建出错！')
+            } else {
+              this.$message.error('接口调用失败！')
+            }
           })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '创建出错！')
         } else {
-          this.$message.error('接口调用失败！')
+          console.log('error submit!!')
+          return false
         }
       })
     },
@@ -480,44 +499,53 @@ export default {
     },
     handleCancel_edit () {
       this.editVisible = false
+      this.$refs.editform.resetFields()
       this.editForm = {}
       this.editItem = {}
       this.editKey = ''
     },
     handleEdit () {
-      var formdata = {
-        id: this.editForm.id,
-        description: this.editForm.description,
-        gender: this.editForm.gender,
-        birthday: this.editForm.birthday ? moment(this.editForm.birthday).format('YYYY-MM-DDTHH:mm:ss') : '',
-        title: this.editForm.title.join('|'),
-        history: this.editForm.history.join('|')
-      }
+      this.$refs.editform.validate((valid) => {
+        if (valid) {
+          var formdata = {
+            id: this.editForm.id,
+            name: this.editForm.description,
+            description: this.editForm.description,
+            gender: this.editForm.gender,
+            birthday: this.editForm.birthday ? moment(this.editForm.birthday).format('YYYY-MM-DD') : '',
+            title: this.editForm.title,
+            history: this.editForm.history
+          }
 
-      this.editLoading = true
-      api.editFace(formdata).then(res => {
-        if (res.data.code === 0) {
-          this.page_no = 1
-          this.getFaces()
+          this.editLoading = true
+          api.editFace(formdata).then(res => {
+            if (res.data.code === 0) {
+              this.page_no = 1
+              this.getFaces()
 
-          this.editVisible = false
-          this.editLoading = false
-          this.editForm = {}
-          this.$message.success('人脸编辑成功')
-        } else {
-          this.$message.error(res.data.message || '请求出错！')
-        }
-      }).catch(error => {
-        this.editLoading = false
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
+              this.editVisible = false
+              this.editLoading = false
+              this.editForm = {}
+              this.$message.success('人脸编辑成功')
+            } else {
+              this.$message.error(res.data.message || '请求出错！')
+            }
+          }).catch(error => {
+            this.editLoading = false
+            if (error.response.status === 401) {
+              this.$store.dispatch('authentication/resetToken').then(() => {
+                this.$router.push({ path: '/login' })
+              })
+            }
+            if (error.response && error.response.data) {
+              this.$message.error(error.response.data.message || '更新出错！')
+            } else {
+              this.$message.error('接口调用失败！')
+            }
           })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '更新出错！')
         } else {
-          this.$message.error('接口调用失败！')
+          console.log('error submit!!')
+          return false
         }
       })
     },

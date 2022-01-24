@@ -20,6 +20,8 @@ let templateFace = {
   'description': '',
   'gender': 1,
   'birthday': '1998-10-01',
+  'history': '演员|歌手',
+  'title': '演员|歌手',
   'features': [
     // {
     //   'id': 1,
@@ -208,7 +210,17 @@ let templateAuthentication = {
   'session': 'ej89fobjl830eoo8pdqhi63cmq',
   'clientip': '111.199.84.127',
   'expiretime': '2019-08-22 18:49:40',
-  'user': templateUser
+  'user': templateUser,
+  'role': {
+    'create_time': 1632901817000,
+    'delete_id': 0,
+    'id': 2,
+    'level': 4,
+    'menu': 'AdminSetting,AdminList,RoleList,RolePerm,LogList,Log_,ModeList,Mode_,SysSetting,SysInfo,SysRestart,Network,Storage,FaceGroup,Face,Group,TaskBatch,Task,Batch,Queue,My,All,AdminSetting,AdminList,RoleList,RolePerm,LogList,Log_,ModeList,Mode_,SysSetting,SysInfo,SysRestart,Network,Storage,FaceGroup,Face,Group,TaskBatch,Task,Batch,Queue,My,All,TaskResult',
+    'name': '管理员',
+    'status': 0,
+    'update_time': 1635502933000
+  }
 }
 let templateLoginRes = {
   'code': 0,
@@ -226,8 +238,8 @@ let templateRole = {
 let templateRoles = {
   'code': 0,
   'data': {
-    'total': 54,
-    'item|1-54': [templateRole]
+    'total': 5,
+    'item|1-5': [templateRole]
   }
 }
 
@@ -257,8 +269,8 @@ let templateRoleperm = {
 let templateRoleperms = {
   'code': 0,
   'data': {
-    'total': 54,
-    'item|1-54': [templateRoleperm]
+    'total': 5,
+    'item|1-5': [templateRoleperm]
   }
 }
 
@@ -335,6 +347,16 @@ let templateNetworks = {
   }
 }
 
+let templateDeviceStorage = {
+  'code': 0,
+  'data': {
+    'space_limit': 75,
+    'space_enable': 1,
+    'days_limit': 30,
+    'days_enable': 1
+  }
+}
+
 let face = Mock.mock(templateFace)
 let faces = Mock.mock(templateFaces)
 let group = Mock.mock(templateGroup)
@@ -369,6 +391,7 @@ let logs = Mock.mock(templateLogs)
 let deviceinfo = Mock.mock(templateDeviceInfo)
 let network = Mock.mock(templateNetwork)
 let networks = Mock.mock(templateNetworks)
+let devicestorage = Mock.mock(templateDeviceStorage)
 
 module.exports = {
   face,
@@ -404,5 +427,6 @@ module.exports = {
   logs,
   deviceinfo,
   network,
-  networks
+  networks,
+  devicestorage
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="faceContainer">
     <div class="formWrap">
-      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
         <a-form-model-item label="原密码" prop="old">
           <a-input v-model="formadd.old" type="password" />
         </a-form-model-item>

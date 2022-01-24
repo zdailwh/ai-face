@@ -2,39 +2,39 @@
   <div class="faceContainer">
     <a-descriptions bordered title="软件信息" size="middle" style="margin-top: 20px;">
       <a-descriptions-item label="名称">
-        {{ devideInfo && devideInfo.software && devideInfo.software.name }}
+        {{ deviceInfo && deviceInfo.software && deviceInfo.software.name }}
       </a-descriptions-item>
       <a-descriptions-item label="版本">
-        {{ devideInfo && devideInfo.software && devideInfo.software.version }}
+        {{ deviceInfo && deviceInfo.software && deviceInfo.software.version }}
       </a-descriptions-item>
     </a-descriptions>
     <a-descriptions bordered title="系统信息" size="middle" style="margin-top: 20px;">
       <a-descriptions-item label="uptime">
-        {{ devideInfo && devideInfo.system && devideInfo.system.uptime }}
+        {{ deviceInfo && deviceInfo.system && deviceInfo.system.uptime }}
       </a-descriptions-item>
       <a-descriptions-item label="CPU">
-        <template v-for="(it, k) in (devideInfo && devideInfo.system && devideInfo.system.CPU.split(','))">
-          <p :key="k">{{it}}</p>
+        <template v-for="(it, k) in (deviceInfo && deviceInfo.system && deviceInfo.system.CPU)">
+          <p :key="k">{{k}} : {{it}}</p>
         </template>
       </a-descriptions-item>
       <a-descriptions-item label="存储">
-        <template v-for="(it, k) in (devideInfo && devideInfo.system && devideInfo.system.Mem.split(','))">
-          <p :key="k">{{it}}</p>
+        <template v-for="(it, k) in (deviceInfo && deviceInfo.system && deviceInfo.system.Mem)">
+          <p :key="k">{{k}} : {{it}}</p>
         </template>
       </a-descriptions-item>
     </a-descriptions>
     <a-descriptions bordered title="人像信息" size="middle" style="margin-top: 20px;">
       <a-descriptions-item label="总数">
-        {{ devideInfo && devideInfo.facedata && devideInfo.facedata.total }}
+        {{ deviceInfo && deviceInfo.facedata && deviceInfo.facedata.total }}
       </a-descriptions-item>
       <a-descriptions-item label="图片总数">
-        {{ devideInfo && devideInfo.facedata && devideInfo.facedata.total_images }}
+        {{ deviceInfo && deviceInfo.facedata && deviceInfo.facedata.total_images }}
       </a-descriptions-item>
       <a-descriptions-item label="版本">
-        {{ devideInfo && devideInfo.facedata && devideInfo.facedata.version }}
+        {{ deviceInfo && deviceInfo.facedata && deviceInfo.facedata.version }}
       </a-descriptions-item>
       <a-descriptions-item label="更新时间">
-        {{ devideInfo && devideInfo.facedata && devideInfo.facedata.update_time | dateFormat }}
+        {{ deviceInfo && deviceInfo.facedata && deviceInfo.facedata.update_time | dateFormat }}
       </a-descriptions-item>
     </a-descriptions>
   </div>
@@ -54,7 +54,7 @@ export default {
       locale,
       smallLayout: false,
       spinning: false,
-      devideInfo: {}
+      deviceInfo: {}
     }
   },
   filters: {
@@ -77,7 +77,8 @@ export default {
       api.getDeviceInfo().then(res => {
         var resBody = res.data
         if (resBody.code === 0) {
-          this.devideInfo = resBody.data
+          this.deviceInfo = resBody.data
+          console.log(this.deviceInfo)
           this.spinning = false
         } else {
           this.$message.error(resBody.message || '请求出错！')

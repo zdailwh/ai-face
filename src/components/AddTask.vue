@@ -36,7 +36,7 @@
         <a-form-model-item label="模板" prop="mymode" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-select v-model="addForm.mymode" :allowClear="true" @change="handleChangeMode">
             <a-select-option :value="item.id" v-for="item in modesData" v-bind:key="item.id" :myitem="item">
-              固定帧率：{{item.frame_rate}} / 动态帧率：{{item.dynamic_rate}} / 优先级：{{item.prority}} / 人脸组：{{item.group_ids}}
+              {{item.name}}
             </a-select-option>
             <a-select-option :value="0">自定义</a-select-option>
           </a-select>
@@ -138,6 +138,7 @@ export default {
   watch: {
     currBatch (newVal, oldVal) {
       this.addForm.batch = newVal.name
+      this.addForm.mymode = newVal.mode_id ? newVal.mode_id : 0
     }
   },
   computed: {
@@ -161,7 +162,7 @@ export default {
         url: '',
         name: '',
         description: '',
-        mymode: '',
+        mymode: 0,
         frame_rate: 25,
         dynamic_rate: 0,
         prority: '',

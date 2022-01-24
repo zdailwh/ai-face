@@ -4,7 +4,7 @@
     v-model="visible"
   >
     <div>
-      <a-form-model ref="form" :model="editItem" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+      <a-form-model ref="form" :model="editItem" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
         <a-form-model-item label="角色" prop="roleId">
           <a-select v-model="editItem.roleId" :allowClear="true">
             <a-select-option v-for="item in optionsRoles" :value="item.value" v-bind:key="item.value">

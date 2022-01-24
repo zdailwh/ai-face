@@ -1,23 +1,20 @@
 <template>
   <a-modal
-    title="创建用户角色关联"
+    :title="'编辑色菜单关联-' + editItem && editItem.role && editItem.role.name"
+    width="600px"
     v-model="visible"
   >
     <div>
-      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
-        <a-form-model-item label="用户" prop="userId">
-          <a-select v-model="formadd.userId" :allowClear="true">
-            <a-select-option v-for="item in optionsUsers" :value="item.value" v-bind:key="item.value">
-              {{item.label}}
-            </a-select-option>
-          </a-select>
-        </a-form-model-item>
-        <a-form-model-item label="角色" prop="roleId">
-          <a-select v-model="formadd.roleId" :allowClear="true">
-            <a-select-option v-for="item in optionsRoles" :value="item.value" v-bind:key="item.value">
-              {{item.label}}
-            </a-select-option>
-          </a-select>
+      <a-form-model ref="form" :model="editItem" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
+        <a-form-model-item label="菜单" prop="menu">
+          <a-tree
+            v-model="checkedKeys"
+            checkable
+            :defaultExpandAll="true"
+            :replace-fields="replaceFields"
+            :tree-data="routesData"
+            @check="onCheckTree"
+          />
         </a-form-model-item>
       </a-form-model>
     </div>
@@ -26,20 +23,20 @@
         取消
       </a-button>
       <a-button key="submit" type="primary" :loading="loading" @click="commit">
-        创建
+        确定
       </a-button>
     </template>
   </a-modal>
 </template>
 <script>
-import apiRoleuser from '@/api/roleuser'
+import apiRoleperm from '@/api/roleperm'
 export default {
   props: {
     dialogVisible: {
       type: Boolean,
       default: false
     },
-    optionsUsers: {
+    routesData: {
       type: Array,
       default: function () {
         return []
@@ -50,6 +47,16 @@ export default {
       default: function () {
         return []
       }
+    },
+    editItem: {
+      type: Object,
+      default () {
+        return {}
+      }
+    },
+    smallLayout: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -65,45 +72,69 @@ export default {
   data () {
     return {
       loading: false,
-      formadd: {
-        userId: '',
-        roleId: ''
-      },
       ruleValidate: {
-        userId: [
-          { required: true, message: '请选择用户', trigger: 'change' }
+        menu: [
+          { required: true, message: '请选择菜单', trigger: 'change' }
         ],
         roleId: [
           { required: true, message: '请选择角色', trigger: 'change' }
         ]
+      },
+      checkedKeys: [],
+      replaceFields: {
+        key: 'name'
+      }
+    }
+  },
+  watch: {
+    editItem (newVal) {
+      if (newVal && newVal.role && newVal.menu) {
+        this.editItem.menu = newVal.menu.split(',')
+        this.checkedKeys = this.editItem.menu.filter(item => {
+          return item.indexOf('_') === -1
+        })
       }
     }
   },
   mounted () {
   },
   methods: {
+    onCheckTree (checkedKeys, info) {
+      var checkedNodes = info.checkedNodes
+      var names = []
+      checkedNodes.map(item => {
+        names.push(item.key)
+        if (item.data.props.parent && !names.includes(item.data.props.parent)) {
+          names.push(item.data.props.parent + '_')
+        }
+      })
+      this.editItem.menu = names
+    },
     commit () {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          this.createRoleUser()
+          if (!this.editItem.menu.length) {
+            this.$message.error('请选择菜单！')
+            return
+          }
+          this.updateRoleMenu()
         } else {
           console.log('error submit!!')
           return false
         }
       })
     },
-    createRoleUser () {
+    updateRoleMenu () {
+      var params = {
+        role_id: this.editItem.id,
+        menu: this.editItem.menu.join(',')
+      }
       this.loading = true
-      apiRoleuser.createRoleUser(this.formadd).then(response => {
+      apiRoleperm.updateRoleMenu(params).then(response => {
         this.loading = false
         var resBody = response.data
         if (resBody.code === 0) {
-          this.$message.success('创建成功！')
-
-          this.formadd = {
-            userId: '',
-            roleId: ''
-          }
+          this.$message.success('编辑成功！')
           this.$emit('changeVisible', false)
           this.$emit('refresh')
         } else {

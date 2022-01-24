@@ -3,7 +3,7 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="人名" prop="name">
+        <a-form-model-item label="分组名" prop="name">
           <a-input v-model="searchForm.name" style="width: 120px;" />
         </a-form-model-item>
         <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
@@ -19,8 +19,8 @@
     <!--搜索 end-->
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="id" :pagination="false">
-        <span slot="faceIds" slot-scope="faceIds">
-          {{faceIds.join(',')}}
+        <span slot="faceNames" slot-scope="faceNames">
+          {{faceNames.join(',')}}
         </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
@@ -182,9 +182,9 @@ const columns = [
   },
   {
     title: '人脸',
-    dataIndex: 'faceIds',
-    key: 'faceIds',
-    scopedSlots: { customRender: 'faceIds' }
+    dataIndex: 'faceNames',
+    key: 'faceNames',
+    scopedSlots: { customRender: 'faceNames' }
   },
   {
     title: '创建时间',

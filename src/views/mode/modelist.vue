@@ -3,6 +3,9 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
+        <a-form-model-item label="模板名称" prop="name">
+          <a-input v-model="searchForm.name" style="width: 120px" />
+        </a-form-model-item>
         <a-form-model-item label="帧率" prop="frame_rate">
           <a-select v-model="searchForm.frame_rate" placeholder="选择帧率" style="width: 120px">
             <a-select-option :value="1">1</a-select-option>
@@ -84,8 +87,11 @@
       v-model="addVisible"
     >
       <div>
-        <a-form-model :model="addForm">
-          <a-form-model-item label="固定帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+        <a-form-model ref="addform" :model="addForm" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
+          <a-form-model-item label="名称" prop="name">
+            <a-input v-model="addForm.name" />
+          </a-form-model-item>
+          <a-form-model-item label="固定帧率" prop="frame_rate">
             <a-select v-model="addForm.frame_rate" :disabled="addForm.dynamic_rate > 0" @change="handleChangeFrameRate">
               <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -95,7 +101,7 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="动态帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <a-form-model-item label="动态帧率" prop="dynamic_rate">
             <a-select v-model="addForm.dynamic_rate" :disabled="addForm.frame_rate > 0" @change="handleChangeDynamicRate">
               <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -105,12 +111,12 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="优先级" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <a-form-model-item label="优先级" prop="prority">
             <a-select v-model="addForm.prority">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="选择人脸组" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <a-form-model-item label="选择人脸组">
             <a-transfer
               :data-source="groupsDatalist"
               :filter-option="filterOption"
@@ -175,8 +181,11 @@
       v-model="editVisible"
     >
       <div>
-        <a-form-model :model="editForm" :label-col="{span:0}">
-          <a-form-model-item label="固定帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+        <a-form-model ref="editform" :model="editForm" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
+          <a-form-model-item label="名称" prop="name">
+            <a-input v-model="editForm.name" />
+          </a-form-model-item>
+          <a-form-model-item label="固定帧率" prop="frame_rate">
             <a-select v-model="editForm.frame_rate" :disabled="editForm.dynamic_rate > 0" @change="handleChangeFrameRate_edit">
               <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -186,7 +195,7 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="动态帧率" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <a-form-model-item label="动态帧率" prop="dynamic_rate">
             <a-select v-model="editForm.dynamic_rate" :disabled="editForm.frame_rate > 0" @change="handleChangeDynamicRate_edit">
               <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -196,12 +205,12 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="优先级" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <a-form-model-item label="优先级" prop="prority">
             <a-select v-model="editForm.prority">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="选择人脸组" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <a-form-model-item label="选择人脸组">
             <a-transfer
               :data-source="groupsDatalist"
               :filter-option="filterOption"
@@ -276,25 +285,31 @@ const columns = [
     title: 'ID',
     dataIndex: 'id',
     key: 'id',
-    width: 100
+    width: 90
+  },
+  {
+    title: '名称',
+    dataIndex: 'name',
+    key: 'name',
+    width: 120
   },
   {
     title: '帧率',
     dataIndex: 'frame_rate',
     key: 'frame_rate',
-    width: 120
+    width: 90
   },
   {
     title: '动态帧率',
     dataIndex: 'dynamic_rate',
     key: 'dynamic_rate',
-    width: 120
+    width: 90
   },
   {
     title: '优先级',
     dataIndex: 'prority',
     key: 'prority',
-    width: 120
+    width: 90
   },
   {
     title: '人脸组',
@@ -340,7 +355,22 @@ export default {
       page_no: 1,
       page_size: 20,
       columns,
+      ruleValidate: {
+        name: [
+          { required: true, message: '请填写模板名称', trigger: 'blur' }
+        ],
+        frame_rate: [
+          { required: true, message: '请选择固定帧率', trigger: 'change' }
+        ],
+        dynamic_rate: [
+          { required: true, message: '请选择动态帧率', trigger: 'change' }
+        ],
+        prority: [
+          { required: true, message: '请选择优先级', trigger: 'change' }
+        ]
+      },
       addForm: {
+        name: '',
         frame_rate: 25,
         dynamic_rate: 0,
         prority: 0
@@ -348,6 +378,7 @@ export default {
       addLoading: false,
       addVisible: false,
       searchForm: {
+        name: '',
         frame_rate: '',
         prority: '',
         createTime: []
@@ -405,6 +436,9 @@ export default {
         page_no: this.page_no,
         page_size: this.page_size
       }
+      if (this.searchForm.name) {
+        params.name = this.searchForm.name
+      }
       if (this.searchForm.frame_rate) {
         params.frame_rate = this.searchForm.frame_rate
       }
@@ -441,55 +475,55 @@ export default {
     },
     handleCancel_add () {
       this.addVisible = false
-      this.addForm = {
-        frame_rate: '',
-        prority: ''
-      }
+      this.$refs.addform.resetFields()
     },
     handleAdd (e) {
-      if (!this.addForm.frame_rate && !this.addForm.dynamic_rate) {
-        this.$message.error('请选择固定帧率或动态帧率！')
-        return
-      }
-      if (this.addForm.prority === '') {
-        this.$message.error('请选择优先级！')
-        return
-      }
-      if (!this.targetGroupIds.length) {
-        this.$message.error('请选择人脸组！')
-        return
-      } else {
-        this.addForm.group_ids = this.targetGroupIds.join(',')
-      }
-      console.log(this.addForm)
-      this.addLoading = true
-      api.addTemp(this.addForm).then(res => {
-        if (res.data.code === 0) {
-          this.page_no = 1
-          this.getTemps()
-
-          this.addVisible = false
-          this.addLoading = false
-          this.addForm = {
-            frame_rate: 25,
-            dynamic_rate: 0,
-            prority: 0
+      this.$refs.addform.validate((valid) => {
+        if (valid) {
+          if (!this.addForm.frame_rate && !this.addForm.dynamic_rate) {
+            this.$message.error('请选择固定帧率或动态帧率！')
+            return
           }
-          this.$message.success('模板创建成功')
-        } else {
-          this.$message.error(res.data.message || '请求出错！')
-        }
-      }).catch(error => {
-        this.addLoading = false
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
+          if (!this.targetGroupIds.length) {
+            this.$message.error('请选择人脸组！')
+            return
+          } else {
+            this.addForm.group_ids = this.targetGroupIds.join(',')
+          }
+          console.log(this.addForm)
+          this.addLoading = true
+          api.addTemp(this.addForm).then(res => {
+            if (res.data.code === 0) {
+              this.page_no = 1
+              this.getTemps()
+
+              this.addVisible = false
+              this.addLoading = false
+              this.addForm = {
+                frame_rate: 25,
+                dynamic_rate: 0,
+                prority: 0
+              }
+              this.$message.success('模板创建成功')
+            } else {
+              this.$message.error(res.data.message || '请求出错！')
+            }
+          }).catch(error => {
+            this.addLoading = false
+            if (error.response.status === 401) {
+              this.$store.dispatch('authentication/resetToken').then(() => {
+                this.$router.push({ path: '/login' })
+              })
+            }
+            if (error.response && error.response.data) {
+              this.$message.error(error.response.data.message || '创建出错！')
+            } else {
+              this.$message.error('接口调用失败！')
+            }
           })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '创建出错！')
         } else {
-          this.$message.error('接口调用失败！')
+          console.log('error submit!!')
+          return false
         }
       })
     },
@@ -503,6 +537,7 @@ export default {
     },
     handleCancel_edit () {
       this.editVisible = false
+      this.$refs.editform.resetFields()
       this.editForm = {}
       this.editItem = {}
       this.editKey = ''
@@ -510,50 +545,54 @@ export default {
       this.targetGroupIds = []
     },
     handleEdit () {
-      if (!this.editForm.frame_rate && !this.editForm.dynamic_rate) {
-        this.$message.error('请选择固定帧率或动态帧率！')
-        return
-      }
-      if (this.editForm.prority === '') {
-        this.$message.error('请选择优先级！')
-        return
-      }
-      if (!this.targetGroupIds.length) {
-        this.$message.error('请选择人脸组！')
-        return
-      }
-      var params = {
-        id: this.editItem.id,
-        frame_rate: this.editForm.frame_rate,
-        dynamic_rate: this.editForm.dynamic_rate,
-        prority: this.editForm.prority,
-        group_ids: this.targetGroupIds.join(',')
-      }
+      this.$refs.editform.validate((valid) => {
+        if (valid) {
+          if (!this.editForm.frame_rate && !this.editForm.dynamic_rate) {
+            this.$message.error('请选择固定帧率或动态帧率！')
+            return
+          }
+          if (!this.targetGroupIds.length) {
+            this.$message.error('请选择人脸组！')
+            return
+          }
+          var params = {
+            id: this.editItem.id,
+            name: this.editForm.name,
+            frame_rate: this.editForm.frame_rate,
+            dynamic_rate: this.editForm.dynamic_rate,
+            prority: this.editForm.prority,
+            group_ids: this.targetGroupIds.join(',')
+          }
 
-      this.editLoading = true
-      api.editTemp(params).then(res => {
-        if (res.data.code === 0) {
-          this.page_no = 1
-          this.getTemps()
+          this.editLoading = true
+          api.editTemp(params).then(res => {
+            if (res.data.code === 0) {
+              this.page_no = 1
+              this.getTemps()
 
-          this.editVisible = false
-          this.editLoading = false
-          this.editForm = {}
-          this.$message.success('模板编辑成功')
-        } else {
-          this.$message.error(res.data.message || '请求出错！')
-        }
-      }).catch(error => {
-        this.editLoading = false
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
+              this.editVisible = false
+              this.editLoading = false
+              this.editForm = {}
+              this.$message.success('模板编辑成功')
+            } else {
+              this.$message.error(res.data.message || '请求出错！')
+            }
+          }).catch(error => {
+            this.editLoading = false
+            if (error.response.status === 401) {
+              this.$store.dispatch('authentication/resetToken').then(() => {
+                this.$router.push({ path: '/login' })
+              })
+            }
+            if (error.response && error.response.data) {
+              this.$message.error(error.response.data.message || '更新出错！')
+            } else {
+              this.$message.error('接口调用失败！')
+            }
           })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '更新出错！')
         } else {
-          this.$message.error('接口调用失败！')
+          console.log('error submit!!')
+          return false
         }
       })
     },
@@ -583,6 +622,7 @@ export default {
         var resBody = res.data
         if (resBody.code === 0) {
           var groupArr = resBody.data.item
+          groupArr.unshift({ id: 0, name: '全部' })
           groupArr.map((item, key, arr) => {
             item.key = '' + item.id
             item.title = item.name

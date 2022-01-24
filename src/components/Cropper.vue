@@ -101,6 +101,10 @@ export default {
     showUploadImg: {
       type: Boolean,
       default: false
+    },
+    cropperVisible: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
@@ -150,6 +154,10 @@ export default {
       },
       deep: true,
       immediate: true
+    },
+    cropperVisible () {
+      this.option.img = ''
+      this.selectedImg = {}
     }
   },
   methods: {
@@ -226,6 +234,10 @@ export default {
     // 上传图片
     uploadImg (type) {
       let _this = this
+      if (!this.selectedImg.name) {
+        this.$message.error('请选择图片！')
+        return
+      }
       if (type === 'base64') {
         // 获取截图的base64数据
         this.$refs.cropper.getCropData(async (data) => {

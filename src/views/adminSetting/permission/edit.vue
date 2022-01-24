@@ -4,7 +4,7 @@
     v-model="visible"
   >
     <div>
-      <a-form-model ref="form" :model="editItem" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+      <a-form-model ref="form" :model="editItem" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
         <a-form-model-item label="接口地址" prop="name">
           <a-input v-model="editItem.name" placeholder="请输入接口地址" />
         </a-form-model-item>
@@ -36,12 +36,6 @@ export default {
       type: Object,
       default () {
         return {}
-      }
-    },
-    routesData: {
-      type: Array,
-      default: function () {
-        return []
       }
     }
   },

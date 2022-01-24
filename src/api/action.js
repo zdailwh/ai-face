@@ -21,10 +21,10 @@ export default {
         opts.page_no = params.page_no - 1
       }
       if (params && params.user_id) {
-        opts.user_id = params.user_id
+        opts.userId = params.user_id
       }
       if (params && params.method_type) {
-        opts.method_type = params.method_type
+        opts.methodType = params.method_type
       }
       if (params && params.createTime) {
         opts.createTime = params.createTime
@@ -89,6 +89,31 @@ export default {
       return res
     } else {
       const data = await await timeout(200).then(() => mock.network)
+      return { status: 200, data: data }
+    }
+  },
+
+  async getDeviceStorage () {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.get(`/api/admin/v1/device/storage`)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.devicestorage)
+      return { status: 200, data: data }
+    }
+  },
+
+  async editStorage (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.put(`/api/admin/v1/device/storage`, {
+        space_limit: params.space_limit,
+        space_enable: params.space_enable,
+        days_limit: params.days_limit,
+        days_enable: params.days_enable
+      })
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.devicestorage)
       return { status: 200, data: data }
     }
   }

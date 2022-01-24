@@ -4,7 +4,7 @@
     v-model="visible"
   >
     <div>
-      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
         <a-form-model-item label="用户名" prop="username">
           <a-input v-model="formadd.username" />
         </a-form-model-item>
@@ -105,7 +105,7 @@ export default {
           { required: true, validator: validatePwd, trigger: 'blur' }
         ],
         mobile: [
-          { required: true, message: '手机号码不能为空', trigger: 'blur' },
+          { required: false, message: '手机号码不能为空', trigger: 'blur' },
           { type: 'string', message: '手机号格式不正确', length: 11, pattern: /^1[3|5|8|7]([0-9]{9})$/, trigger: 'blur' }
         ],
         role_id: [

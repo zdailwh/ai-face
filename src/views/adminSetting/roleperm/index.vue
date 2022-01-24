@@ -6,8 +6,8 @@
         <a-form-model-item>
           <!-- <a-button type="primary" @click="handleFilter"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="resetForm('filterForm')">重置</a-button> -->
-          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>配置角色接口权限</a-button>
-          <a-button style="margin-left: 10px;" type="primary"><a-icon key="plus" type="plus"/>配置角色菜单权限</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建角色接口权限</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAddMenu = true"><a-icon key="plus" type="plus"/>创建角色菜单权限</a-button>
           <!-- <a-popconfirm
             title="确定要删除所选关联记录吗？"
             ok-text="删除"
@@ -21,21 +21,28 @@
     </div>
     <!--搜索 end-->
 
-    <div class="tableWrap">
+    <div class="tableWrap" v-if="listPermsOfRole.length">
       <a-table :columns="columns" :data-source="listPermsOfRole" :scroll="{ x: true }" rowKey="id" :pagination="false">
         <span slot="role" slot-scope="role">
           {{ role && role.name }}
         </span>
         <div slot="perms" slot-scope="perms">
           <template v-if="perms.length">
-            <span v-for="it in perms" :key="it.id"> {{ it.info }}、 </span>
+            <p v-for="it in perms" :key="it.id"> {{ it.info }}、 </p>
+          </template>
+        </div>
+        <div slot="menu" slot-scope="menu">
+          <template v-if="menu.length">
+            <p v-for="(it,k) in menu.split(',')" :key="k"> {{ it }}、 </p>
           </template>
         </div>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="action, record, idx">
-          <a @click="editHandle(record, idx)">编辑</a>
+          <a @click="editHandle(record, idx)">编辑接口权限</a>
+          <a-divider type="vertical" />
+          <a @click="editMenuHandle(record, idx)">编辑菜单权限</a>
           <!-- <a-divider type="vertical" />
           <a-popconfirm
             title="确定要删除此关联吗？"
@@ -65,8 +72,11 @@
       </div>
     </div>
 
-    <Add :dialog-visible="dialogVisibleAdd" :options-permissions="optionsPermissions" :options-roles="optionsRoles" @changeVisible="changeAddVisible" @refresh="getPermsOfRole" />
-    <Edit :edit-item="editItem" :dialog-visible="dialogVisibleEdit" :options-permissions="optionsPermissions" @changeVisible="changeEditVisible" @refresh="getPermsOfRole" />
+    <Add :dialog-visible="dialogVisibleAdd" :options-permissions="optionsPermissions" :options-roles="optionsRoles" @changeVisible="changeAddVisible" :small-layout="smallLayout" @refresh="getPermsOfRole" />
+    <Edit :edit-item="editItem" :dialog-visible="dialogVisibleEdit" :options-permissions="optionsPermissions" @changeVisible="changeEditVisible" :small-layout="smallLayout" @refresh="getPermsOfRole" />
+
+    <AddMenu :dialog-visible="dialogVisibleAddMenu" :routes-data="routesData" :options-roles="optionsRoles" @changeVisible="changeAddMenuVisible" :small-layout="smallLayout" @refresh="getMenuOfRole" />
+    <EditMenu :edit-item="editItem" :dialog-visible="dialogVisibleEditMenu" :routes-data="routesData" @changeVisible="changeEditMenuVisible" :small-layout="smallLayout" @refresh="getMenuOfRole" />
   </div>
 </template>
 
@@ -76,9 +86,13 @@ import Cookies from 'js-cookie'
 import apiRole from '@/api/myrole'
 import apiPermission from '@/api/mypermission'
 import apiRoleperm from '@/api/roleperm'
+import { routes } from './routes.js'
 
 import Add from './add.vue'
 import Edit from './edit.vue'
+
+import AddMenu from './addMenu.vue'
+import EditMenu from './editMenu.vue'
 
 var moment = require('moment')
 const columns = [
@@ -96,18 +110,16 @@ const columns = [
     width: 100
   },
   {
-    title: '权限名',
+    title: '接口',
     dataIndex: 'perms',
     key: 'perms',
-    scopedSlots: { customRender: 'perms' },
-    width: 120
+    scopedSlots: { customRender: 'perms' }
   },
   {
-    title: '状态',
-    dataIndex: 'statusstr',
-    key: 'statusstr',
-    scopedSlots: { customRender: 'statusstr' },
-    width: 100
+    title: '菜单',
+    dataIndex: 'menu',
+    key: 'menu',
+    scopedSlots: { customRender: 'menu' }
   },
   {
     title: '创建时间',
@@ -125,7 +137,7 @@ const columns = [
 ]
 
 export default {
-  components: { Add, Edit },
+  components: { Add, Edit, AddMenu, EditMenu },
   filters: {
     dateFormat (val) {
       if (val === '' || val === null) return ''
@@ -154,12 +166,15 @@ export default {
       editIndex: '',
       dialogVisibleAdd: false,
       dialogVisibleEdit: false,
+      dialogVisibleAddMenu: false,
+      dialogVisibleEditMenu: false,
       allPermissions: [],
       optionsPermissions: [],
       allRoles: [],
       optionsRoles: [],
       multipleSelection: [],
-      listPermsOfRole: []
+      listPermsOfRole: [],
+      routesData: []
     }
   },
   watch: {
@@ -196,6 +211,7 @@ export default {
     this.getAllPermissions()
     this.getAllRoles()
     // this.getList()
+    this.getMyRoutes()
   },
   methods: {
     onPageChange (current) {
@@ -336,7 +352,6 @@ export default {
         })
       })
       Promise.all(requestList).then(result => {
-        console.log(result)
         this.$message.success('删除成功！')
         this.getList()
       }).catch((result) => {
@@ -359,7 +374,7 @@ export default {
               var permissions = resBody.data.item.map(it => {
                 return it.permission
               })
-              resolve({ id: item.id, role: item, perms: permissions })
+              resolve({ id: item.id, role: item, perms: permissions, menu: item.menu || '' })
             } else {
               reject(resBody.message || '请求出错！')
             }
@@ -370,8 +385,9 @@ export default {
       })
 
       Promise.all(requestList).then(result => {
-        console.log(result)
         this.listPermsOfRole = result
+        // 获取角色菜单权限
+        this.getMenuOfRole()
         this.listLoading = false
       }).catch((result) => {
         this.listLoading = false
@@ -380,12 +396,94 @@ export default {
       })
     },
     editHandle (item, idx) {
-      this.editItem = item
+      this.editItem = JSON.parse(JSON.stringify(item))
       this.editIndex = idx
       this.dialogVisibleEdit = true
     },
+    editMenuHandle (item, idx) {
+      this.editItem = JSON.parse(JSON.stringify(item))
+      this.editIndex = idx
+      this.dialogVisibleEditMenu = true
+    },
     changeEditVisible (params) {
       this.dialogVisibleEdit = params
+    },
+    changeAddMenuVisible (params) {
+      this.dialogVisibleAddMenu = params
+    },
+    changeEditMenuVisible (params) {
+      this.dialogVisibleEditMenu = params
+    },
+    getMenuOfRole () {
+      apiRoleperm.getRoleMenus().then(response => {
+        var resBody = response.data
+        if (resBody.code === 0) {
+          var menus = resBody.data.item || []
+          this.listPermsOfRole.map(item => {
+            var menu = menus.filter(it => {
+              return it.role_id === item.id
+            })
+            item.menu = (menu && menu[0] && menu[0].menu) || ''
+          })
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch((error) => {
+        console.log(error)
+      })
+    },
+    async getMyRoutes () {
+      this.serviceRoutes = routes
+      this.routesData = this.generateRoutes(routes)
+    },
+
+    // Reshape the routes structure so that it looks the same as the sidebar
+    generateRoutes (routes, basePath = '/') {
+      const res = []
+
+      for (let route of routes) {
+        // skip some route
+        if (route.hidden) { continue }
+
+        const onlyOneShowingChild = this.onlyOneShowingChild(route.children, route)
+
+        if (route.children && onlyOneShowingChild && !route.alwaysShow) {
+          route = onlyOneShowingChild
+        }
+
+        const data = {
+          title: route.title,
+          name: route.name
+        }
+        if (route.parent) {
+          data.parent = route.parent
+        }
+
+        // recursive child routes
+        if (route.children) {
+          data.children = this.generateRoutes(route.children, data.path)
+        }
+        res.push(data)
+      }
+      return res
+    },
+    onlyOneShowingChild (children = [], parent) {
+      let onlyOneChild = null
+      const showingChildren = children.filter(item => !item.hidden)
+
+      // When there is only one child route, the child route is displayed by default
+      if (showingChildren.length === 1) {
+        onlyOneChild = showingChildren[0]
+        return onlyOneChild
+      }
+
+      // Show parent if there are no child route to display
+      if (showingChildren.length === 0) {
+        onlyOneChild = { title: parent.title, name: parent.name }
+        return onlyOneChild
+      }
+
+      return false
     }
   }
 }
@@ -399,5 +497,8 @@ export default {
 .tableWrap {
   width: 100%;
   margin-top: 20px;
+}
+.ant-table td {
+  white-space: normal;
 }
 </style>

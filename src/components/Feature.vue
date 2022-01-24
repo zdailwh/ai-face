@@ -1,15 +1,34 @@
 <template>
   <div class="featuresOfFaceList">
-    <div v-for="(item,k) in fileList" :key="k" class="imgWrap">
-      <img class="tablePopImg" :src="item.fileuri" />
-      <div class="hoverWrap">
-        <a-icon type="eye" @click="handlePreview(item)" />
-        <a-icon type="delete" @click="delFeature(item)" />
+    <template v-for="(item,k) in fileList">
+      <div v-if="item.status === 1" :key="k" class="imgWrap">
+        <div class="box borderGray">
+          <img class="tablePopImg" :src="item.fileuri" @click="handlePreview(item)" />
+          <div class="del">
+            <a-icon type="delete" @click="delFeature(item)" />
+          </div>
+        </div>
       </div>
-    </div>
+      <div v-else-if="item.status === 2" :key="k" class="imgWrap">
+        <div class="box borderGreen">
+          <img class="tablePopImg" :src="item.fileuri" @click="handlePreview(item)" />
+          <div class="del">
+            <a-icon type="delete" @click="delFeature(item)" />
+          </div>
+        </div>
+      </div>
+      <div v-else-if="item.status === 3" :key="k" class="imgWrap">
+        <div class="box borderRed">
+          <img class="tablePopImg" :src="item.fileuri" @click="handlePreview(item)" />
+          <div class="del">
+            <a-icon type="delete" @click="delFeature(item)" />
+          </div>
+        </div>
+        <p class="errMsg">{{item.errorMessage}}</p>
+      </div>
+    </template>
     <div class="my-addimg" v-if="fileList.length < imgMaxLength" @click="cropperVisible = true">
       <a-icon type="plus" />
-      <p>上传图片</p>
     </div>
     <!-- <a-upload
       list-type="picture-card"
@@ -33,7 +52,7 @@
       :footer="null"
       v-model="cropperVisible"
     >
-      <CropperImage :show-input-img="true" :show-upload-img="true" @uploadCropperImg="handleAddFeature" ref="child"></CropperImage>
+      <CropperImage :show-input-img="true" :show-upload-img="true" :cropper-visible="cropperVisible" @uploadCropperImg="handleAddFeature" ref="child"></CropperImage>
     </a-modal>
     <!--图片预览-->
     <a-modal :visible="previewVisible" :footer="null" @cancel="previewVisible = false">
@@ -56,14 +75,21 @@ export default {
         {
           uid: '-1',
           name: 'image.png',
-          status: 'done',
+          status: 1,
           url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
           fileuri: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
         },
         {
           uid: '-2',
           name: 'image.png',
-          status: 'done',
+          status: 2,
+          url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+          fileuri: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
+        },
+        {
+          uid: '-2',
+          name: 'image.png',
+          status: 3,
           url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
           fileuri: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
         }
@@ -168,24 +194,32 @@ export default {
       })
     },
     delFeature (feature) {
-      api.delFeature({ id: feature.id }).then(res => {
-        if (res.data.code === 0) {
-          this.$emit('getfacelist')
-          this.$message.success('特征图删除成功')
-        } else {
-          this.$message.error(res.data.message || '请求出错！')
-        }
-      }).catch(error => {
-        if (error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
+      this.$confirm({
+        content: '确定要删除该人像特征图吗？',
+        okText: '继续删除',
+        cancelText: '取消',
+        onOk () {
+          api.delFeature({ id: feature.id }).then(res => {
+            if (res.data.code === 0) {
+              this.$emit('getfacelist')
+              this.$message.success('特征图删除成功')
+            } else {
+              this.$message.error(res.data.message || '请求出错！')
+            }
+          }).catch(error => {
+            if (error.response.status === 401) {
+              this.$store.dispatch('authentication/resetToken').then(() => {
+                this.$router.push({ path: '/login' })
+              })
+            }
+            if (error.response && error.response.data) {
+              this.$message.error(error.response.data.message || '删除出错！')
+            } else {
+              this.$message.error('接口调用失败！')
+            }
           })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '删除出错！')
-        } else {
-          this.$message.error('接口调用失败！')
-        }
+        },
+        onCancel () {}
       })
     },
     async handlePreview (feature) {
@@ -217,44 +251,64 @@ function dataURLtoFile (dataurl, filename) {
   display: flex;
 }
 .imgWrap {
+}
+.imgWrap .box {
   position: relative;
+  padding: 4px;
+  border-radius: 4px;
+  width: 50px;
+  height: 70px;
+  margin-right: 2px;
 }
-.imgWrap:hover .hoverWrap {
-  display: flex;
+.imgWrap .errMsg {
+  white-space: normal;
+  line-height: 13px;
+  font-size: 12px;
 }
-.imgWrap .hoverWrap {
+.imgWrap:hover .del {
+  display: block;
+}
+.imgWrap .del {
   display: none;
   position: absolute;
-  top: 0;
-  left: 0;
-  background-color: rgba(0,0,0,.3);
-  width: 60px;
-  height: 90px;
-  justify-content: center;
-  align-items: center;
+  bottom: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  text-align: center;
+  line-height: 18px;
+  background-color: rgba(0,0,0,.5);
 }
-.imgWrap .hoverWrap .anticon {
+.imgWrap .del .anticon {
   color: #fff;
   cursor: pointer;
-  font-size: 16px;
-  padding: 5px;
+  font-size: 14px;
+}
+.borderGray {
+  border: 1px solid #d9d9d9;
+}
+.borderGreen {
+  border: 1px solid #87d068;
+}
+.borderRed {
+  border: 1px solid #f5222d;
 }
 .my-addimg {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 70px;
   text-align: center;
   border: 1px dashed #d9d9d9;
   background-color: #fafafa;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 20px;
 }
 .tablePopImg {
-  max-width: 60px;
-  max-height: 90px;
-  margin-right: 5px;
-  margin-bottom: 5px;
+  width: 40px;
+  height: 60px;
+  cursor: pointer;
 }
 </style>

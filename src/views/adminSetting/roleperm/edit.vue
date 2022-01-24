@@ -1,10 +1,25 @@
 <template>
   <a-modal
     :title="'编辑角色权限-' + editItem && editItem.role && editItem.role.name"
+    width="600px"
     v-model="visible"
   >
     <div>
-      <a-form-model ref="form" :model="editItem" :label-col="{span:4}" :wrapper-col="{span:14}">
+      <a-form-model ref="form" :model="editItem" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
+        <a-form-model-item label="权限">
+          <a-transfer
+            :data-source="optionsPermissions"
+            :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
+            :titles="['所有权限', '已选权限']"
+            :list-style="{width: smallLayout?'100%':'200px', height: '300px'}"
+            show-search
+            :filter-option="filterOption"
+            :target-keys="checkedPerm"
+            :render="item => item.label"
+            @change="handleChange"
+            @search="handleSearch"
+          />
+        </a-form-model-item>
       </a-form-model>
     </div>
     <template slot="footer">
@@ -16,24 +31,6 @@
       </a-button>
     </template>
   </a-modal>
-  <!-- <el-dialog
-    :title="'编辑角色权限-' + editItem && editItem.role && editItem.role.name"
-    :visible.sync="dialogVisibleEdit"
-    width="680px"
-    :before-close="handleClose"
-  >
-    <div>
-      <el-transfer
-        v-model="checkedPerm"
-        :data="optionsPermissions"
-        :titles="['所有权限', '已选权限']"
-      />
-    </div>
-    <span slot="footer" class="dialog-footer">
-      <el-button @click="reset">取 消</el-button>
-      <el-button type="primary" :loading="loading" @click="updateRolePerm">确 定</el-button>
-    </span>
-  </el-dialog> -->
 </template>
 <script>
 import apiRoleperm from '@/api/roleperm'
@@ -54,6 +51,10 @@ export default {
       default () {
         return {}
       }
+    },
+    smallLayout: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -69,7 +70,9 @@ export default {
   data () {
     return {
       loading: false,
-      checkedPerm: []
+      checkedPerm: [],
+      ruleValidate: {
+      }
     }
   },
   watch: {
@@ -87,6 +90,10 @@ export default {
     commit () {
       this.$refs.form.validate((valid) => {
         if (valid) {
+          if (!this.checkedPerm.length) {
+            this.$message.error('请选择权限！')
+            return
+          }
           this.updateRolePerm()
         } else {
           console.log('error submit!!')
@@ -96,7 +103,7 @@ export default {
     },
     updateRolePerm () {
       var params = {
-        roleId: this.editItem.role.id,
+        roleId: this.editItem.id,
         permissionIds: this.checkedPerm
       }
       apiRoleperm.updateRolePerm(params).then(response => {
@@ -122,6 +129,16 @@ export default {
           this.$message.error('接口调用失败！')
         }
       })
+    },
+    filterOption (inputValue, option) {
+      return option.label.indexOf(inputValue) > -1
+    },
+    handleChange (targetKeys, direction, moveKeys) {
+      console.log(targetKeys, direction, moveKeys)
+      this.checkedPerm = targetKeys
+    },
+    handleSearch (dir, value) {
+      console.log('search:', dir, value)
     },
     reset () {
       this.$refs.form.resetFields()

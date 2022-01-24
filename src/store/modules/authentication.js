@@ -3,7 +3,7 @@ import { getToken, setToken, removeToken } from '../../utils/auth'
 import { resetRouter } from '@/router'
 
 const state = {
-  token: getToken() ? JSON.parse(getToken()) : null,
+  token: null,
   info: getToken() ? JSON.parse(getToken()) : {},
   roles: []
 }
@@ -34,6 +34,7 @@ const actions = {
       api.login({ username: username.trim(), password: password }).then(response => {
         if (response.data.code === 0) {
           const item = response.data.data
+          item.user.role = item.role
           commit('SET_INFO', item.user)
           commit('SET_TOKEN', JSON.stringify(item.user))
           setToken(JSON.stringify(item.user))

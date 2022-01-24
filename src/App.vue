@@ -65,18 +65,25 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { getToken } from '@/utils/auth'
 export default {
   name: 'App',
   data: function () {
     return {
       smallLayout: false,
       showMenus: false,
-      currUser: getToken() ? JSON.parse(getToken()) : {},
       topRoute: {}
     }
   },
   computed: {
+    currUser: {
+      get () {
+        var token = this.$store.state.authentication.token
+        return token ? JSON.parse(token) : {}
+      },
+      set (val) {
+        // this.$router.push({ path: val[0] || '/' })
+      }
+    },
     current: {
       get () {
         return [this.$route.meta.active || '']

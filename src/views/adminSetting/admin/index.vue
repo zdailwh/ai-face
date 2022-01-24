@@ -85,7 +85,6 @@ import apiRole from '@/api/myrole'
 import Add from './add.vue'
 import ResetPwd from './resetPwd.vue'
 import ResetRole from './resetRole.vue'
-import { getToken } from '@/utils/auth'
 
 var moment = require('moment')
 const columns = [
@@ -101,12 +100,12 @@ const columns = [
     key: 'username',
     width: 100
   },
-  {
-    title: '手机号',
-    dataIndex: 'mobile',
-    key: 'mobile',
-    width: 120
-  },
+  // {
+  //   title: '手机号',
+  //   dataIndex: 'mobile',
+  //   key: 'mobile',
+  //   width: 120
+  // },
   {
     title: '管理员标识',
     dataIndex: 'level',
@@ -160,7 +159,6 @@ export default {
       pageSizeOptions: ['10', '20', '30', '40', '50'],
       smallLayout: false,
       isVisitor: (Cookies.get('MultiDisplay-isVisitor') && JSON.parse(Cookies.get('MultiDisplay-isVisitor'))) || false,
-      currUser: JSON.parse(getToken()),
       list: null,
       total: 0,
       listLoading: true,
@@ -179,6 +177,17 @@ export default {
       dialogVisibleResetRole: false,
       allRoles: [],
       optionsRoles: []
+    }
+  },
+  computed: {
+    currUser: {
+      get () {
+        var token = this.$store.state.authentication.token
+        return token ? JSON.parse(token) : {}
+      },
+      set (val) {
+        // this.$router.push({ path: val[0] || '/' })
+      }
     }
   },
   watch: {

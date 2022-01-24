@@ -101,9 +101,12 @@ export default {
   async editFace (params) {
     if (process.env.NODE_ENV === 'production') {
       var res = await axios.put(`/api/admin/v1/face/${params.id}`, {
+        name: params.name || '',
         description: params.description || '',
         gender: params.gender || '',
-        birthday: params.birthday || ''
+        birthday: params.birthday || '',
+        title: params.title || '',
+        history: params.history || ''
       })
       return res
     } else {
@@ -254,10 +257,75 @@ export default {
       if (params && params.batchId) {
         opts.batchId = params.batchId
       }
+      if (params && params.status && params.status !== '') {
+        opts.status = params.status
+      }
       if (params && params.createTime) {
         opts.createTime = params.createTime
       }
       var res = await axios.get(`/api/admin/v1/task`, {
+        params: opts
+      })
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.tasks)
+      return { status: 200, data: data }
+    }
+  },
+
+  async getAllTasks (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var opts = {}
+      if (params && params.page_size) {
+        opts.page_size = params.page_size
+      }
+      if (params && params.page_no) {
+        opts.page_no = params.page_no - 1
+      }
+      if (params && params.name) {
+        opts.name = params.name
+      }
+      if (params && params.batchId) {
+        opts.batchId = params.batchId
+      }
+      if (params && params.status && params.status !== '') {
+        opts.status = params.status
+      }
+      if (params && params.createTime) {
+        opts.createTime = params.createTime
+      }
+      var res = await axios.get(`/api/admin/v1/getAllTask`, {
+        params: opts
+      })
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.tasks)
+      return { status: 200, data: data }
+    }
+  },
+
+  async getMyTasks (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var opts = {}
+      if (params && params.page_size) {
+        opts.page_size = params.page_size
+      }
+      if (params && params.page_no) {
+        opts.page_no = params.page_no - 1
+      }
+      if (params && params.name) {
+        opts.name = params.name
+      }
+      if (params && params.batchId) {
+        opts.batchId = params.batchId
+      }
+      if (params && params.status && params.status !== '') {
+        opts.status = params.status
+      }
+      if (params && params.createTime) {
+        opts.createTime = params.createTime
+      }
+      var res = await axios.get(`/api/admin/v1/getMyTask`, {
         params: opts
       })
       return res
@@ -309,7 +377,7 @@ export default {
 
   async getTaskResults (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.get(`/api/admin/v1/task/result/${params.id}`)
+      var res = await axios.get(`/api/admin/v1/task/result/${params.id}?isFace=${params.isFace}`)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.result)
@@ -362,6 +430,7 @@ export default {
   async editTemp (params) {
     if (process.env.NODE_ENV === 'production') {
       var res = await axios.put(`/api/face/v1/mode/${params.id}`, {
+        name: params.name,
         frame_rate: params.frame_rate,
         dynamic_rate: params.dynamic_rate,
         prority: params.prority,
@@ -391,6 +460,9 @@ export default {
       }
       if (params && params.page_no) {
         opts.page_no = params.page_no - 1
+      }
+      if (params && params.name) {
+        opts.name = params.name
       }
       if (params && params.frame_rate) {
         opts.frameRate = params.frame_rate

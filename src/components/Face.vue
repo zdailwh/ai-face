@@ -1,14 +1,17 @@
 <template>
-  <div class="faceWrap" :style="smalllayout? 'height: auto;': ''">
-    <a-collapse :bordered="false" v-if="taskresult" @change="changeActivekey">
-      <template v-for="(fItem, second) in taskresult">
-        <a-collapse-panel :key="second" :header="`${fItem[0].name} ${fItem.length}次`">
+  <div class="faceWrap" :style="smalllayout? 'height: auto;': ''" v-infinite-scroll="handleInfiniteOnLoad" :infinite-scroll-disabled="busy" :infinite-scroll-distance="30">
+    <a-collapse :bordered="false" v-if="taskresult" :activeKey="activeKey" @change="changeActivekey">
+      <template v-for="(fItem, fid) in taskresult">
+        <a-collapse-panel :key="fid" :header="`${fItem[0].name} ${fItem.length}次`">
           <div class="faceList">
-            <p class="faceItem" v-for="(it, k) in fItem" :key="k" @click="changeBox(it, it.timepos)">
-              <img v-if="it.image" v-lazy="it.image" alt="人脸图">
+            <p class="faceItem" :class="{ currBox: currBoxKey === fid + '-' + k }" v-for="(it, k) in slicedTaskresult" :key="k" @click="changeBox(it, it.timepos, fid, k)">
+              <img v-if="it.image" v-lazy="`/api/admin/v1/getResultImage?filepath=${it.image}`" alt="人脸图">
               <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
-              <span>时间：{{ it.timepos | formateSeconds }}</span>
+              <span>{{ it.timepos | formateSeconds }}</span>
             </p>
+            <div v-if="loading && !busy" class="loading-container">
+              <a-spin />
+            </div>
           </div>
         </a-collapse-panel>
       </template>
@@ -17,13 +20,15 @@
   </div>
 </template>
 <script>
+import infiniteScroll from 'vue-infinite-scroll'
 import api from '../api'
 export default {
+  directives: { infiniteScroll },
   props: [ 'taskresult', 'smalllayout' ],
   filters: {
     formateSeconds (second) {
       let secondTime = parseInt(second / 1000)
-      // var haomiao = parseInt(second % 1000)
+      var haomiao = parseInt(second % 1000)
       let min = 0 // 初始化分
       let h = 0 // 初始化小时
       let result = ''
@@ -35,14 +40,20 @@ export default {
           min = parseInt(min % 60) // 获取小时后取佘的分，获取分钟除以60取佘的分
         }
       }
-      result = `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${secondTime.toString().padStart(2, '0')}`
+      result = `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${secondTime.toString().padStart(2, '0')}.${haomiao}`
       return result
     }
   },
   data () {
     return {
+      activeKey: '',
       currBoxKey: 0,
-      clickFace: {}
+      clickFace: {},
+      slicedTaskresult: [],
+      loading: false,
+      busy: false,
+      limit: 100,
+      page: 0
     }
   },
   watch: {
@@ -55,9 +66,9 @@ export default {
     }
   },
   methods: {
-    changeBox (fItem, second) {
+    changeBox (fItem, second, fid, k) {
       this.$emit('videofixed', { currentTime: second, item: fItem })
-      this.currBoxKey = second
+      this.currBoxKey = second + '-' + k
     },
     getFace (faceId) {
       this.spinning = true
@@ -82,6 +93,43 @@ export default {
           this.$message.error('接口调用失败！')
         }
       })
+    },
+    changeActivekey (k) {
+      if (k) {
+        this.activeKey = k
+        this.slicedTaskresult = []
+        this.loading = false
+        this.busy = false
+        this.limit = 100
+        this.page = 0
+
+        this.currFaceResults = this.taskresult[k]
+        this.loading = true
+        var sliceRes = this.currFaceResults.slice(this.page * this.limit, this.page * this.limit + this.limit)
+        this.slicedTaskresult = this.slicedTaskresult.concat(sliceRes)
+
+        this.loading = false
+        this.page++
+      }
+    },
+    handleInfiniteOnLoad () {
+      console.log('去加载')
+      console.log(this.activeKey)
+      if (this.activeKey) {
+        this.loading = true
+        if (this.slicedTaskresult.length >= this.currFaceResults.length) {
+          this.$message.warning('没有更多数据了~')
+          this.busy = true
+          this.loading = false
+          return
+        }
+
+        var sliceRes = this.currFaceResults.slice(this.page * this.limit, this.page * this.limit + this.limit)
+        this.slicedTaskresult = this.slicedTaskresult.concat(sliceRes)
+
+        this.loading = false
+        this.page++
+      }
     }
   }
 }
@@ -97,7 +145,11 @@ export default {
   flex-wrap: wrap;
 }
 .faceItem {
-  margin: 0 5px;
+  width: 76px;
+  margin: 0 2px 5px;
+}
+.faceItem.currBox {
+  box-shadow: 0 0 10px 0 rgba(255,255,255,.7);
 }
 .faceItem img {
   display: block;
@@ -113,5 +165,12 @@ export default {
   color: #ddd;
   height: 25px;
   line-height: 25px;
+}
+
+.loading-container {
+  position: absolute;
+  bottom: 40px;
+  width: 100%;
+  text-align: center;
 }
 </style>

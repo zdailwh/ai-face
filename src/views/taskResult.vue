@@ -4,7 +4,10 @@
       <div class="media-wrapper">
         <div class="media-player">
           <div class="playwrap">
-            <video src="" video width="100%" height="100%" controls="controls" id="myvideo"></video>
+            <video src="" video controls="controls" id="myvideo"></video>
+            <div v-if="showLineControl" class="lineParent">
+              <div v-for="it in timePoints" :key="it" class="point" :style="{ left: (it / task.duration * 100).toFixed(2) + '%' }" @click="videoImgFixed(it)"></div>
+            </div>
             <a-button-group size="small">
               <a-button @click="bofang()">开始播放</a-button>
               <a-button @click="zanting()">暂停播放</a-button>
@@ -20,30 +23,18 @@
             <!-- <div id="tcplayer"></div> -->
           </div>
         </div>
-        <div v-if="taskResItem" class="locationDetailWrap">
+        <div class="locationDetailWrap">
           <h4>人脸详情</h4>
-          <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
-            <ResDetail :res-item="taskResItem" />
-          </div>
+          <ResDetail :res-item="taskResItem" />
         </div>
       </div>
     </div>
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
-      <a-tabs default-active-key="1" size="small" @change="tabChange">
-        <a-tab-pane key="1" :tab="'任务结果'">
+      <a-tabs :default-active-key="defaultActiveKey" size="small" @change="tabChange">
+        <a-tab-pane key="1" tab="任务结果">
           <Timeline :taskresult="resTimeFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="2" tab="按人像查看">
-          <!-- <div class="searchWrap_video">
-            <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-              <a-form-model-item label="人脸">
-                <a-input v-model="searchForm.name" placeholder="姓名" allow-clear style="width: 110px;" />
-              </a-form-model-item>
-              <a-form-model-item>
-                <a-button type="primary" ghost @click="searchHandleOk">搜索</a-button>
-              </a-form-model-item>
-            </a-form-model>
-          </div> -->
           <Face :taskresult="resFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="3" tab="任务基本信息">
@@ -61,33 +52,24 @@ import Face from '../components/Face'
 import Timeline from '../components/Timeline'
 import ResDetail from '../components/ResDetail'
 
-var timer = null
 export default {
   beforeRouteEnter (to, from, next) {
-    next()
-  },
-  beforeRouteLeave (to, from, next) {
-    this.continueCircle = false
-    window.clearTimeout(timer)
     next()
   },
   components: { Setting, Timeline, Face, ResDetail },
   data () {
     return {
       smallLayout: false,
-      page_no: 1,
-      page_size: 500,
+      defaultActiveKey: 1,
       resTimeFaces: {},
       resFaces: {},
-      filtedResDatalist: {},
       task: {},
       taskId: '',
       taskResItem: {},
-      searchForm: {
-        name: ''
-      },
-      resDataTotal: '',
-      continueCircle: true // 是否继续轮循
+      resDataKeyTotal_timeline: '',
+      resDataKeyTotal_face: '',
+      timePoints: [],
+      showLineControl: false
     }
   },
   mounted () {
@@ -103,7 +85,6 @@ export default {
     this.taskId = this.$route.params.taskId
     if (this.taskId) {
       this.getPlayurl(this.taskId)
-      this.getTaskResults(this.taskId)
     }
   },
   methods: {
@@ -116,8 +97,18 @@ export default {
         if (resBody.code === 0) {
           this.task = resBody.data
           if (this.task && this.task.file_path && this.task.file_path !== 'undefined') {
+            var halfH = document.querySelectorAll('.locationDetailWrap')[0].clientHeight
+            document.getElementById('myvideo').style.height = (halfH - 48) + 'px'
             document.getElementById('myvideo').setAttribute('src', '/resource/' + this.task.file_path)
+            document.querySelectorAll('.detailImgBox')[0].style.height = (halfH - 44 - 20) + 'px'
             // this.createPlayer()
+          }
+          if (this.task.status === 5 && this.task.resultstatus === 0) {
+            this.defaultActiveKey = 3
+          }
+          if (this.defaultActiveKey === 1) {
+            this.getTaskResultsTimeline(this.taskId)
+            this.showLineControl = true
           }
         } else {
           this.$message.error(resBody.message || '请求出错！')
@@ -135,28 +126,46 @@ export default {
         }
       })
     },
-    getTaskResults (tid) {
+    getTaskResultsTimeline (tid) {
       var params = {
         id: tid,
-        page_no: this.page_no,
-        page_size: this.page_size
+        isFace: 0
       }
       api.getTaskResults(params).then(res => {
         var resBody = res.data
         if (resBody.code === 0) {
           this.resTimeFaces = resBody.data.timefaces
-          // this.resDataTotal = resBody.data.timefaces.length
+          this.timePoints = Object.keys(resBody.data.timefaces)
+          this.timePoints = this.timePoints.map(item => {
+            return parseInt(item)
+          })
+          this.resDataKeyTotal_timeline = Object.keys(resBody.data.timefaces).length
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch(error => {
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取任务结果出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    getTaskResultsFace (tid) {
+      var params = {
+        id: tid,
+        isFace: 1
+      }
+      api.getTaskResults(params).then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
           this.resFaces = resBody.data.faces
-          this.page_no += 1
-          this.filtedResDatalist = this.resFaces
-
-          // var that = this
-          // window.clearTimeout(timer)
-          // if (this.continueCircle && resBody.data.length === this.page_size) {
-          //   timer = window.setTimeout(function () {
-          //     that.getTaskResults(tid)
-          //   }, 0)
-          // }
+          this.resDataKeyTotal_face = Object.keys(resBody.data.faces).length
         } else {
           this.$message.error(resBody.message || '请求出错！')
         }
@@ -174,6 +183,21 @@ export default {
       })
     },
     tabChange (key) {
+      if (key === '1') {
+        // 获取结果 按时间轴
+        if (!Object.keys(this.resTimeFaces).length) {
+          this.getTaskResultsTimeline(this.taskId)
+        }
+        this.showLineControl = true
+      } else if (key === '2') {
+        // 获取结果 按人像
+        if (!Object.keys(this.resFaces).length) {
+          this.getTaskResultsFace(this.taskId)
+        }
+        this.showLineControl = false
+      } else {
+        this.showLineControl = false
+      }
     },
     createPlayer () {
       // var url = 'http://ai.evereasycom.cn:15280/face_reco_web/userData/test_user2/videoAsset/1638182188388.mp4'
@@ -182,8 +206,8 @@ export default {
       var player = new TcPlayer('tcplayer', {
         mp4: url,
         autoplay: true,
-        width: '100%',
-        height: 'auto',
+        width: 'auto',
+        height: '100%',
         wording: {
           1001: '网络错误，请检查网络配置或者播放链接是否正确',
           1002: '获取视频失败，请检查播放链接是否有效',
@@ -201,26 +225,6 @@ export default {
         }
       })
       window.player = player
-    },
-    searchHandleOk () {
-      var filterName = this.searchForm.name
-      if (filterName === '') {
-        // this.filtedResDatalist = this.resTimeFaces
-        this.continueCircle = true
-        this.getTaskResults(this.taskId)
-      } else {
-        this.continueCircle = false
-        window.clearTimeout(timer)
-        var arr = this.resTimeFaces
-        arr = arr.filter((item, val, array) => {
-          if (item.face_name && item.face_name === filterName) {
-            return true
-          } else {
-            return false
-          }
-        })
-        this.filtedResDatalist = arr
-      }
     },
     videoFixed (params) {
       this.taskResItem = params.item
@@ -260,6 +264,18 @@ export default {
     // 降低声音
     lower () {
       document.getElementById('myvideo').volume -= 0.3
+    },
+    videoImgFixed (hm) {
+      document.getElementById('myvideo').currentTime = hm / 1000
+      this.$nextTick(function () {
+        var nodeId = 'point_' + hm
+        console.log(nodeId)
+        var node = document.getElementById(nodeId)
+        console.log(node)
+        if (node) {
+          document.querySelectorAll('.faceWrap')[0].scrollTop = (node.offsetTop - 60) <= 0 ? 0 : (node.offsetTop - 60)
+        }
+      })
     }
   }
 }
@@ -270,27 +286,26 @@ export default {
   height: 100%;
 }
 .d-left {
-  width: 50%;
-  height: 100%;
+  flex: 1;
 }
 .d-right {
-  width: 50%;
-  height: 100%;
+  flex: 1;
   overflow-y: hidden;
 }
 .media-wrapper {
   width: 100%;
-  z-index: 1000;
-  box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 .media-wrapper .media-player {
-  text-align: center;
-  width: 100%;
-  position: relative;
+  flex: 1;
 }
 .playwrap {
-  padding: 0 5px;
-  height: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .cut_catalog_dropdown {
@@ -364,6 +379,7 @@ input[type="text"], textarea {
 }
 
 .locationDetailWrap {
+  flex: 1;
   margin: 0 20px 20px;
 }
 .locationDetailWrap h4 {
@@ -386,5 +402,21 @@ input[type="text"], textarea {
 .locationDetailWrap .locDetail.inlineDetail {
   display: flex;
   flex-wrap: wrap;
+}
+.lineParent {
+  margin: 10px;
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+}
+.lineParent .point {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 8px;
+  background-color: #f5222d;
+  cursor: pointer;
 }
 </style>

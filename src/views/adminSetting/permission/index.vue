@@ -61,8 +61,8 @@
       </div>
     </div>
 
-    <Add :dialog-visible="dialogVisibleAdd" :routes-data="routesData" @changeVisible="changeAddVisible" @refresh="getList" />
-    <Edit :edit-item="editItem" :dialog-visible="dialogVisibleEdit" :routes-data="routesData" @changeVisible="changeEditVisible" @refresh="getList" />
+    <Add :dialog-visible="dialogVisibleAdd" @changeVisible="changeAddVisible" @refresh="getList" />
+    <Edit :edit-item="editItem" :dialog-visible="dialogVisibleEdit" @changeVisible="changeEditVisible" @refresh="getList" />
   </div>
 </template>
 
@@ -70,7 +70,7 @@
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import Cookies from 'js-cookie'
 import apiPermission from '@/api/mypermission'
-import { routes } from './routes.js'
+
 import Add from './add.vue'
 import Edit from './edit.vue'
 
@@ -145,13 +145,7 @@ export default {
       editIndex: '',
       dialogVisibleAdd: false,
       dialogVisibleEdit: false,
-      routes: [],
       multipleSelection: []
-    }
-  },
-  computed: {
-    routesData () {
-      return this.routes
     }
   },
   created () {
@@ -162,7 +156,6 @@ export default {
       this.smallLayout = true
     }
 
-    this.getRoutes()
     this.getList()
   },
   methods: {
@@ -201,59 +194,6 @@ export default {
           this.$message.error('接口调用失败！')
         }
       })
-    },
-    async getRoutes () {
-      this.serviceRoutes = routes
-      this.routes = this.generateRoutes(routes)
-    },
-
-    // Reshape the routes structure so that it looks the same as the sidebar
-    generateRoutes (routes, basePath = '/') {
-      const res = []
-
-      for (let route of routes) {
-        // skip some route
-        if (route.hidden) { continue }
-
-        const onlyOneShowingChild = this.onlyOneShowingChild(route.children, route)
-
-        if (route.children && onlyOneShowingChild && !route.alwaysShow) {
-          route = onlyOneShowingChild
-        }
-
-        const data = {
-          title: route.title,
-          name: route.name
-        }
-        if (route.parent) {
-          data.parent = route.parent
-        }
-
-        // recursive child routes
-        if (route.children) {
-          data.children = this.generateRoutes(route.children, data.path)
-        }
-        res.push(data)
-      }
-      return res
-    },
-    onlyOneShowingChild (children = [], parent) {
-      let onlyOneChild = null
-      const showingChildren = children.filter(item => !item.hidden)
-
-      // When there is only one child route, the child route is displayed by default
-      if (showingChildren.length === 1) {
-        onlyOneChild = showingChildren[0]
-        return onlyOneChild
-      }
-
-      // Show parent if there are no child route to display
-      if (showingChildren.length === 0) {
-        onlyOneChild = { title: parent.title, name: parent.name }
-        return onlyOneChild
-      }
-
-      return false
     },
     handleFilter () {
       this.listQuery = {

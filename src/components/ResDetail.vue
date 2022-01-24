@@ -1,8 +1,7 @@
 <template>
-  <div>
-    <p class="resImgs">
-      <img :src="resItem.image">
-    </p>
+  <div class="detailImgBox">
+    <img v-if="resItem && resItem.image" :src="`/api/admin/v1/getResultImage?filepath=${resItem.image}`" style="max-width: 100%; max-height: 100%;">
+    <!-- <a-icon v-else type="file-image" class="defaultIcon" /> -->
   </div>
 </template>
 <script>
@@ -17,21 +16,10 @@ export default {
 }
 </script>
 <style scoped>
-p {
-  color: #989898;
-  font-size: 14px;
+.detailImgBox {
+  text-align: center;
 }
-p label {
-  display: inline-block;
-  text-align: right;
-  width: 120px;
-  color: #cecece;
-  margin-right: 10px;
-}
-.resImgs {
-  color: #cecece !important;
-}
-.resImgs img {
-  border: 1px solid #ccc;
+.defaultIcon {
+  font-size: 50px;
 }
 </style>
