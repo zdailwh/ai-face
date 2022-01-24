@@ -18,7 +18,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
         <span slot="faceNames" slot-scope="faceNames">
           {{faceNames.join(',')}}
         </span>

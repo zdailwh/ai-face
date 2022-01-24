@@ -39,7 +39,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
         <span slot="groups" slot-scope="groups">
           <a-popover title="包含人像" trigger="click" arrow-point-at-center>
             <template slot="content">

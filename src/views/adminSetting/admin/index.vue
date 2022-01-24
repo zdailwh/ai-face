@@ -18,7 +18,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="list" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
         <span slot="level" slot-scope="level">
           {{level | levelFilter}}
         </span>

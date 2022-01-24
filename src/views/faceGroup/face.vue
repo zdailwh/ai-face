@@ -26,7 +26,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
         <span slot="gender" slot-scope="gender">
           {{!gender? '未知':(gender === 1)? '男': '女'}}
         </span>
