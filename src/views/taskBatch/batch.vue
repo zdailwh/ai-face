@@ -15,7 +15,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
         <span slot="status" slot-scope="status" style="color: #87d068;">
           {{status === 0? '初始化': status === 1? '排队中' : status === 2? '处理中' : '处理完成'}}
         </span>

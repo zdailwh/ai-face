@@ -40,7 +40,7 @@
     <!--搜索 end-->
 
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false" :row-selection="{ selectedRowKeys: multipleSelection, onChange: handleSelectionChange, columnWidth: '10px' }">
+      <a-table :columns="columns" :data-source="list" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false" :row-selection="{ selectedRowKeys: multipleSelection, onChange: handleSelectionChange, columnWidth: '10px' }">
         <span slot="user" slot-scope="user">
           {{ user && user.username }}
         </span>

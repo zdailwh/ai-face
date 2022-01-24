@@ -1,7 +1,7 @@
 <template>
   <div class="faceContainer">
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="name" :pagination="false">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="name" :pagination="false">
         <span slot="action" slot-scope="record, index, idx">
           <a @click="toEdit(record, idx)">编辑</a>
         </span>

@@ -26,7 +26,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="list" :scroll="{ x: true }" rowKey="id" :pagination="false" :row-selection="{ selectedRowKeys: multipleSelection, onChange: handleSelectionChange, columnWidth: '10px' }">
+      <a-table :columns="columns" :data-source="list" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false" :row-selection="{ selectedRowKeys: multipleSelection, onChange: handleSelectionChange, columnWidth: '10px' }">
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>

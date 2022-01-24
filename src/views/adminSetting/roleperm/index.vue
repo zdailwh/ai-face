@@ -22,7 +22,7 @@
     <!--搜索 end-->
 
     <div class="tableWrap" v-if="listPermsOfRole.length">
-      <a-table :columns="columns" :data-source="listPermsOfRole" :scroll="{ x: true }" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="listPermsOfRole" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
         <span slot="role" slot-scope="role">
           {{ role && role.name }}
         </span>
