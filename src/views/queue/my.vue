@@ -1,9 +1,10 @@
+
 <template>
   <div class="faceContainer">
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="批次" prop="batchId">
+        <a-form-model-item label="任务单" prop="batchId">
           <a-select v-model="searchForm.batchId" :dropdownMatchSelectWidth="false" style="width: 120px;">
             <a-select-option value="">全部</a-select-option>
             <a-select-option :value="val.id" v-for="(val,key) in batchsDatalist" v-bind:key="key">
@@ -101,16 +102,10 @@ const columns = [
     width: 50
   },
   {
-    title: '任务名称',
-    dataIndex: 'name',
-    key: 'name',
-    width: 100
-  },
-  {
-    title: '描述',
-    dataIndex: 'description',
-    key: 'description',
-    width: 120
+    title: '源文件名',
+    dataIndex: 'file_name',
+    key: 'file_name',
+    width: 150
   },
   {
     title: '时长',
@@ -120,10 +115,10 @@ const columns = [
     width: 100
   },
   {
-    title: '源文件名',
-    dataIndex: 'file_name',
-    key: 'file_name',
-    width: 150
+    title: '模板',
+    dataIndex: 'modeName',
+    key: 'modeName',
+    width: 120
   },
   {
     title: '人脸组',

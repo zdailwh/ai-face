@@ -74,7 +74,7 @@ export const constantRoutes = [
   //       path: 'batch',
   //       name: 'Batch',
   //       component: () => import('@/views/taskBatch/batch'),
-  //       meta: { title: '批次', active: 'taskbatch' }
+  //       meta: { title: '任务单', active: 'taskbatch' }
   //     }
   //   ]
   // },
@@ -280,7 +280,7 @@ export const asyncRoutes = [
         path: 'batch',
         name: 'Batch',
         component: () => import('@/views/taskBatch/batch'),
-        meta: { title: '批次', active: 'taskbatch' }
+        meta: { title: '任务单', active: 'taskbatch' }
       }
     ]
   },

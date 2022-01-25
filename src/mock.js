@@ -294,7 +294,7 @@ let templateLog = {
   'url': 'http://192.168.1.202:86/api/face/v1/batch',
   'methodType': 'POST',
   'requestParam': '{\'name\':\'20220117-2\',\'mode_id\':0}',
-  'info': '新增任务批次',
+  'info': '新增任务单',
   'log': null,
   'deleteId': 0,
   'create_time': '2022-01-17T17:01:51',

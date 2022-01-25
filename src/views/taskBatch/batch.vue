@@ -30,7 +30,7 @@
         </span>
         <span slot="action" slot-scope="record, index, idx">
           <!-- <a-popconfirm
-            title="确定要删除该批次吗?"
+            title="确定要删除该任务单吗?"
             ok-text="删除"
             cancel-text="取消"
             @confirm="delBatch(record, idx)"
@@ -78,9 +78,27 @@ const columns = [
     width: 50
   },
   {
-    title: '批次名称',
+    title: '任务单名称',
     dataIndex: 'name',
     key: 'name',
+    width: 100
+  },
+  {
+    title: '总数',
+    dataIndex: 'totalcount',
+    key: 'totalcount',
+    width: 100
+  },
+  {
+    title: '完成数',
+    dataIndex: 'finishcount',
+    key: 'finishcount',
+    width: 100
+  },
+  {
+    title: '失败数',
+    dataIndex: 'failcount',
+    key: 'failcount',
     width: 100
   },
   {
@@ -204,7 +222,7 @@ export default {
     delBatch (record, idx) {
       api.delBatch({id: record.id}).then(res => {
         if (res.data.code === 0) {
-          this.$message.success('批次删除成功')
+          this.$message.success('任务单删除成功')
           this.getBatchs()
         } else {
           this.$message.error(res.data.message || '请求出错！')

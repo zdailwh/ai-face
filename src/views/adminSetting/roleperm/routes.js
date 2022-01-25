@@ -25,7 +25,7 @@ export const routes = [
         parent: 'TaskBatch'
       },
       {
-        title: '批次',
+        title: '任务单',
         name: 'Batch',
         parent: 'TaskBatch'
       }

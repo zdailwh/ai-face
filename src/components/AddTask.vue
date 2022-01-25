@@ -9,7 +9,7 @@
   >
     <div>
       <a-form-model ref="form" :model="addForm" :rules="ruleValidate">
-        <a-form-model-item label="批次" prop="batch" :label-col="{span:3}" :wrapper-col="{span:21}">
+        <a-form-model-item label="任务单名称" prop="batch" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-input v-model="addForm.batch" :disabled="!!(batch && batch.id)" />
         </a-form-model-item>
         <a-form-model-item label="上传视频" v-if="addForm.type === 1" :label-col="{span:3}" :wrapper-col="{span:21}">
@@ -27,12 +27,6 @@
         <a-form-model-item label="直播流地址" prop="url" v-if="addForm.type !== 1" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-input v-model="addForm.url" :disabled="addForm.type === 1" />
         </a-form-model-item>
-        <a-form-model-item label="任务名称" prop="name" :label-col="{span:3}" :wrapper-col="{span:21}">
-          <a-input v-model="addForm.name" />
-        </a-form-model-item>
-        <a-form-model-item label="任务描述" prop="description" :label-col="{span:3}" :wrapper-col="{span:21}">
-          <a-input v-model="addForm.description" />
-        </a-form-model-item>
         <a-form-model-item label="模板" prop="mymode" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-select v-model="addForm.mymode" :allowClear="true" @change="handleChangeMode">
             <a-select-option :value="item.id" v-for="item in modesData" v-bind:key="item.id" :myitem="item">
@@ -42,8 +36,8 @@
           </a-select>
         </a-form-model-item>
         <template v-if="addForm.mymode !== ''">
-          <a-form-model-item label="固定帧率" prop="frame_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.frame_rate" :disabled="addForm.mymode !== 0 || addForm.dynamic_rate > 0" @change="handleChangeFrameRate">
+          <a-form-model-item label="帧率" prop="frame_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
+            <a-select v-model="addForm.frame_rate" :disabled="addForm.mymode !== 0">
               <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
               <a-select-option :value="10">10</a-select-option>
@@ -52,7 +46,7 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="动态帧率" prop="dynamic_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <!-- <a-form-model-item label="动态帧率" prop="dynamic_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
             <a-select v-model="addForm.dynamic_rate" :disabled="addForm.mymode !== 0 || addForm.frame_rate > 0" @change="handleChangeDynamicRate">
               <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -61,7 +55,7 @@
               <a-select-option :value="20">20</a-select-option>
               <a-select-option :value="25">25</a-select-option>
             </a-select>
-          </a-form-model-item>
+          </a-form-model-item> -->
           <a-form-model-item label="优先级" prop="prority" :label-col="{span:3}" :wrapper-col="{span:21}">
             <a-select v-model="addForm.prority" :disabled="addForm.mymode !== 0">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
@@ -139,6 +133,13 @@ export default {
     currBatch (newVal, oldVal) {
       this.addForm.batch = newVal.name
       this.addForm.mymode = newVal.mode_id ? newVal.mode_id : 0
+      if (this.addForm.mymode) {
+        this.modesData.map(item => {
+          if (item.id === this.addForm.mymode) {
+            this.updateParentData('targetKeys', item.group_ids.split(','))
+          }
+        })
+      }
     }
   },
   computed: {
@@ -160,12 +161,10 @@ export default {
         batch: '',
         type: 1,
         url: '',
-        name: '',
-        description: '',
         mymode: 0,
-        frame_rate: 25,
-        dynamic_rate: 0,
-        prority: '',
+        frame_rate: 5,
+        // dynamic_rate: 0,
+        prority: 1,
         groupId: '',
         files: []
       },
@@ -174,21 +173,15 @@ export default {
         type: [
           { required: true, type: 'number', message: '任务类型不能为空', trigger: 'change' }
         ],
-        name: [
-          { required: true, type: 'string', message: '任务名称不能为空', trigger: 'blur' }
-        ],
         mymode: [
           { required: true, type: 'number', message: '模板不能为空', trigger: 'change' }
         ],
-        // description: [
-        //   { required: true, type: 'string', message: '任务描述不能为空', trigger: 'blur' }
-        // ],
         frame_rate: [
-          { required: true, type: 'number', message: '固定帧率不能为空', trigger: 'change' }
+          { required: true, type: 'number', message: '帧率不能为空', trigger: 'change' }
         ],
-        dynamic_rate: [
-          { required: true, type: 'number', message: '动态帧率不能为空', trigger: 'change' }
-        ],
+        // dynamic_rate: [
+        //   { required: true, type: 'number', message: '动态帧率不能为空', trigger: 'change' }
+        // ],
         prority: [
           { required: true, type: 'number', message: '优先级不能为空', trigger: 'change' }
         ]
@@ -217,28 +210,28 @@ export default {
       if (val !== 0) {
         var selMode = opt.data.attrs.myitem
         this.addForm.frame_rate = selMode.frame_rate
-        this.addForm.dynamic_rate = selMode.dynamic_rate
+        // this.addForm.dynamic_rate = selMode.dynamic_rate
         this.addForm.prority = selMode.prority
         this.addForm.groupId = selMode.group_ids
         this.updateParentData('targetKeys', selMode.group_ids.split(','))
       } else {
-        this.addForm.frame_rate = 25
-        this.addForm.dynamic_rate = 0
-        this.addForm.prority = ''
+        this.addForm.frame_rate = 5
+        // this.addForm.dynamic_rate = 0
+        this.addForm.prority = 1
         this.addForm.groupId = ''
-        this.updateParentData('targetKeys', [])
+        this.updateParentData('targetKeys', [0])
       }
     },
-    handleChangeFrameRate (val) {
-      if (val !== 0) {
-        this.addForm.dynamic_rate = 0
-      }
-    },
-    handleChangeDynamicRate (val) {
-      if (val !== 0) {
-        this.addForm.frame_rate = 0
-      }
-    },
+    // handleChangeFrameRate (val) {
+    //   if (val !== 0) {
+    //     this.addForm.dynamic_rate = 0
+    //   }
+    // },
+    // handleChangeDynamicRate (val) {
+    //   if (val !== 0) {
+    //     this.addForm.frame_rate = 0
+    //   }
+    // },
     commit () {
       console.log(this.filterList)
       if (!this.filterList.length) {
@@ -395,10 +388,8 @@ export default {
       var md5 = fileItem.hash
       var params = {
         type: this.addForm.type,
-        name: this.addForm.name,
-        description: this.addForm.description,
         frame_rate: this.addForm.frame_rate,
-        dynamic_rate: this.addForm.dynamic_rate,
+        // dynamic_rate: this.addForm.dynamic_rate,
         prority: this.addForm.prority,
         group_ids: this.addForm.groupId !== '' ? this.addForm.groupId : this.targetGroupIds.join(','),
         batch_id: this.currBatch.id || this.newBatch.id,

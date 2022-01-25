@@ -26,8 +26,8 @@
           </a-popover>
         </p>
       </li>
-      <li><p class="title">动态帧率：</p><p class="cont">{{ taskinfo.dynamic_rate === 0 ? '不启用' : taskinfo.dynamic_rate }}</p></li>
-      <li><p class="title">固定帧率：</p><p class="cont">{{ taskinfo.dynamic_rate > 0 ? '原始帧率' : taskinfo.frame_rate }}</p></li>
+      <!-- <li><p class="title">动态帧率：</p><p class="cont">{{ taskinfo.dynamic_rate === 0 ? '不启用' : taskinfo.dynamic_rate }}</p></li> -->
+      <li><p class="title">帧率：</p><p class="cont">{{ taskinfo.frame_rate }}</p></li>
       <li><p class="title">优先级：</p><p class="cont">{{ taskinfo.prority }}</p></li>
       <li v-if="taskinfo.create_time"><p class="title">创建时间：</p><p class="cont">{{ taskinfo.create_time | dateFormat }}</p></li>
       <li v-if="taskinfo.update_time"><p class="title">更新时间：</p><p class="cont">{{ taskinfo.update_time | dateFormat }}</p></li>
