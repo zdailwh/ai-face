@@ -23,16 +23,20 @@
           {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="action, record, idx">
-          <a v-if="currUser.level !== '' && currUser.level > 3" @click="editHandle(record, idx)">编辑</a>
-          <a-divider type="vertical" />
-          <a-popconfirm
-            title="确定要删除该角色吗?"
-            ok-text="删除"
-            cancel-text="取消"
-            @confirm="delRole(record.id, idx)"
-          >
-            <a v-if="currUser.level !== '' && currUser.level > 3">删除</a>
-          </a-popconfirm>
+          <template v-if="currUser.level !== '' && currUser.level > 3">
+            <a @click="editHandle(record, idx)">编辑</a>
+            <a-divider type="vertical" />
+          </template>
+          <template v-if="currUser.level !== '' && currUser.level > 3">
+            <a-popconfirm
+              title="确定要删除该角色吗?"
+              ok-text="删除"
+              cancel-text="取消"
+              @confirm="delRole(record.id, idx)"
+            >
+              <a v-if="currUser.level !== '' && currUser.level > 3">删除</a>
+            </a-popconfirm>
+          </template>
         </span>
       </a-table>
       <div class="mypagination">

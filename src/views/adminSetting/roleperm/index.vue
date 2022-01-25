@@ -40,9 +40,13 @@
           {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="action, record, idx">
-          <a v-if="currUser.level !== '' && currUser.level > 3" @click="editHandle(record, idx)">编辑接口权限</a>
-          <a-divider type="vertical" />
-          <a v-if="currUser.level !== '' && currUser.level > 3" @click="editMenuHandle(record, idx)">编辑菜单权限</a>
+          <template v-if="currUser.level !== '' && currUser.level > 3">
+            <a v-if="currUser.level !== '' && currUser.level > 3" @click="editHandle(record, idx)">编辑接口权限</a>
+            <a-divider type="vertical" />
+          </template>
+          <template v-if="currUser.level !== '' && currUser.level > 3">
+            <a v-if="currUser.level !== '' && currUser.level > 3" @click="editMenuHandle(record, idx)">编辑菜单权限</a>
+          </template>
           <!-- <a-divider type="vertical" />
           <a-popconfirm
             title="确定要删除此关联吗？"
