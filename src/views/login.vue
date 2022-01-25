@@ -13,7 +13,7 @@
               <a-input v-model="loginForm.username" placeholder="请输入用户名" />
             </a-form-model-item>
             <a-form-model-item has-feedback label="密码" prop="password">
-              <a-input v-model="loginForm.password" type="password" placeholder="请输入密码" />
+              <a-input v-model="loginForm.password" type="password" placeholder="请输入密码" @pressEnter="submitForm('loginForm')" />
             </a-form-model-item>
             <a-form-model-item>
               <a-button type="primary" @click="submitForm('loginForm')">

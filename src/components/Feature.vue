@@ -301,7 +301,6 @@ function dataURLtoFile (dataurl, filename) {
   height: 70px;
   text-align: center;
   border: 1px dashed #d9d9d9;
-  background-color: #fafafa;
   border-radius: 4px;
   cursor: pointer;
   font-size: 20px;

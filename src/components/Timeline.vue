@@ -3,7 +3,7 @@
     <ul class="listWrap" v-infinite-scroll="handleInfiniteOnLoad" :infinite-scroll-disabled="busy" :infinite-scroll-distance="10">
       <template v-for="(fItem, second) in slicedTaskresult">
         <li :key="second" :id="'point_' + second"></li>
-        <li class="list-item" :class="{ currBox: currBoxKey === second + '-' + k }" v-bind:key="second + '-' + k" v-for="(it, k) in fItem.items">
+        <li class="list-item" v-if="fItem" :class="{ currBox: currBoxKey === second + '-' + k }" v-bind:key="second + '-' + k" v-for="(it, k) in fItem.items">
           <div class="img-box" @click="changeBox(fItem, second, k)">
             <img v-if="fItem.image" v-lazy="`/api/admin/v1/getResultImage?filepath=${fItem.image}`" alt="人脸图">
             <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
@@ -79,8 +79,10 @@ export default {
       var sliceKeys = Object.keys(this.taskresult).slice(this.page * this.limit, this.page * this.limit + this.limit)
       var sliceRes = {}
       for (var i = 0; i < this.limit; i++) {
-        var k = sliceKeys[i] + ''
-        sliceRes[k] = this.taskresult[k]
+        if (sliceKeys[i]) {
+          var k = sliceKeys[i] + ''
+          sliceRes[k] = this.taskresult[k]
+        }
       }
       this.slicedTaskresult = {...this.slicedTaskresult, ...sliceRes}
 

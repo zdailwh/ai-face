@@ -165,14 +165,14 @@ const columns = [
     title: '任务名称',
     dataIndex: 'name',
     key: 'name',
-    width: 100
+    width: 150
   },
   {
     title: '状态',
     dataIndex: 'statusStr',
     key: 'statusStr',
     scopedSlots: { customRender: 'statusStr' },
-    width: 100
+    width: 150
   },
   {
     title: '描述',
@@ -190,15 +190,14 @@ const columns = [
   {
     title: '源文件名',
     dataIndex: 'file_name',
-    key: 'file_name',
-    width: 100
+    key: 'file_name'
   },
   {
     title: '人脸组',
     dataIndex: 'groups',
     key: 'groups',
     scopedSlots: { customRender: 'groups' },
-    width: 100
+    width: 120
   },
   {
     title: '帧率',
