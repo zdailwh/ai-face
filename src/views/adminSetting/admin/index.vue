@@ -30,7 +30,7 @@
             <a @click="actived(record.id, idx)">激活</a>
             <a-divider type="vertical" />
           </template>
-          <template v-if="currUser.level !== '' && currUser.level > 3 && record.status !== 2">
+          <template v-if="currUser.level !== '' && currUser.level > 3 && currUser.id !== record.id && record.status !== 2">
             <a @click="inactived(record.id, idx)">禁用</a>
             <a-divider type="vertical" />
           </template>
@@ -48,7 +48,7 @@
             cancel-text="取消"
             @confirm="delUser(record.id, idx)"
           >
-            <a>删除</a>
+            <a v-if="currUser.level !== '' && currUser.level > 3 && currUser.level >= record.level && currUser.id !== record.id">删除</a>
           </a-popconfirm>
         </span>
       </a-table>
@@ -78,7 +78,6 @@
 
 <script>
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
-import Cookies from 'js-cookie'
 import apiAdmin from '@/api/admin'
 import apiRole from '@/api/myrole'
 
@@ -158,7 +157,6 @@ export default {
       columns,
       pageSizeOptions: ['10', '20', '30', '40', '50'],
       smallLayout: false,
-      isVisitor: (Cookies.get('MultiDisplay-isVisitor') && JSON.parse(Cookies.get('MultiDisplay-isVisitor'))) || false,
       list: null,
       total: 0,
       listLoading: true,

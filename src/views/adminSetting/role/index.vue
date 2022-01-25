@@ -12,7 +12,7 @@
         <a-form-model-item>
           <a-button type="primary" @click="handleFilter"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="resetForm('filterForm')">重置</a-button>
-          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建角色</a-button>
+          <a-button v-if="currUser.level !== '' && currUser.level > 3" style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建角色</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
@@ -23,7 +23,7 @@
           {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="action, record, idx">
-          <a @click="editHandle(record, idx)">编辑</a>
+          <a v-if="currUser.level !== '' && currUser.level > 3" @click="editHandle(record, idx)">编辑</a>
           <a-divider type="vertical" />
           <a-popconfirm
             title="确定要删除该角色吗?"
@@ -31,7 +31,7 @@
             cancel-text="取消"
             @confirm="delRole(record.id, idx)"
           >
-            <a>删除</a>
+            <a v-if="currUser.level !== '' && currUser.level > 3">删除</a>
           </a-popconfirm>
         </span>
       </a-table>
@@ -142,6 +142,17 @@ export default {
       editIndex: '',
       dialogVisibleAdd: false,
       dialogVisibleEdit: false
+    }
+  },
+  computed: {
+    currUser: {
+      get () {
+        var token = this.$store.state.authentication.token
+        return token ? JSON.parse(token) : {}
+      },
+      set (val) {
+        // this.$router.push({ path: val[0] || '/' })
+      }
     }
   },
   created () {

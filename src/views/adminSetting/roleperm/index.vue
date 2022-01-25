@@ -6,8 +6,8 @@
         <a-form-model-item>
           <!-- <a-button type="primary" @click="handleFilter"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="resetForm('filterForm')">重置</a-button> -->
-          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建角色接口权限</a-button>
-          <a-button style="margin-left: 10px;" type="primary" @click="dialogVisibleAddMenu = true"><a-icon key="plus" type="plus"/>创建角色菜单权限</a-button>
+          <a-button v-if="currUser.level !== '' && currUser.level > 3" style="margin-left: 10px;" type="primary" @click="dialogVisibleAdd = true"><a-icon key="plus" type="plus"/>创建角色接口权限</a-button>
+          <a-button v-if="currUser.level !== '' && currUser.level > 3" style="margin-left: 10px;" type="primary" @click="dialogVisibleAddMenu = true"><a-icon key="plus" type="plus"/>创建角色菜单权限</a-button>
           <!-- <a-popconfirm
             title="确定要删除所选关联记录吗？"
             ok-text="删除"
@@ -40,9 +40,9 @@
           {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="action, record, idx">
-          <a @click="editHandle(record, idx)">编辑接口权限</a>
+          <a v-if="currUser.level !== '' && currUser.level > 3" @click="editHandle(record, idx)">编辑接口权限</a>
           <a-divider type="vertical" />
-          <a @click="editMenuHandle(record, idx)">编辑菜单权限</a>
+          <a v-if="currUser.level !== '' && currUser.level > 3" @click="editMenuHandle(record, idx)">编辑菜单权限</a>
           <!-- <a-divider type="vertical" />
           <a-popconfirm
             title="确定要删除此关联吗？"
@@ -113,13 +113,15 @@ const columns = [
     title: '接口',
     dataIndex: 'perms',
     key: 'perms',
-    scopedSlots: { customRender: 'perms' }
+    scopedSlots: { customRender: 'perms' },
+    width: 200
   },
   {
     title: '菜单',
     dataIndex: 'menu',
     key: 'menu',
-    scopedSlots: { customRender: 'menu' }
+    scopedSlots: { customRender: 'menu' },
+    width: 200
   },
   {
     title: '创建时间',
@@ -132,7 +134,7 @@ const columns = [
     title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' },
-    width: 120
+    width: 200
   }
 ]
 
@@ -197,6 +199,17 @@ export default {
             value: item.id
           }
         })
+      }
+    }
+  },
+  computed: {
+    currUser: {
+      get () {
+        var token = this.$store.state.authentication.token
+        return token ? JSON.parse(token) : {}
+      },
+      set (val) {
+        // this.$router.push({ path: val[0] || '/' })
       }
     }
   },

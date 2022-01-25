@@ -87,19 +87,25 @@ const columns = [
     title: '总数',
     dataIndex: 'totalcount',
     key: 'totalcount',
-    width: 100
+    width: 80
   },
   {
     title: '完成数',
     dataIndex: 'finishcount',
     key: 'finishcount',
-    width: 100
+    width: 80
   },
   {
     title: '失败数',
     dataIndex: 'failcount',
     key: 'failcount',
-    width: 100
+    width: 80
+  },
+  {
+    title: '命中数',
+    dataIndex: 'hitcount',
+    key: 'hitcount',
+    width: 80
   },
   {
     title: '状态',

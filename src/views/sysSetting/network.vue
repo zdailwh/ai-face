@@ -34,18 +34,18 @@
         <a-form-model ref="editform" :model="editForm" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
           <a-form-model-item label="连接模式" prop="BOOTPROTO">
             <a-select v-model="editForm.BOOTPROTO">
-              <a-select-option value="STATIC">STATIC</a-select-option>
+              <a-select-option value="static">static</a-select-option>
               <a-select-option value="DHCP">DHCP</a-select-option>
             </a-select>
           </a-form-model-item>
           <a-form-model-item label="IP地址" prop="IPADDR">
-          <a-input v-model="editForm.IPADDR" />
+          <a-input v-model="editForm.IPADDR" :disabled="editForm.BOOTPROTO === 'DHCP'" />
         </a-form-model-item>
         <a-form-model-item label="网关地址" prop="GATEWAY">
-          <a-input v-model="editForm.GATEWAY" />
+          <a-input v-model="editForm.GATEWAY" :disabled="editForm.BOOTPROTO === 'DHCP'"/>
         </a-form-model-item>
         <a-form-model-item label="子网掩码" prop="NETMASK">
-          <a-input v-model="editForm.NETMASK" />
+          <a-input v-model="editForm.NETMASK" :disabled="editForm.BOOTPROTO === 'DHCP'" />
         </a-form-model-item>
         </a-form-model>
       </div>
@@ -133,13 +133,13 @@ export default {
           { required: true, message: '连接模式不能为空', trigger: 'change' }
         ]
         // IPADDR: [
-        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'STATIC'), message: 'IP地址不能为空', trigger: 'blur' }
+        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'static'), message: 'IP地址不能为空', trigger: 'blur' }
         // ],
         // GATEWAY: [
-        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'STATIC'), message: '网关地址不能为空', trigger: 'blur' }
+        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'static'), message: '网关地址不能为空', trigger: 'blur' }
         // ],
         // NETMASK: [
-        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'STATIC'), message: '子网掩码不能为空', trigger: 'blur' }
+        //   { required: !!(this.editForm && this.editForm.BOOTPROTO === 'static'), message: '子网掩码不能为空', trigger: 'blur' }
         // ]
       },
       editForm: {
@@ -154,6 +154,15 @@ export default {
     dateFormat (val) {
       if (val === '' || val === null) return ''
       return moment(val).format('YYYY-MM-DD HH:mm:ss')
+    }
+  },
+  watch: {
+    'editForm.BOOTPROTO' (val) {
+      if (val === 'DHCP') {
+        this.editForm.IPADDR = ''
+        this.editForm.GATEWAY = ''
+        this.editForm.NETMASK = ''
+      }
     }
   },
   mounted () {
@@ -193,7 +202,7 @@ export default {
           this.datalist = resBody.data.item
           this.datalist.map(item => {
             if (item.BOOTPROTO === 'none') {
-              item.BOOTPROTO = 'STATIC'
+              item.BOOTPROTO = 'static'
             }
           })
           this.dataTotal = resBody.data.total
@@ -228,19 +237,19 @@ export default {
     handleEdit () {
       this.$refs.editform.validate((valid) => {
         if (valid) {
-          if (this.editForm.BOOTPROTO === 'STATIC') {
+          if (this.editForm.BOOTPROTO === 'static') {
             if (this.editForm.IPADDR === '') {
               this.$message.error('请填写IP地址！')
               return
             }
-            if (this.editForm.GATEWAY === '') {
-              this.$message.error('请填写网关地址！')
-              return
-            }
-            if (this.editForm.NETMASK === '') {
-              this.$message.error('请填写子网掩码！')
-              return
-            }
+            // if (this.editForm.GATEWAY === '') {
+            //   this.$message.error('请填写网关地址！')
+            //   return
+            // }
+            // if (this.editForm.NETMASK === '') {
+            //   this.$message.error('请填写子网掩码！')
+            //   return
+            // }
           }
           var params = {
             name: this.editForm.NAME,

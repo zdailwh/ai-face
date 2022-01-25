@@ -25,7 +25,7 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
-          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建模板</a-button>
+          <a-button v-if="currUser.level !== '' && currUser.level > 3" style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建模板</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
@@ -404,6 +404,17 @@ export default {
     dateFormat (val) {
       if (val === '' || val === null) return ''
       return moment(val).format('YYYY-MM-DD HH:mm:ss')
+    }
+  },
+  computed: {
+    currUser: {
+      get () {
+        var token = this.$store.state.authentication.token
+        return token ? JSON.parse(token) : {}
+      },
+      set (val) {
+        // this.$router.push({ path: val[0] || '/' })
+      }
     }
   },
   mounted () {
