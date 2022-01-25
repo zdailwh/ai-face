@@ -1,0 +1,100 @@
+{
+  "id": "3160614",
+  "name": "AI人脸识别",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "15726894",
+      "name": "审批审核",
+      "font_class": "shenpishenhe",
+      "unicode": "e633",
+      "unicode_decimal": 58931
+    },
+    {
+      "icon_id": "27419974",
+      "name": "审批审核",
+      "font_class": "shenpishenhe-copy",
+      "unicode": "e75b",
+      "unicode_decimal": 59227
+    },
+    {
+      "icon_id": "27419975",
+      "name": "人像",
+      "font_class": "renxiang-copy",
+      "unicode": "e75c",
+      "unicode_decimal": 59228
+    },
+    {
+      "icon_id": "27419977",
+      "name": "日志",
+      "font_class": "rizhi-copy",
+      "unicode": "e75d",
+      "unicode_decimal": 59229
+    },
+    {
+      "icon_id": "27419979",
+      "name": "任务管理",
+      "font_class": "renwuguanli-copy",
+      "unicode": "e75e",
+      "unicode_decimal": 59230
+    },
+    {
+      "icon_id": "27419980",
+      "name": "系统",
+      "font_class": "xitong-copy",
+      "unicode": "e75f",
+      "unicode_decimal": 59231
+    },
+    {
+      "icon_id": "27419981",
+      "name": "mq 消息队列MQ",
+      "font_class": "mqxiaoxiduilieMQ-copy",
+      "unicode": "e760",
+      "unicode_decimal": 59232
+    },
+    {
+      "icon_id": "1342",
+      "name": "人像",
+      "font_class": "renxiang",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "1137449",
+      "name": "日志",
+      "font_class": "rizhi",
+      "unicode": "e64a",
+      "unicode_decimal": 58954
+    },
+    {
+      "icon_id": "3977831",
+      "name": "系统",
+      "font_class": "xitong",
+      "unicode": "e617",
+      "unicode_decimal": 58903
+    },
+    {
+      "icon_id": "8729900",
+      "name": "用户管理",
+      "font_class": "yonghuguanli",
+      "unicode": "e6ab",
+      "unicode_decimal": 59051
+    },
+    {
+      "icon_id": "13592702",
+      "name": "mq 消息队列MQ",
+      "font_class": "mqxiaoxiduilieMQ",
+      "unicode": "e6f0",
+      "unicode_decimal": 59120
+    },
+    {
+      "icon_id": "14445736",
+      "name": "任务管理",
+      "font_class": "renwuguanli",
+      "unicode": "e75a",
+      "unicode_decimal": 59226
+    }
+  ]
+}
