@@ -122,7 +122,7 @@ const columns = [
     title: '源文件名',
     dataIndex: 'file_name',
     key: 'file_name',
-    width: 100
+    width: 150
   },
   {
     title: '人脸组',

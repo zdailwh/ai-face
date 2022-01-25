@@ -450,6 +450,11 @@ i {
   text-align: right;
 }
 
+.tableWrap .ant-table-thead > tr > th,
+.tableWrap .ant-table-tbody > tr > td {
+  white-space: pre-line;
+}
+
 /*ant desc*/
 .mydesc .ant-descriptions-title {
   color: #9aa1a8;

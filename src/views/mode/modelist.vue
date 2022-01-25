@@ -315,7 +315,8 @@ const columns = [
     title: '人脸组',
     dataIndex: 'groups',
     key: 'groups',
-    scopedSlots: { customRender: 'groups' }
+    scopedSlots: { customRender: 'groups' },
+    width: 200
   },
   {
     title: '关联用户',
@@ -335,7 +336,7 @@ const columns = [
     title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' },
-    width: 120
+    width: 180
   }
 ]
 

@@ -190,7 +190,8 @@ const columns = [
   {
     title: '源文件名',
     dataIndex: 'file_name',
-    key: 'file_name'
+    key: 'file_name',
+    width: 150
   },
   {
     title: '人脸组',
@@ -229,7 +230,7 @@ const columns = [
     title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' },
-    width: 120
+    width: 200
   }
 ]
 

@@ -226,7 +226,8 @@ const columns = [
     title: '人脸特征图',
     dataIndex: 'features',
     key: 'features',
-    scopedSlots: { customRender: 'features' }
+    scopedSlots: { customRender: 'features' },
+    width: 300
   },
   {
     title: '所属分组',
