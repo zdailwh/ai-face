@@ -51,12 +51,16 @@ export function filterAsyncRoutesMenu (routes, perms) {
 }
 
 function hasPermissionMenu (perms, route) {
-  if (route.name) {
-    // console.log(route)
-    // console.log(perms.includes(route.name))
-    return perms.includes(route.name)
+  if (route.hidden) {
+    return true
   } else {
-    return false
+    if (route.name) {
+      // console.log(route)
+      // console.log(perms.includes(route.name))
+      return perms.includes(route.name)
+    } else {
+      return false
+    }
   }
 }
 

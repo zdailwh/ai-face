@@ -75,11 +75,4 @@ export default {
 }
 </script>
 <style scoped>
-.formWrap {
-  width: 500px;
-  margin: 20px auto;
-  padding: 20px;
-  border: 1px solid #DCDFE6;
-  border-radius: 10px;
-}
 </style>

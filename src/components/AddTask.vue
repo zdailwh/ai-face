@@ -169,6 +169,7 @@ export default {
         groupId: '',
         files: []
       },
+      newBatch: {},
       ruleValidate: {
         type: [
           { required: true, type: 'number', message: '任务类型不能为空', trigger: 'change' }
@@ -253,7 +254,7 @@ export default {
           } else {
             api.addBatch({name: this.addForm.batch, mode_id: this.addForm.mymode}).then(async res => {
               if (res.data.code === 0) {
-                this.batch = res.data.data
+                this.newBatch = res.data.data
                 await this.createTasks(this.filterList, 0)
                 this.updateParentData('addVisible', false) // 创建窗口消失
                 this.createNotification(this.filterList) // 显示进度浮窗
@@ -399,7 +400,7 @@ export default {
         dynamic_rate: this.addForm.dynamic_rate,
         prority: this.addForm.prority,
         group_ids: this.addForm.groupId !== '' ? this.addForm.groupId : this.targetGroupIds.join(','),
-        batch_id: this.batch.id,
+        batch_id: this.currBatch.id || this.newBatch.id,
         filename: fileItem.file.name,
         md5: md5,
         ext: fileItem.ext

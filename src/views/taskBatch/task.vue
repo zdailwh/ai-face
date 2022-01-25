@@ -117,7 +117,7 @@
           <router-link v-if="record.status === 5" :to="'/taskResult/' + record.id">查看任务结果<a-icon type="right" /></router-link>
         </span>
       </a-table>
-      <div style="margin: 15px 0;text-align: right;">
+      <div class="mypagination">
         <a-pagination
           v-model="page_no"
           :page-size-options="pageSizeOptions"
@@ -318,9 +318,6 @@ export default {
       // 查询分组人脸列表
       this.searchForm.batchId = this.$route.query.batchId
     }
-
-    var ele = document.querySelectorAll('.file-main')
-    ele[0].style.backgroundColor = '#fff'
 
     var viewWidth = document.documentElement.clientWidth
     if (viewWidth < 540) {
@@ -605,19 +602,6 @@ export default {
 
 </script>
 <style scoped>
-.faceContainer {
-  width: 100%;
-  height: 100%;
-  background-color: #fff;
-}
-.tableWrap {
-  width: 100%;
-  margin-top: 20px;
-}
-.searchWrap {
-  display: flex;
-  justify-content: space-between;
-}
 .desc {
   color: #555;
 }

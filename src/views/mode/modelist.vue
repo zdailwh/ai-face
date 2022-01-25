@@ -63,7 +63,7 @@
           <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看关联用户<a-icon type="right" /></router-link> -->
         </span>
       </a-table>
-      <div style="margin: 15px 0;text-align: right;">
+      <div class="mypagination">
         <a-pagination
           v-model="page_no"
           :page-size-options="pageSizeOptions"
@@ -752,27 +752,4 @@ const rightTableColumns = [
 ]
 </script>
 <style scoped>
-.faceContainer {
-  width: 100%;
-  height: 100%;
-  background-color: #fff;
-}
-.tableWrap {
-  width: 100%;
-  margin-top: 20px;
-}
-.tableImg {
-  max-width: 50px;
-}
-.tableImg + .tableImg {
-  margin-left: 5px;
-}
-.tablePopImg {
-  max-width: 280px;
-}
-
-.searchWrap {
-  display: flex;
-  justify-content: space-between;
-}
 </style>

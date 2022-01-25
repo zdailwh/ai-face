@@ -3,33 +3,19 @@
     <div class="lager-layout">
       <div class="header">
         <div class="opt">
-          <div class="logo" v-show="smallLayout === false"><!-- <img src="./assets/ks_logo.png"> --><span class="logo_title">广电专业人像检索系统</span></div>
+          <div class="logo" v-show="smallLayout === false"><img src="./assets/zg_logo.png"><span class="logo_title">广电专业人像检索系统</span></div>
         </div>
-        <!-- <div v-if="$router.options.routes.length" class="opt mymenu" style="justify-content: center;">
-          <a-menu theme="dark" v-model="current" mode="horizontal">
-            <a-menu-item key="/taskbatch/batch">离线任务</a-menu-item>
-            <a-menu-item key="/facegroup/face">人脸库</a-menu-item>
-            <a-sub-menu key="/setting">
-              <span slot="title">基础配置</span>
-              <a-menu-item key="/setting/admin/index">用户设置</a-menu-item>
-              <a-menu-item key="/setting/role/index">角色配置</a-menu-item>
-              <a-menu-item key="/setting/permission/index">权限配置</a-menu-item>
-              <a-menu-item key="/setting/roleuser/index">用户角色</a-menu-item>
-              <a-menu-item key="/setting/roleperm/index">角色权限</a-menu-item>
-            </a-sub-menu>
-          </a-menu>
-        </div> -->
         <div class="opt" style="justify-content: flex-end;flex:1;margin-right: 10px;">
           <a-dropdown v-if="currUser.id">
-            <a class="ant-dropdown-link" @click="e => e.preventDefault()">
-              <img src="./assets/user.png" alt=""> {{currUser.username}} <a-icon type="down" />
+            <a class="ant-dropdown-link" style="color: #9aa1a8; font-size: 16px;" @click="e => e.preventDefault()">
+               {{currUser.username}} <img src="./assets/user.png" alt="" style="width: 28px; margin: 0 5px;"><a-icon type="down" />
             </a>
             <a-menu slot="overlay">
               <a-menu-item>
-                <router-link to="/my/admin/edit">编辑个人信息</router-link>
+                <router-link to="/user/admin/edit">编辑个人信息</router-link>
               </a-menu-item>
               <a-menu-item>
-                <router-link to="/my/admin/updatePwd">修改密码</router-link>
+                <router-link to="/user/admin/updatePwd">修改密码</router-link>
               </a-menu-item>
               <a-menu-item>
                 <a href="javascript:;" @click="logout">退出登录</a>
@@ -42,20 +28,27 @@
     <div class="container">
       <div class="file-page">
         <div v-if="$route.path !== '/login'" class="file-slider">
-          <a-menu theme="dark" v-model="current" @click="menuClick">
-            <template v-if="permission_routes.length">
-              <a-menu-item v-if="!route.hidden" v-for="route in permission_routes" :key="route.meta.active">
-                <router-link :to="route.redirect" :data-top-route="JSON.stringify(route)"><a-icon :type="route.meta.icon" />{{route.meta.title}}</router-link>
-              </a-menu-item>
-            </template>
-          </a-menu>
+          <div class="myTopMenu">
+            <a-menu theme="dark" v-model="current" @click="menuClick">
+              <template v-if="permission_routes.length">
+                <a-menu-item v-if="!route.hidden" v-for="route in permission_routes" :key="route.meta.active">
+                  <router-link :to="route.redirect" :data-top-route="JSON.stringify(route)">
+                    <p class="myMenuIcon"><span :class="`iconfont ${route.meta.icon}`"></span></p>
+                    <p class="myMenuTitle">{{route.meta.title}}</p>
+                  </router-link>
+                </a-menu-item>
+              </template>
+            </a-menu>
+          </div>
         </div>
-        <div class="file-main" :style="{ paddingLeft: $route.path !== '/login'? '150px': '0px' }">
-          <a-menu v-if="topRoute && topRoute.children && topRoute.children.length" v-model="currentChild" mode="horizontal">
-            <a-menu-item v-if="!rou.hidden" v-for="rou in topRoute.children" :key="`${topRoute.path}/${rou.path}`">
-              {{rou.meta.title}}
-            </a-menu-item>
-          </a-menu>
+        <div class="file-main" :style="{ paddingLeft: $route.path !== '/login'? '166px': '0px' }">
+          <div v-if="showSubMenu" class="mySubMenu">
+            <a-menu v-if="topRoute && topRoute.children && topRoute.children.length" v-model="currentChild" mode="horizontal">
+              <a-menu-item v-if="!rou.hidden" v-for="rou in topRoute.children" :key="`${topRoute.path}/${rou.path}`">
+                {{rou.meta.title}}
+              </a-menu-item>
+            </a-menu>
+          </div>
           <router-view/>
         </div>
       </div>
@@ -98,6 +91,14 @@ export default {
       },
       set (val) {
         this.$router.push({ path: val[0] || '/' })
+      }
+    },
+    showSubMenu () {
+      var hideSubMenuRoute = ['Login', 'TaskResult', 'MyEdit', 'MyUpdatePwd']
+      if (hideSubMenuRoute.indexOf(this.$route.name) !== -1) {
+        return false
+      } else {
+        return true
       }
     },
     ...mapGetters([
@@ -148,6 +149,7 @@ export default {
 </script>
 
 <style>
+@import './styles/font/iconfont.css';
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -162,7 +164,7 @@ export default {
 .header {
   height: 60px;
   width: 100%;
-  background-color: #303234;
+  background-color: #1a2025;
   display: flex;
   position: fixed;
   z-index: 1000;
@@ -179,100 +181,20 @@ export default {
   cursor: pointer;
 }
 .header .logo img {
-  max-height: 60px;
-  margin-right: 10px;
+  max-height: 27px;
+  margin-left: 30px;
 }
 .header .logo .logo_title {
   height: 60px;
   line-height: 60px;
   display: inline-block;
-  font-size: 20px;
+  font-size: 16px;
   color: #fff;
   /*letter-spacing: 1px;*/
   margin-left: 10px;
   margin-right: 10px;
 }
 
-.mymenu .ant-menu-horizontal {
-  line-height: 58px !important;
-  background-color: transparent !important;
-  border-bottom: none;
-}
-/*.mymenu .ant-menu-horizontal .ant-menu-submenu-horizontal .ant-menu-submenu-selected .ant-menu-submenu-title {
-  background-color: #1890ff;
-}*/
-
-.person-info {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.person-info .avatar {
-  display: flex;
-  justify-content: center;
-}
-.person-info .avatar img {
-  width: 28px;
-  height: 28px;
-  margin-right: 5px;
-}
-.person-info .my-name {
-  position: relative;
-  font-size: 16px;
-  color: #fff;
-  text-align: center;
-  cursor: pointer;
-  height: 60px;
-  padding-right: 17px;
-}
-.person-info .my-name .userName_title {
-  display: inline-block;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-.person-info .my-name:after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 28px;
-  display: inline-block;
-  height: 0;
-  width: 0;
-  border: 6px solid transparent;
-  border-top-color: #fff;
-}
-.person-info .my-name .my-opt {
-  width: 136px;
-  position: absolute;
-  right: 0;
-  top: 60px;
-  margin-left: -45px;
-  background-color: #2a2c2e;
-  box-shadow: 0 0 1px 0 rgba(10, 31, 68, 0.08), 0 8px 10px 0 rgba(10, 31, 68, 0.1);
-  border-radius: 4px;
-  padding: 6px 0;
-}
-.person-info .my-name .my-opt li {
-  color: #fff;
-  font-size: 14px;
-  height: 40px;
-  line-height: 40px;
-  text-align: left;
-}
-.person-info .my-name .my-opt li:hover {
-  background-color: #2a92fe;
-}
-.person-info .my-name .my-opt li span {
-  display: block;
-  margin: 0 10px;
-  padding-left: 10px;
-  border-bottom: 1px solid #434547;
-}
-.person-info .my-name .my-opt li:last-child span {
-  border-bottom: none;
-}
 .container {
   height: 100%;
   width: 100%;
@@ -289,17 +211,17 @@ export default {
   padding-top: 60px;
 }
 .file-slider {
-  width: 150px;
-  height: 100%;
+  width: 142px;
+  margin: 84px 24px 24px;
+  height: calc(100vh - 108px);
   overflow: auto;
-  background: #001529;
-  color: #fff;
+  background: #1a2025;
   position: fixed;
   left: 0;
+  top: 0;
   z-index: 9;
-  padding-top: 70px;
-  bottom: 0;
   letter-spacing: 1px;
+  border-radius: 10px;
 }
 .file-page .file-main {
   width: 100%;
@@ -310,30 +232,12 @@ export default {
 }
 
 /* 覆盖ant样式 */
-/*.mymenu .ant-menu {
-  color: #a2a2a2;
-}
-.mymenu .ant-menu-horizontal > .ant-menu-item > a {
-  color: #a2a2a2;
-}
-.mymenu .ant-menu-horizontal > .ant-menu-item-selected > a {
-  color: #1890ff;
-}*/
 .login-form .ant-input, .cut_catalog_dropdown .ant-input {
   background-color: #161616;
   border: 1px solid #3c3c3c;
   border-radius: 4px;
   font-size: 14px;
   color: #fff;
-}
-.desc-box .ant-descriptions-item-label {
-  color: #fff;
-}
-.desc-box .ant-descriptions-item-content {
-  color: #a2a2a2;
-}
-.desc-box .ant-descriptions-row > th, .desc-box .ant-descriptions-row > td {
-  padding-bottom: 5px;
 }
 
 .d-right .ant-tabs {
@@ -449,12 +353,5 @@ export default {
 .ant-transfer-list-body-customize-wrapper {
   height: calc(260px - 40px - 44px);
   overflow-y: scroll;
-}
-/*左侧tab*/
-.sliderWrap .ant-tabs {
-  color: #a2a2a2;
-}
-.sliderWrap .ant-tabs-tab-prev, .sliderWrap .ant-tabs-tab-next {
-  color: #a2a2a2;
 }
 </style>

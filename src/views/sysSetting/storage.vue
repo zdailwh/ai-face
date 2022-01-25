@@ -1,5 +1,5 @@
 <template>
-  <div class="faceContainer">
+  <div class="faceContainer mydesc">
     <a-descriptions bordered title="设备存储信息" size="middle" :column="{ xxl: 1, xl: 1, lg: 1, md: 1, sm: 1, xs: 1 }" style="margin-top: 20px;">
       <a-descriptions-item label="space_limit">
         {{ deviceInfo && deviceInfo.space_limit }}
@@ -184,9 +184,4 @@ export default {
 
 </script>
 <style scoped>
-.faceContainer {
-  width: 100%;
-  height: 100%;
-  background-color: #fff;
-}
 </style>

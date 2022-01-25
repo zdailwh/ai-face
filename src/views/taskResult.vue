@@ -77,10 +77,10 @@ export default {
     if (viewWidth < 768) {
       this.smallLayout = true
     }
-    var ele = document.querySelectorAll('.file-main')
-    if (ele.length) {
-      ele[0].style.backgroundColor = '#171819'
-    }
+    // var ele = document.querySelectorAll('.file-main')
+    // if (ele.length) {
+    //   ele[0].style.backgroundColor = '#171819'
+    // }
 
     this.taskId = this.$route.params.taskId
     if (this.taskId) {

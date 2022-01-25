@@ -56,7 +56,7 @@
           <template v-else><a-progress :percent="(record.processTime / record.duration * 100).toFixed(2)" /></template>
         </span>
       </a-table>
-      <div style="margin: 15px 0;text-align: right;">
+      <div class="mypagination">
         <a-pagination
           v-model="page_no"
           :page-size-options="pageSizeOptions"
@@ -236,9 +236,6 @@ export default {
     }
   },
   mounted () {
-    var ele = document.querySelectorAll('.file-main')
-    ele[0].style.backgroundColor = '#fff'
-
     var viewWidth = document.documentElement.clientWidth
     if (viewWidth < 540) {
       this.smallLayout = true
@@ -343,17 +340,4 @@ export default {
 
 </script>
 <style scoped>
-.faceContainer {
-  width: 100%;
-  height: 100%;
-  background-color: #fff;
-}
-.tableWrap {
-  width: 100%;
-  margin-top: 20px;
-}
-.searchWrap {
-  display: flex;
-  justify-content: space-between;
-}
 </style>

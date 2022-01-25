@@ -246,7 +246,7 @@ export const asyncRoutes = [
     path: '/queue',
     name: 'Queue',
     component: () => import('@/views/queue/index'),
-    meta: { title: '当前队列', active: 'queue', icon: 'flag' },
+    meta: { title: '当前队列', active: 'queue', icon: 'icon-mqxiaoxiduilieMQ-copy' },
     redirect: '/queue/my',
     children: [
       {
@@ -267,7 +267,7 @@ export const asyncRoutes = [
     path: '/taskbatch',
     name: 'TaskBatch',
     component: () => import('@/views/taskBatch/index'),
-    meta: { title: '任务管理', active: 'taskbatch', icon: 'schedule' },
+    meta: { title: '任务管理', active: 'taskbatch', icon: 'icon-renwuguanli-copy' },
     redirect: '/taskbatch/task',
     children: [
       {
@@ -288,7 +288,7 @@ export const asyncRoutes = [
     path: '/facegroup',
     name: 'FaceGroup',
     component: () => import('@/views/faceGroup/index'),
-    meta: { title: '人像库', active: 'facegroup', icon: 'smile' },
+    meta: { title: '人像库', active: 'facegroup', icon: 'icon-renxiang-copy' },
     redirect: '/facegroup/face',
     children: [
       {
@@ -309,7 +309,7 @@ export const asyncRoutes = [
     path: '/mode',
     name: 'Mode',
     component: () => import('@/views/mode/index'),
-    meta: { title: '审核模板', active: 'mode', icon: 'book' },
+    meta: { title: '审核模板', active: 'mode', icon: 'icon-shenpishenhe' },
     redirect: '/mode/list',
     children: [
       {
@@ -331,7 +331,7 @@ export const asyncRoutes = [
     path: '/adminsetting',
     name: 'AdminSetting',
     component: () => import('@/views/adminSetting/index'),
-    meta: { title: '用户管理', active: 'adminSetting', icon: 'user', roles: ['admin'] },
+    meta: { title: '用户管理', active: 'adminSetting', icon: 'icon-yonghuguanli', roles: ['admin'] },
     redirect: '/adminsetting/admin/index',
     children: [
       {
@@ -376,24 +376,26 @@ export const asyncRoutes = [
     ]
   },
   {
-    path: '/my',
-    name: 'My',
+    path: '/user',
+    name: 'User',
     component: () => import('@/views/adminSetting/index'),
-    redirect: '/my/admin/edit',
-    meta: { title: '个人账号', active: 'my' },
+    redirect: '/user/admin/edit',
+    meta: { title: '个人账号', active: 'User' },
     hidden: true,
     children: [
       {
         path: 'admin/edit',
         component: () => import('@/views/adminSetting/admin/edit'),
         name: 'MyEdit',
-        meta: { title: '编辑个人信息', active: 'my' }
+        meta: { title: '编辑个人信息', active: 'User' },
+        hidden: true
       },
       {
         path: 'admin/updatePwd',
         component: () => import('@/views/adminSetting/admin/updatePwd'),
         name: 'MyUpdatePwd',
-        meta: { title: '修改密码', active: 'my' }
+        meta: { title: '修改密码', active: 'User' },
+        hidden: true
       }
     ]
   },
@@ -401,7 +403,7 @@ export const asyncRoutes = [
     path: '/log',
     name: 'Log',
     component: () => import('@/views/log/index'),
-    meta: { title: '日志查询', active: 'log', icon: 'solution' },
+    meta: { title: '日志查询', active: 'log', icon: 'icon-rizhi' },
     redirect: '/log/list',
     children: [
       {
@@ -416,7 +418,7 @@ export const asyncRoutes = [
     path: '/syssetting',
     name: 'SysSetting',
     component: () => import('@/views/sysSetting/index'),
-    meta: { title: '系统设置', active: 'sysSetting', icon: 'control' },
+    meta: { title: '系统设置', active: 'sysSetting', icon: 'icon-xitong' },
     redirect: '/syssetting/sysinfo',
     children: [
       {

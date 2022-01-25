@@ -1,5 +1,5 @@
 <template>
-  <div style="padding: 5px 15px 0;">
+  <div>
     <router-view/>
   </div>
 </template>

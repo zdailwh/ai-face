@@ -1,5 +1,5 @@
 <template>
-  <div class="faceContainer">
+  <div class="faceContainer mydesc">
     <a-descriptions bordered title="软件信息" size="middle" style="margin-top: 20px;">
       <a-descriptions-item label="名称">
         {{ deviceInfo && deviceInfo.software && deviceInfo.software.name }}
@@ -102,9 +102,4 @@ export default {
 
 </script>
 <style scoped>
-.faceContainer {
-  width: 100%;
-  height: 100%;
-  background-color: #fff;
-}
 </style>
