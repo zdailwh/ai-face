@@ -5,7 +5,7 @@
         <a-collapse-panel :key="fid" :header="`${fItem[0].name} ${fItem.length}次`">
           <div class="faceList">
             <p class="faceItem" :class="{ currBox: currBoxKey === fid + '-' + k }" v-for="(it, k) in slicedTaskresult" :key="k" @click="changeBox(it, it.timepos, fid, k)">
-              <img v-if="it.image" v-lazy="`/api/admin/v1/getResultImage?filepath=${it.image}`" alt="人脸图">
+              <img v-if="it.thumbs" v-lazy="`/api/admin/v1/getResultImage?filepath=${it.thumbs}`" alt="人脸图">
               <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
               <span>{{ it.timepos | formateSeconds }}</span>
             </p>

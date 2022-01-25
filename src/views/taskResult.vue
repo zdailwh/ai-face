@@ -32,7 +32,7 @@
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <a-tabs :default-active-key="defaultActiveKey" size="small" @change="tabChange">
         <a-tab-pane key="1" tab="任务结果">
-          <Timeline :taskresult="resTimeFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
+          <Timeline ref="timeline" :taskresult="resTimeFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="2" tab="按人像查看">
           <Face :taskresult="resFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
@@ -267,15 +267,16 @@ export default {
     },
     videoImgFixed (hm) {
       document.getElementById('myvideo').currentTime = hm / 1000
-      this.$nextTick(function () {
-        var nodeId = 'point_' + hm
-        console.log(nodeId)
-        var node = document.getElementById(nodeId)
-        console.log(node)
-        if (node) {
-          document.querySelectorAll('.faceWrap')[0].scrollTop = (node.offsetTop - 60) <= 0 ? 0 : (node.offsetTop - 60)
-        }
-      })
+      this.$refs.timeline.timelineFix(hm)
+      // this.$nextTick(function () {
+      //   var nodeId = 'point_' + hm
+      //   console.log(nodeId)
+      //   var node = document.getElementById(nodeId)
+      //   console.log(node)
+      //   if (node) {
+      //     document.querySelectorAll('.faceWrap')[0].scrollTop = (node.offsetTop - 60) <= 0 ? 0 : (node.offsetTop - 60)
+      //   }
+      // })
     }
   }
 }

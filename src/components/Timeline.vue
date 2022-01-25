@@ -5,7 +5,7 @@
         <li :key="second" :id="'point_' + second"></li>
         <li class="list-item" v-if="fItem" :class="{ currBox: currBoxKey === second + '-' + k }" v-bind:key="second + '-' + k" v-for="(it, k) in fItem.items">
           <div class="img-box" @click="changeBox(fItem, second, k)">
-            <img v-if="fItem.image" v-lazy="`/api/admin/v1/getResultImage?filepath=${fItem.image}`" alt="人脸图">
+            <img v-if="fItem.thumbs" v-lazy="`/api/admin/v1/getResultImage?filepath=${fItem.thumbs}`" alt="人脸图">
             <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
           </div>
           <div class="desc-box">
@@ -70,13 +70,14 @@ export default {
       loading: false,
       busy: false,
       limit: 100,
-      page: 0
+      page: 0,
+      offset: 0
     }
   },
   watch: {
     taskresult (val, oldVal) {
       this.loading = true
-      var sliceKeys = Object.keys(this.taskresult).slice(this.page * this.limit, this.page * this.limit + this.limit)
+      var sliceKeys = Object.keys(this.taskresult).slice(this.page * this.limit + this.offset, this.page * this.limit + this.limit + this.offset)
       var sliceRes = {}
       for (var i = 0; i < this.limit; i++) {
         if (sliceKeys[i]) {
@@ -93,6 +94,25 @@ export default {
   mounted () {
   },
   methods: {
+    timelineFix (hm) {
+      this.slicedTaskresult = {}
+      this.page = 0
+      this.offset = Object.keys(this.taskresult).indexOf(hm + '')
+
+      this.loading = true
+      var sliceKeys = Object.keys(this.taskresult).slice(this.page * this.limit + this.offset, this.page * this.limit + this.limit + this.offset)
+      var sliceRes = {}
+      for (var i = 0; i < this.limit; i++) {
+        if (sliceKeys[i]) {
+          var k = sliceKeys[i] + ''
+          sliceRes[k] = this.taskresult[k]
+        }
+      }
+      this.slicedTaskresult = {...this.slicedTaskresult, ...sliceRes}
+
+      this.loading = false
+      this.page++
+    },
     changeBox (fItem, second, k) {
       this.$emit('videofixed', { currentTime: second, item: fItem })
       this.currBoxKey = second + '-' + k
@@ -130,11 +150,13 @@ export default {
         return
       }
 
-      var sliceKeys = Object.keys(this.taskresult).slice(this.page * this.limit, this.page * this.limit + this.limit)
+      var sliceKeys = Object.keys(this.taskresult).slice(this.page * this.limit + this.offset, this.page * this.limit + this.limit + this.offset)
       var sliceRes = {}
       for (var i = 0; i < this.limit; i++) {
-        var k = sliceKeys[i] + ''
-        sliceRes[k] = this.taskresult[k]
+        if (sliceKeys[i]) {
+          var k = sliceKeys[i] + ''
+          sliceRes[k] = this.taskresult[k]
+        }
       }
       this.slicedTaskresult = {...this.slicedTaskresult, ...sliceRes}
 

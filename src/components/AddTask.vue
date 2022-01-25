@@ -374,6 +374,7 @@ export default {
       filelist[startIdx].fileChunkList = fileChunkList
       console.log(startIdx + '切片个数：' + fileChunkList.length)
       filelist[startIdx].hash = await this.calculateHash(fileChunkList, filelist, startIdx)
+      filelist[startIdx].guid = filelist[startIdx].hash + '_' + new Date().getTime()
       console.log(startIdx + 'hash：' + filelist[startIdx].hash)
       await this.createTask(listItem, startIdx).then(async (response) => {
         console.log('创建任务返回' + startIdx + '/' + response.data.id)
@@ -427,6 +428,7 @@ export default {
       this.chunkData = fileChunkList.map(({ file }, index) => ({
         taskid: listItem.taskid,
         fileHash: listItem.hash,
+        guid: listItem.guid,
         index,
         hash: listItem.hash + '-' + index,
         chunk: file,
@@ -449,11 +451,11 @@ export default {
     async uploadChunks (filelist, startIdx, chunkData, uploadedList = []) {
       const requestList = chunkData
         .filter(({ hash }) => !uploadedList.includes(hash))
-        .map(({ taskid, fileHash, chunk, hash, index, size }) => {
+        .map(({ taskid, fileHash, chunk, hash, index, size, guid }) => {
           const formData = new FormData()
           formData.append('taskid', taskid)
           formData.append('chunk', index)
-          formData.append('guid', fileHash)
+          formData.append('guid', guid)
           formData.append('chunkTotal', chunkData.length)
           formData.append('file', chunk)
           return { formData, index }
@@ -495,7 +497,7 @@ export default {
     },
     // 通知服务端合并切片
     async mergeRequest (item) {
-      api.taskMergeFile({ taskid: item.taskid, guid: item.hash, fileName: item.file.name }).then(res => {
+      api.taskMergeFile({ taskid: item.taskid, guid: item.guid, fileName: item.file.name }).then(res => {
         if (res.data.code === 0) {
           item.percentage = 100
           // 合并成功后 将上传进度 从99 置为100
