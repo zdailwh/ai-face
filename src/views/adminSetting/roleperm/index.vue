@@ -32,8 +32,8 @@
           </template>
         </div>
         <div slot="menu" slot-scope="menu">
-          <template v-if="menu.length">
-            <p v-for="(it,k) in menu.split(',')" :key="k"> {{ it }}、 </p>
+          <template v-if="menu.length" v-for="(it,k) in menu.split(',')" >
+            <p v-if="it.indexOf('_') === -1" :key="k"> {{ it | toMenuTitle }}、 </p>
           </template>
         </div>
         <span slot="create_time" slot-scope="create_time">
@@ -148,6 +148,26 @@ export default {
     dateFormat (val) {
       if (val === '' || val === null) return ''
       return moment(val).format('YYYY-MM-DD HH:mm:ss')
+    },
+    toMenuTitle (val) {
+      if (val.indexOf('_') !== -1) {
+        return ''
+      } else {
+        var tit = ''
+        routes.map(item => {
+          if (item.name === val) {
+            tit = item.title
+          }
+          if (item.children) {
+            item.children.map(it => {
+              if (it.name === val) {
+                tit = it.title
+              }
+            })
+          }
+        })
+        return tit || val
+      }
     }
   },
   data () {

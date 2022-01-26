@@ -452,7 +452,7 @@ i {
 
 .tableWrap .ant-table-thead > tr > th,
 .tableWrap .ant-table-tbody > tr > td {
-  white-space: pre-line;
+  white-space: normal;
 }
 
 /*ant desc*/
