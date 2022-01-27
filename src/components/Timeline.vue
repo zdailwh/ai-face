@@ -95,6 +95,7 @@ export default {
   },
   methods: {
     timelineFix (hm) {
+      // 更新右侧数据
       this.slicedTaskresult = {}
       this.page = 0
       this.offset = Object.keys(this.taskresult).indexOf(hm + '')
@@ -112,6 +113,8 @@ export default {
 
       this.loading = false
       this.page++
+      // 列表第一个获取焦点 更新左下图片为对应图片 视频定位
+      this.changeBox(sliceRes[sliceKeys[0]], parseInt(sliceKeys[0]), 0)
     },
     changeBox (fItem, second, k) {
       this.$emit('videofixed', { currentTime: second, item: fItem })
@@ -188,6 +191,7 @@ export default {
   cursor: pointer;
 }
 .list-item.currBox {
+  border: 1px solid #f00;
   box-shadow: 0 0 10px 0 rgba(255,255,255,.7);
 }
 .list-item .img-box {

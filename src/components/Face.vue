@@ -149,6 +149,7 @@ export default {
   margin: 0 2px 5px;
 }
 .faceItem.currBox {
+  border: 1px solid #f00;
   box-shadow: 0 0 10px 0 rgba(255,255,255,.7);
 }
 .faceItem img {

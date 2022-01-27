@@ -266,7 +266,6 @@ export default {
       document.getElementById('myvideo').volume -= 0.3
     },
     videoImgFixed (hm) {
-      document.getElementById('myvideo').currentTime = hm / 1000
       this.$refs.timeline.timelineFix(hm)
       // this.$nextTick(function () {
       //   var nodeId = 'point_' + hm
