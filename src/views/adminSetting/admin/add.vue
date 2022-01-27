@@ -11,9 +11,9 @@
         <a-form-model-item label="密码" prop="password">
           <a-input v-model="formadd.password" />
         </a-form-model-item>
-        <a-form-model-item label="手机号" prop="mobile">
+        <!-- <a-form-model-item label="手机号" prop="mobile">
           <a-input v-model="formadd.mobile" />
-        </a-form-model-item>
+        </a-form-model-item> -->
         <a-form-model-item label="角色" prop="role_id">
           <a-select v-model="formadd.role_id" :allowClear="true">
             <a-select-option :value="item.value" v-for="item in optionsRoles" v-bind:key="item.value">
@@ -93,7 +93,7 @@ export default {
       formadd: {
         username: '',
         password: '',
-        mobile: '',
+        // mobile: '',
         role_id: ''
       },
       ruleValidate: {
@@ -104,10 +104,10 @@ export default {
         password: [
           { required: true, validator: validatePwd, trigger: 'blur' }
         ],
-        mobile: [
-          { required: false, message: '手机号码不能为空', trigger: 'blur' },
-          { type: 'string', message: '手机号格式不正确', length: 11, pattern: /^1[3|5|8|7]([0-9]{9})$/, trigger: 'blur' }
-        ],
+        // mobile: [
+        //   { required: false, message: '手机号码不能为空', trigger: 'blur' },
+        //   { type: 'string', message: '手机号格式不正确', length: 11, pattern: /^1[3|5|8|7]([0-9]{9})$/, trigger: 'blur' }
+        // ],
         role_id: [
           { required: true, message: '请选择用户角色！', trigger: 'blur' }
         ]
@@ -139,7 +139,7 @@ export default {
           this.formadd = {
             username: '',
             password: '',
-            mobile: '',
+            // mobile: '',
             role_id: ''
           }
           // this.$emit('changeVisible', false)

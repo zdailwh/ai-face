@@ -11,9 +11,9 @@
                {{currUser.username}} <img src="./assets/user.png" alt="" style="width: 28px; margin: 0 5px;"><a-icon type="down" />
             </a>
             <a-menu slot="overlay">
-              <a-menu-item>
+              <!-- <a-menu-item>
                 <router-link to="/user/admin/edit">编辑个人信息</router-link>
-              </a-menu-item>
+              </a-menu-item> -->
               <a-menu-item>
                 <router-link to="/user/admin/updatePwd">修改密码</router-link>
               </a-menu-item>
