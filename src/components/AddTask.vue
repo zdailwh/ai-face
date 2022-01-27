@@ -28,16 +28,16 @@
           <a-input v-model="addForm.url" :disabled="addForm.type === 1" />
         </a-form-model-item>
         <a-form-model-item label="模板" prop="mymode" :label-col="{span:3}" :wrapper-col="{span:21}">
-          <a-select v-model="addForm.mymode" :allowClear="true" @change="handleChangeMode">
+          <a-select v-model="addForm.mymode" :allowClear="true" @change="handleChangeMode" :disabled="true">
             <a-select-option :value="item.id" v-for="item in modesData" v-bind:key="item.id" :myitem="item">
               {{item.name}}
             </a-select-option>
-            <a-select-option :value="0">自定义</a-select-option>
+            <a-select-option :value="0">默认</a-select-option>
           </a-select>
         </a-form-model-item>
         <template v-if="addForm.mymode !== ''">
           <a-form-model-item label="帧率" prop="frame_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.frame_rate" :disabled="addForm.mymode !== 0">
+            <a-select v-model="addForm.frame_rate" :disabled="true">
               <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
               <a-select-option :value="10">10</a-select-option>
@@ -47,7 +47,7 @@
             </a-select>
           </a-form-model-item>
           <!-- <a-form-model-item label="动态帧率" prop="dynamic_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.dynamic_rate" :disabled="addForm.mymode !== 0 || addForm.frame_rate > 0" @change="handleChangeDynamicRate">
+            <a-select v-model="addForm.dynamic_rate" :disabled="true" @change="handleChangeDynamicRate">
               <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="5">5</a-select-option>
               <a-select-option :value="10">10</a-select-option>
@@ -57,7 +57,7 @@
             </a-select>
           </a-form-model-item> -->
           <a-form-model-item label="优先级" prop="prority" :label-col="{span:3}" :wrapper-col="{span:21}">
-            <a-select v-model="addForm.prority" :disabled="addForm.mymode !== 0">
+            <a-select v-model="addForm.prority" :disabled="true">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
           </a-form-model-item>
@@ -130,25 +130,53 @@ const SIZE = 32 * 1024 * 1024 // 切片大小
 export default {
   props: [ 'tag', 'datalist', 'currBatch', 'addVisible', 'facesData', 'modesData', 'groupsData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
   watch: {
+    addVisible (newVal, oldVal) {
+      if (newVal) {
+        var token = this.$store.state.authentication.token
+        if (token) {
+          var userObj = JSON.parse(token)
+          if (userObj.mode && userObj.mode.id) {
+            this.addForm.mymode = userObj.mode.id
+            this.addForm.frame_rate = userObj.mode.frame_rate
+            // this.addForm.dynamic_rate = userObj.mode.dynamic_rate
+            this.addForm.prority = userObj.mode.prority
+            this.addForm.groupId = userObj.mode.group_ids
+            this.updateParentData('targetKeys', userObj.mode.group_ids.split(','))
+          } else {
+            this.addForm.mymode = 0
+            this.addForm.frame_rate = 5
+            this.addForm.prority = 1
+            this.addForm.groupId = ''
+            this.updateParentData('targetKeys', ['0'])
+          }
+        } else {
+          this.addForm.mymode = 0
+          this.addForm.frame_rate = 5
+          this.addForm.prority = 1
+          this.addForm.groupId = ''
+          this.updateParentData('targetKeys', ['0'])
+        }
+      }
+    },
     currBatch (newVal, oldVal) {
       this.addForm.batch = newVal.name
-      this.addForm.mymode = newVal.mode_id ? newVal.mode_id : 0
-      if (this.addForm.mymode) {
-        this.modesData.map(item => {
-          if (item.id === this.addForm.mymode) {
-            this.addForm.frame_rate = item.frame_rate
-            // this.addForm.dynamic_rate = item.dynamic_rate
-            this.addForm.prority = item.prority
-            this.addForm.groupId = item.group_ids
-            this.updateParentData('targetKeys', item.group_ids.split(','))
-          }
-        })
-      } else {
-        this.addForm.frame_rate = 5
-        this.addForm.prority = 1
-        this.addForm.groupId = ''
-        this.updateParentData('targetKeys', ['0'])
-      }
+      // this.addForm.mymode = newVal.mode_id ? newVal.mode_id : 0
+      // if (this.addForm.mymode) {
+      //   this.modesData.map(item => {
+      //     if (item.id === this.addForm.mymode) {
+      //       this.addForm.frame_rate = item.frame_rate
+      //       // this.addForm.dynamic_rate = item.dynamic_rate
+      //       this.addForm.prority = item.prority
+      //       this.addForm.groupId = item.group_ids
+      //       this.updateParentData('targetKeys', item.group_ids.split(','))
+      //     }
+      //   })
+      // } else {
+      //   this.addForm.frame_rate = 5
+      //   this.addForm.prority = 1
+      //   this.addForm.groupId = ''
+      //   this.updateParentData('targetKeys', ['0'])
+      // }
     }
   },
   computed: {
@@ -321,7 +349,7 @@ export default {
     },
     getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
       return {
-        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled || this.addForm.mymode !== 0 } }),
+        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled || true } }),
         onSelectAll (selected, selectedRows) {
           const treeSelectedKeys = selectedRows
             .filter(item => !item.disabled)

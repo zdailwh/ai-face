@@ -37,9 +37,9 @@
             <router-link :to="{ path: '/facegroup/face', query: { groupId: it.id }}" :key="k">{{it.name}}|</router-link>
           </template>
         </span>
-        <span slot="users" slot-scope="users">
-          <template v-for="(it, k) in users">
-            <span :key="k">{{it.username}}|</span>
+        <span slot="user" slot-scope="user">
+          <template v-if="user && user.id">
+            <span>{{user.username}}</span>
             <!-- <router-link :to="{ path: '/setting/admin/index', query: { groupId: it }}" :key="k">{{it}}、</router-link> -->
           </template>
         </span>
@@ -47,18 +47,24 @@
           {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="record, index, idx">
-          <a @click="toEdit(record, idx)">编辑</a>
-          <a-divider type="vertical" />
-          <a-popconfirm
-            title="确定要删除该模板吗?"
-            ok-text="删除"
-            cancel-text="取消"
-            @confirm="delTemp(record, idx)"
-          >
-            <a>删除</a>
-          </a-popconfirm>
-          <a-divider type="vertical" />
-          <a @click="toModeAssign(record, idx)">关联用户</a>
+          <template v-if="currUser.level !== '' && currUser.level > 3">
+            <a @click="toEdit(record, idx)">编辑</a>
+            <a-divider type="vertical" />
+          </template>
+          <template v-if="currUser.level !== '' && currUser.level > 3">
+            <a-popconfirm
+              title="确定要删除该模板吗?"
+              ok-text="删除"
+              cancel-text="取消"
+              @confirm="delTemp(record, idx)"
+            >
+              <a>删除</a>
+            </a-popconfirm>
+            <a-divider type="vertical" />
+          </template>
+          <template v-if="currUser.level !== '' && currUser.level > 3">
+            <a @click="toModeAssign(record, idx)">关联用户</a>
+          </template>
           <!-- <a-divider type="vertical" />
           <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看关联用户<a-icon type="right" /></router-link> -->
         </span>
@@ -320,9 +326,9 @@ const columns = [
   },
   {
     title: '关联用户',
-    dataIndex: 'users',
-    key: 'users',
-    scopedSlots: { customRender: 'users' },
+    dataIndex: 'user',
+    key: 'user',
+    scopedSlots: { customRender: 'user' },
     width: 120
   },
   {

@@ -487,7 +487,7 @@ export default {
     if (process.env.NODE_ENV === 'production') {
       var res = await axios.put(`/api/face/v1/modeAssigned`, {
         mode_id: params.mode_id,
-        user_ids: params.user_ids
+        user_id: params.user_id
       })
       return res
     } else {

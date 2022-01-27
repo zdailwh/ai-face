@@ -5,9 +5,9 @@
     v-model="visible"
   >
     <div>
-      <a-form-model ref="form" :model="editform" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
-        <a-form-model-item label="选择人脸" :label-col="{span:3}" :wrapper-col="{span:21}">
-          <a-transfer
+      <a-form-model ref="form" :model="editform" :rules="ruleValidate"  :label-col="{span:4}" :wrapper-col="{span:20}">
+        <a-form-model-item label="选择用户">
+          <!-- <a-transfer
             :data-source="optionsUsers"
             :filter-option="filterOption"
             :showSelectAll="false"
@@ -48,7 +48,12 @@
                 >
               </a-table>
             </template>
-          </a-transfer>
+          </a-transfer> -->
+          <a-select v-model="editform.user_id">
+            <a-select-option :value="item.id" v-for="item in optionsUsers" v-bind:key="item.id">
+              {{item.username}}
+            </a-select-option>
+          </a-select>
         </a-form-model-item>
       </a-form-model>
     </div>
@@ -98,15 +103,22 @@ export default {
       }
     }
   },
+  watch: {
+    editItem (newVal, oldVal) {
+      if (newVal.user_id) {
+        this.editform.user_id = newVal.user_id
+      }
+    }
+  },
   data () {
     return {
       loading: false,
       userRoleItem: {},
       editform: {
-        user_ids: ''
+        user_id: ''
       },
       ruleValidate: {
-        user_ids: [
+        user_id: [
           { required: true, message: '请选择用户', trigger: 'change' }
         ]
       },
@@ -134,7 +146,7 @@ export default {
     tempAssign () {
       var param = {
         mode_id: this.editItem.id,
-        user_ids: this.targetUserIds
+        user_id: this.editform.user_id
       }
       this.loading = true
       api.tempAssign(param).then(response => {
