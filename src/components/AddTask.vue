@@ -136,9 +136,18 @@ export default {
       if (this.addForm.mymode) {
         this.modesData.map(item => {
           if (item.id === this.addForm.mymode) {
+            this.addForm.frame_rate = item.frame_rate
+            // this.addForm.dynamic_rate = item.dynamic_rate
+            this.addForm.prority = item.prority
+            this.addForm.groupId = item.group_ids
             this.updateParentData('targetKeys', item.group_ids.split(','))
           }
         })
+      } else {
+        this.addForm.frame_rate = 5
+        this.addForm.prority = 1
+        this.addForm.groupId = ''
+        this.updateParentData('targetKeys', ['0'])
       }
     }
   },
@@ -219,7 +228,7 @@ export default {
         // this.addForm.dynamic_rate = 0
         this.addForm.prority = 1
         this.addForm.groupId = ''
-        this.updateParentData('targetKeys', [0])
+        this.updateParentData('targetKeys', ['0'])
       }
     },
     // handleChangeFrameRate (val) {
