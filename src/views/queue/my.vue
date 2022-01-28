@@ -4,13 +4,16 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="任务单" prop="batchId">
+        <!-- <a-form-model-item label="任务单" prop="batchId">
           <a-select v-model="searchForm.batchId" :dropdownMatchSelectWidth="false" style="width: 120px;">
             <a-select-option value="">全部</a-select-option>
             <a-select-option :value="val.id" v-for="(val,key) in batchsDatalist" v-bind:key="key">
               {{val.name}}
             </a-select-option>
           </a-select>
+        </a-form-model-item> -->
+        <a-form-model-item label="任务单" prop="batchName">
+          <a-input v-model="searchForm.batchName" style="width: 120px;" />
         </a-form-model-item>
         <!-- <a-form-model-item label="状态" prop="status">
           <a-select v-model="searchForm.status" :dropdownMatchSelectWidth="false" style="width: 120px;">
@@ -22,11 +25,6 @@
         </a-form-model-item> -->
         <a-form-model-item label="任务名称" prop="name">
           <a-input v-model="searchForm.name" style="width: 120px;" />
-        </a-form-model-item>
-        <a-form-model-item label="优先级" prop="prority">
-          <a-select v-model="searchForm.prority" placeholder="选择优先级" style="width: 80px">
-            <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
-          </a-select>
         </a-form-model-item>
         <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
           <a-range-picker :locale="locale" v-model="searchForm.createTime" style="width: 220px;" />
@@ -40,8 +38,28 @@
     <!--搜索 end-->
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
-        <span slot="status" slot-scope="status" style="color: #87d068;">
-          {{status | statusFormat}}
+        <span slot="statusStr" slot-scope="statusStr, record">
+          {{statusStr}}<br>
+          <template v-if="record.status === 5">
+            <a-tag v-if="record.resultstatus === 1" color="#f50">发现敏感人物</a-tag>
+            <a-tag v-if="record.resultstatus === 0" color="#87d068">审核通过</a-tag>
+          </template>
+        </span>
+        <span slot="groups" slot-scope="groups">
+          <template v-if="groups.length">
+            <a-popover title="包含人像" trigger="click" arrow-point-at-center>
+              <template slot="content">
+                <template v-if="facesAboutGroup">
+                  <p v-for="(it, k) in facesAboutGroup" :key="k">{{it.name}}</p>
+                </template>
+              </template>
+              <p v-for="(item, key) in groups" :key="key"><a href="javascript:;" @click="getFacesByGroup(item.id)">{{item.name}}</a></p>
+            </a-popover>
+          </template>
+          <template v-else>全部人像</template>
+        </span>
+        <span slot="frame_rate" slot-scope="frame_rate">
+          {{frame_rate === 0 ? '源帧率' : frame_rate}}
         </span>
         <span slot="duration" slot-scope="duration">
           {{duration | formateSeconds}}
@@ -96,10 +114,10 @@ const statusArr = [
 
 const columns = [
   {
-    title: 'id',
-    dataIndex: 'id',
-    key: 'id',
-    width: 50
+    title: '用户',
+    dataIndex: 'user_name',
+    key: 'user_name',
+    width: 100
   },
   {
     title: '源文件名',
@@ -115,28 +133,11 @@ const columns = [
     width: 100
   },
   {
-    title: '模板',
-    dataIndex: 'modeName',
-    key: 'modeName',
-    width: 120
-  },
-  {
-    title: '人脸组',
-    dataIndex: 'group_ids',
-    key: 'group_ids',
-    width: 100
-  },
-  {
-    title: '帧率',
-    dataIndex: 'frame_rate',
-    key: 'frame_rate',
-    width: 60
-  },
-  {
-    title: '优先级',
-    dataIndex: 'prority',
-    key: 'prority',
-    width: 80
+    title: '状态',
+    dataIndex: 'statusStr',
+    key: 'statusStr',
+    scopedSlots: { customRender: 'statusStr' },
+    width: 150
   },
   {
     title: '进度',
@@ -146,11 +147,30 @@ const columns = [
     width: 120
   },
   {
-    title: '状态',
-    dataIndex: 'status',
-    key: 'status',
-    scopedSlots: { customRender: 'status' },
-    width: 100
+    title: '模板',
+    dataIndex: 'modeName',
+    key: 'modeName',
+    width: 120
+  },
+  {
+    title: '人像组',
+    dataIndex: 'groups',
+    key: 'groups',
+    scopedSlots: { customRender: 'groups' },
+    width: 120
+  },
+  {
+    title: '帧率',
+    dataIndex: 'frame_rate',
+    key: 'frame_rate',
+    scopedSlots: { customRender: 'frame_rate' },
+    width: 60
+  },
+  {
+    title: '优先级',
+    dataIndex: 'prority',
+    key: 'prority',
+    width: 80
   },
   {
     title: '创建时间',
@@ -186,9 +206,9 @@ export default {
       spinning: false,
       searchForm: {
         batchId: '',
+        batchName: '',
         status: '',
         name: '',
-        prority: null,
         createTime: []
       },
       datalist: [],
@@ -199,7 +219,8 @@ export default {
       columns,
       batchsDatalist: [],
       continueCircle: true, // 是否继续轮循
-      statusArr
+      statusArr,
+      facesAboutGroup: []
     }
   },
   filters: {
@@ -261,17 +282,17 @@ export default {
         page_no: this.page_no,
         page_size: this.page_size
       }
-      if (this.searchForm.batchId) {
-        params.batchId = this.searchForm.batchId
+      // if (this.searchForm.batchId) {
+      //   params.batchId = this.searchForm.batchId
+      // }
+      if (this.searchForm.batchName) {
+        params.batchName = this.searchForm.batchName
       }
       if (this.searchForm.status !== '') {
         params.status = this.searchForm.status
       }
       if (this.searchForm.name) {
         params.name = this.searchForm.name
-      }
-      if (this.searchForm.prority) {
-        params.prority = this.searchForm.prority
       }
       if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
         params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')
@@ -329,6 +350,30 @@ export default {
         // } else {
         //   this.$message.error('接口调用失败！')
         // }
+      })
+    },
+    getFacesByGroup (groupId) {
+      this.loadingFacesOfGroup = true
+      api.getGroupFaces({groupId: groupId}).then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          this.facesAboutGroup = resBody.data.item
+          this.loadingFacesOfGroup = false
+        } else {
+          this.$message.error(resBody.message || '请求出错！')
+        }
+      }).catch(error => {
+        this.loadingFacesOfGroup = false
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取人像库出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     }
   }

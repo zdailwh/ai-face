@@ -490,3 +490,15 @@ i {
   border: 1px solid #9aa1a8;
   color: #fdfdfd;
 }
+
+.smallNotify {
+  display: none;
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  background-color: #fff;
+  z-index: 2000;
+  cursor: pointer;
+}

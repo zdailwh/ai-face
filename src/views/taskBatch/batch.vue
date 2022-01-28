@@ -40,7 +40,7 @@
           <a-divider type="vertical" /> -->
           <a @click="toAddTask(record, idx)">追加任务</a>
           <a-divider type="vertical" />
-          <router-link :to="{ path: '/taskBatch/task', query: { batchId: record.id }}">查看任务<a-icon type="right" /></router-link>
+          <router-link :to="{ path: '/taskBatch/task', query: { batchId: record.id, batchName: record.name }}">查看任务<a-icon type="right" /></router-link>
         </span>
       </a-table>
       <div class="mypagination">
@@ -196,6 +196,9 @@ export default {
       var params = {
         page_no: this.page_no,
         page_size: this.page_size
+      }
+      if (this.searchForm.id) {
+        params.id = this.searchForm.id
       }
       if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
         params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')

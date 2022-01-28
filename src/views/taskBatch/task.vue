@@ -3,13 +3,16 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="任务单" prop="batchId">
+        <!-- <a-form-model-item label="任务单" prop="batchId">
           <a-select v-model="searchForm.batchId" :dropdownMatchSelectWidth="false" style="width: 120px;">
             <a-select-option value="">全部</a-select-option>
             <a-select-option :value="val.id" v-for="(val,key) in batchsDatalist" v-bind:key="key">
               {{val.name}}
             </a-select-option>
           </a-select>
+        </a-form-model-item> -->
+        <a-form-model-item label="任务单" prop="batchName">
+          <a-input v-model="searchForm.batchName" style="width: 120px;" />
         </a-form-model-item>
         <a-form-model-item label="状态" prop="status">
           <a-select v-model="searchForm.status" :dropdownMatchSelectWidth="false" style="width: 120px;">
@@ -22,9 +25,12 @@
         <a-form-model-item label="任务名称" prop="name">
           <a-input v-model="searchForm.name" style="width: 120px;" />
         </a-form-model-item>
-        <a-form-model-item label="优先级" prop="prority">
-          <a-select v-model="searchForm.prority" placeholder="选择优先级" style="width: 80px">
-            <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
+        <a-form-model-item label="用户" prop="user_id">
+          <a-select v-model="searchForm.user_id" :dropdownMatchSelectWidth="false" style="width: 100px;">
+            <a-select-option value="">全部</a-select-option>
+            <a-select-option :value="item.id" v-for="item in usersData" v-bind:key="item.id">
+              {{item.username}}
+            </a-select-option>
           </a-select>
         </a-form-model-item>
         <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
@@ -40,15 +46,24 @@
     <!--搜索 end-->
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
+        <span slot="batch_name" slot-scope="batch_name, record">
+          <a href="javascript:;" @click="searchForm.batchName = batch_name">{{batch_name}}</a>
+        </span>
         <span slot="groups" slot-scope="groups">
-          <a-popover title="包含人像" trigger="click" arrow-point-at-center>
-            <template slot="content">
-              <template v-if="facesAboutGroup">
-                <p v-for="(it, k) in facesAboutGroup" :key="k">{{it.name}}</p>
+          <template v-if="groups.length">
+            <a-popover title="包含人像" trigger="click" arrow-point-at-center>
+              <template slot="content">
+                <template v-if="facesAboutGroup">
+                  <p v-for="(it, k) in facesAboutGroup" :key="k">{{it.name}}</p>
+                </template>
               </template>
-            </template>
-            <p v-for="(item, key) in groups" :key="key"><a href="javascript:;" @click="getFacesByGroup(item.id)">{{item.name}}</a></p>
-          </a-popover>
+              <p v-for="(item, key) in groups" :key="key"><a href="javascript:;" @click="getFacesByGroup(item.id)">{{item.name}}</a></p>
+            </a-popover>
+          </template>
+          <template v-else>全部人像</template>
+        </span>
+        <span slot="frame_rate" slot-scope="frame_rate">
+          {{frame_rate === 0 ? '源帧率' : frame_rate}}
         </span>
         <span slot="statusStr" slot-scope="statusStr, record">
           {{statusStr}}<br>
@@ -141,6 +156,7 @@
 <script>
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import api from '@/api'
+import apiAdmin from '@/api/admin'
 import AddTask from '@/components/AddTask.vue'
 var moment = require('moment')
 
@@ -156,22 +172,15 @@ const statusArr = [
 ]
 const columns = [
   {
-    title: 'id',
-    dataIndex: 'id',
-    key: 'id',
-    width: 50
+    title: '用户',
+    dataIndex: 'user_name',
+    key: 'user_name',
+    width: 100
   },
   {
     title: '源文件名',
     dataIndex: 'file_name',
     key: 'file_name',
-    width: 150
-  },
-  {
-    title: '状态',
-    dataIndex: 'statusStr',
-    key: 'statusStr',
-    scopedSlots: { customRender: 'statusStr' },
     width: 150
   },
   {
@@ -182,13 +191,34 @@ const columns = [
     width: 100
   },
   {
+    title: '状态',
+    dataIndex: 'statusStr',
+    key: 'statusStr',
+    scopedSlots: { customRender: 'statusStr' },
+    width: 150
+  },
+  {
+    title: '进度',
+    dataIndex: 'process',
+    key: 'process',
+    scopedSlots: { customRender: 'process' },
+    width: 120
+  },
+  {
+    title: '任务单',
+    dataIndex: 'batch_name',
+    key: 'batch_name',
+    scopedSlots: { customRender: 'batch_name' },
+    width: 120
+  },
+  {
     title: '模板',
     dataIndex: 'modeName',
     key: 'modeName',
     width: 120
   },
   {
-    title: '人脸组',
+    title: '人像组',
     dataIndex: 'groups',
     key: 'groups',
     scopedSlots: { customRender: 'groups' },
@@ -198,6 +228,7 @@ const columns = [
     title: '帧率',
     dataIndex: 'frame_rate',
     key: 'frame_rate',
+    scopedSlots: { customRender: 'frame_rate' },
     width: 60
   },
   {
@@ -205,13 +236,6 @@ const columns = [
     dataIndex: 'prority',
     key: 'prority',
     width: 80
-  },
-  {
-    title: '进度',
-    dataIndex: 'process',
-    key: 'process',
-    scopedSlots: { customRender: 'process' },
-    width: 120
   },
   {
     title: '创建时间',
@@ -247,11 +271,13 @@ export default {
       spinning: false,
       searchForm: {
         batchId: '',
+        batchName: '',
         status: 5,
         name: '',
-        prority: null,
+        user_id: '',
         createTime: []
       },
+      usersData: [],
       datalist: [],
       dataTotal: 0,
       pageSizeOptions: ['10', '20', '30', '40', '50'],
@@ -302,15 +328,17 @@ export default {
   watch: {
     $route (newVal, oldVal) {
       if (newVal.query && newVal.query.batchId) {
-        // 查询分组人脸列表
-        this.searchForm.batchId = newVal.query.batchId
+        // 查询分组人像列表
+        // this.searchForm.batchId = newVal.query.batchId
+        this.searchForm.batchName = newVal.query.batchName
       }
     }
   },
   mounted () {
     if (this.$route.query && this.$route.query.batchId) {
-      // 查询分组人脸列表
-      this.searchForm.batchId = this.$route.query.batchId
+      // 查询分组人像列表
+      // this.searchForm.batchId = this.$route.query.batchId
+      this.searchForm.batchName = this.$route.query.batchName
     }
 
     var viewWidth = document.documentElement.clientWidth
@@ -322,6 +350,7 @@ export default {
     this.getAllBatchs()
     this.getAllTemps()
     this.getAllGroups()
+    this.getAllUsers()
   },
   methods: {
     onPageChange (current) {
@@ -344,8 +373,11 @@ export default {
         page_no: this.page_no,
         page_size: this.page_size
       }
-      if (this.searchForm.batchId) {
-        params.batchId = this.searchForm.batchId
+      // if (this.searchForm.batchId) {
+      //   params.batchId = this.searchForm.batchId
+      // }
+      if (this.searchForm.batchName) {
+        params.batchName = this.searchForm.batchName
       }
       if (this.searchForm.status !== '') {
         params.status = this.searchForm.status
@@ -353,8 +385,8 @@ export default {
       if (this.searchForm.name) {
         params.name = this.searchForm.name
       }
-      if (this.searchForm.prority) {
-        params.prority = this.searchForm.prority
+      if (this.searchForm.user_id) {
+        params.user_id = this.searchForm.user_id
       }
       if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
         params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')
@@ -585,10 +617,31 @@ export default {
           })
         }
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '获取人脸库出错！')
+          this.$message.error(error.response.data.message || '获取人像库出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
+      })
+    },
+    getAllUsers () {
+      apiAdmin.fetchList().then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          var userArr = resBody.data.item
+          this.usersData = userArr
+        }
+      }).catch(error => {
+        console.log(error)
+        if (error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        // if (error.response && error.response.data) {
+        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+        // } else {
+        //   this.$message.error('接口调用失败！')
+        // }
       })
     }
   }

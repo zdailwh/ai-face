@@ -6,17 +6,12 @@
         <a-form-model-item label="模板名称" prop="name">
           <a-input v-model="searchForm.name" style="width: 120px" />
         </a-form-model-item>
-        <a-form-model-item label="帧率" prop="frame_rate">
-          <a-select v-model="searchForm.frame_rate" placeholder="选择帧率" style="width: 120px">
-            <a-select-option :value="1">1</a-select-option>
-            <a-select-option :value="2">2</a-select-option>
-            <a-select-option :value="5">5</a-select-option>
-            <a-select-option :value="25">25</a-select-option>
-          </a-select>
-        </a-form-model-item>
-        <a-form-model-item label="优先级" prop="prority">
-          <a-select v-model="searchForm.prority" placeholder="选择优先级" style="width: 120px">
-            <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
+        <a-form-model-item label="用户" prop="user_id">
+          <a-select v-model="searchForm.user_id" :dropdownMatchSelectWidth="false" style="width: 100px;">
+            <a-select-option value="">全部</a-select-option>
+            <a-select-option :value="item.id" v-for="item in allUsers" v-bind:key="item.id">
+              {{item.username}}
+            </a-select-option>
           </a-select>
         </a-form-model-item>
         <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
@@ -33,7 +28,8 @@
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
         <span slot="groups" slot-scope="groups">
-          <template v-for="(it, k) in groups">
+          <template v-if="!groups">全部人像</template>
+          <template v-else v-for="(it, k) in groups">
             <router-link :to="{ path: '/facegroup/face', query: { groupId: it.id }}" :key="k">{{it.name}}|</router-link>
           </template>
         </span>
@@ -97,7 +93,7 @@
           <a-form-model-item label="名称" prop="name">
             <a-input v-model="addForm.name" />
           </a-form-model-item>
-          <a-form-model-item label="帧率" prop="frame_rate">
+          <a-form-model-item label="帧率" prop="frame_rate" extra="扫描检测时每秒时长抽取的画面帧数">
             <a-select v-model="addForm.frame_rate">
               <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -117,19 +113,19 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item> -->
-          <a-form-model-item label="优先级" prop="prority">
+          <a-form-model-item label="优先级" prop="prority" extra="数值越大，任务越先执行">
             <a-select v-model="addForm.prority">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="选择人脸组">
+          <a-form-model-item label="选择人像组">
             <a-transfer
               :data-source="groupsDatalist"
               :filter-option="filterOption"
               :showSelectAll="false"
               :showSearch="true"
               :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-              :titles="['人脸组', '目标']"
+              :titles="['人像组', '目标']"
               :target-keys="targetKeys"
               :selected-keys="selectedKeys"
               :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
@@ -191,7 +187,7 @@
           <a-form-model-item label="名称" prop="name">
             <a-input v-model="editForm.name" />
           </a-form-model-item>
-          <a-form-model-item label="帧率" prop="frame_rate">
+          <a-form-model-item label="帧率" prop="frame_rate" extra="扫描检测时每秒时长抽取的画面帧数">
             <a-select v-model="editForm.frame_rate">
               <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -211,19 +207,19 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item> -->
-          <a-form-model-item label="优先级" prop="prority">
+          <a-form-model-item label="优先级" prop="prority" extra="数值越大，任务越先执行">
             <a-select v-model="editForm.prority">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="选择人脸组">
+          <a-form-model-item label="选择人像组">
             <a-transfer
               :data-source="groupsDatalist"
               :filter-option="filterOption"
               :showSelectAll="false"
               :showSearch="true"
               :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-              :titles="['人脸组', '目标']"
+              :titles="['人像组', '目标']"
               :target-keys="targetKeys"
               :selected-keys="selectedKeys"
               :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
@@ -318,7 +314,7 @@ const columns = [
     width: 90
   },
   {
-    title: '人脸组',
+    title: '人像组',
     dataIndex: 'groups',
     key: 'groups',
     scopedSlots: { customRender: 'groups' },
@@ -386,8 +382,7 @@ export default {
       addVisible: false,
       searchForm: {
         name: '',
-        frame_rate: '',
-        prority: '',
+        user_id: '',
         createTime: []
       },
       editForm: {
@@ -457,11 +452,8 @@ export default {
       if (this.searchForm.name) {
         params.name = this.searchForm.name
       }
-      if (this.searchForm.frame_rate) {
-        params.frame_rate = this.searchForm.frame_rate
-      }
-      if (this.searchForm.prority) {
-        params.prority = this.searchForm.prority
+      if (this.searchForm.user_id) {
+        params.user_id = this.searchForm.user_id
       }
       if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
         params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')
@@ -485,7 +477,7 @@ export default {
           })
         }
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '获取人脸库出错！')
+          this.$message.error(error.response.data.message || '获取人像库出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
@@ -498,12 +490,12 @@ export default {
     handleAdd (e) {
       this.$refs.addform.validate((valid) => {
         if (valid) {
-          if (!this.addForm.frame_rate) {
+          if (this.addForm.frame_rate === '') {
             this.$message.error('请选择帧率！')
             return
           }
           if (!this.targetGroupIds.length) {
-            this.$message.error('请选择人脸组！')
+            this.$message.error('请选择人像组！')
             return
           } else {
             this.addForm.group_ids = this.targetGroupIds.join(',')
@@ -565,12 +557,12 @@ export default {
     handleEdit () {
       this.$refs.editform.validate((valid) => {
         if (valid) {
-          if (!this.editForm.frame_rate) {
+          if (this.editForm.frame_rate === '') {
             this.$message.error('请选择帧率！')
             return
           }
           if (!this.targetGroupIds.length) {
-            this.$message.error('请选择人脸组！')
+            this.$message.error('请选择人像组！')
             return
           }
           var params = {

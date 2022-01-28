@@ -10,7 +10,7 @@
     <div>
       <a-form-model ref="form" :model="addForm" :rules="ruleValidate">
         <a-form-model-item label="任务单名称" prop="batch" :label-col="{span:3}" :wrapper-col="{span:21}">
-          <a-input v-model="addForm.batch" :disabled="!!(batch && batch.id)" />
+          <a-input v-model="addForm.batch" placeholder="任务单是一批相同条件的文件任务合集，如不填默认以当前时间命名" :disabled="!!(batch && batch.id)" />
         </a-form-model-item>
         <a-form-model-item label="上传视频" v-if="addForm.type === 1" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-upload
@@ -36,7 +36,7 @@
           </a-select>
         </a-form-model-item>
         <template v-if="addForm.mymode !== ''">
-          <a-form-model-item label="帧率" prop="frame_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <a-form-model-item label="帧率" prop="frame_rate" :label-col="{span:3}" :wrapper-col="{span:21}" extra="扫描检测时每秒时长抽取的画面帧数">
             <a-select v-model="addForm.frame_rate" :disabled="true">
               <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -56,7 +56,7 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item> -->
-          <a-form-model-item label="优先级" prop="prority" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <a-form-model-item label="优先级" prop="prority" :label-col="{span:3}" :wrapper-col="{span:21}" extra="数值越大，任务越先执行">
             <a-select v-model="addForm.prority" :disabled="true">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
@@ -125,7 +125,9 @@
 <script>
 import difference from 'lodash/difference'
 import api from '../api'
+import bigimg from '@/assets/big.png'
 
+var moment = require('moment')
 const SIZE = 32 * 1024 * 1024 // 切片大小
 export default {
   props: [ 'tag', 'datalist', 'currBatch', 'addVisible', 'facesData', 'modesData', 'groupsData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
@@ -137,11 +139,11 @@ export default {
           var userObj = JSON.parse(token)
           if (userObj.mode && userObj.mode.id) {
             this.addForm.mymode = userObj.mode.id
-            this.addForm.frame_rate = userObj.mode.frame_rate
+            this.addForm.frame_rate = userObj.mode.frameRate
             // this.addForm.dynamic_rate = userObj.mode.dynamic_rate
             this.addForm.prority = userObj.mode.prority
-            this.addForm.groupId = userObj.mode.group_ids
-            this.updateParentData('targetKeys', userObj.mode.group_ids.split(','))
+            this.addForm.groupId = userObj.mode.groupIds
+            this.updateParentData('targetKeys', userObj.mode.groupIds.split(','))
           } else {
             this.addForm.mymode = 0
             this.addForm.frame_rate = 5
@@ -278,20 +280,42 @@ export default {
       this.$refs.form.validate(async (valid) => {
         if (valid) {
           if (this.currBatch && this.currBatch.id) {
-            await this.createTasks(this.filterList, 0)
             this.updateParentData('addVisible', false) // 创建窗口消失
             this.createNotification(this.filterList) // 显示进度浮窗
+            await this.createTasks(this.filterList, 0)
           } else {
-            api.addBatch({name: this.addForm.batch, mode_id: this.addForm.mymode}).then(async res => {
-              if (res.data.code === 0) {
-                this.newBatch = res.data.data
-                await this.createTasks(this.filterList, 0)
-                this.updateParentData('addVisible', false) // 创建窗口消失
-                this.createNotification(this.filterList) // 显示进度浮窗
-              } else {
-                this.$message.error(res.data.message || '请求出错！')
-              }
-            })
+            if (!this.addForm.batch) {
+              var _this = this
+              this.$confirm({
+                title: '任务单是一批相同条件的文件任务合集，如不填默认以当前时间命名，确定提交？',
+                okText: '确认',
+                cancelText: '取消',
+                onOk () {
+                  api.addBatch({name: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'), mode_id: _this.addForm.mymode}).then(async res => {
+                    if (res.data.code === 0) {
+                      _this.newBatch = res.data.data
+                      _this.updateParentData('addVisible', false) // 创建窗口消失
+                      _this.createNotification(_this.filterList) // 显示进度浮窗
+                      await _this.createTasks(_this.filterList, 0)
+                    } else {
+                      _this.$message.error(res.data.message || '请求出错！')
+                    }
+                  })
+                },
+                onCancel () {}
+              })
+            } else {
+              api.addBatch({name: this.addForm.batch, mode_id: this.addForm.mymode}).then(async res => {
+                if (res.data.code === 0) {
+                  this.newBatch = res.data.data
+                  this.updateParentData('addVisible', false) // 创建窗口消失
+                  this.createNotification(this.filterList) // 显示进度浮窗
+                  await this.createTasks(this.filterList, 0)
+                } else {
+                  this.$message.error(res.data.message || '请求出错！')
+                }
+              })
+            }
           }
         } else {
           console.log('error submit!!')
@@ -300,6 +324,16 @@ export default {
       })
     },
     createNotification (list) {
+      if (!document.querySelector('#smallNotify')) {
+        var mydiv = document.createElement('div')
+        mydiv.setAttribute('class', 'smallNotify')
+        mydiv.setAttribute('id', 'smallNotify')
+        var icon = document.createElement('img')
+        icon.setAttribute('src', bigimg)
+        mydiv.append(icon)
+        document.body.append(mydiv)
+      }
+      var _this = this
       this.$notification.open({
         message: `上传进度`,
         key: 'uploadProgress',
@@ -320,6 +354,14 @@ export default {
             ])
           })
           return h('div', null, pers)
+        },
+        onClose () {
+          document.querySelector('#smallNotify').style.display = 'block'
+          document.querySelector('#smallNotify').addEventListener('click', function () {
+            document.querySelector('#smallNotify').style.display = 'none'
+            _this.createNotification(_this.filterList)
+          })
+          return false
         }
       })
     },
@@ -349,7 +391,7 @@ export default {
     },
     getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
       return {
-        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled || true } }),
+        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled } }),
         onSelectAll (selected, selectedRows) {
           const treeSelectedKeys = selectedRows
             .filter(item => !item.disabled)

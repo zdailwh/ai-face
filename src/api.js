@@ -252,10 +252,16 @@ export default {
         opts.page_no = params.page_no - 1
       }
       if (params && params.name) {
-        opts.name = params.name
+        opts.name = 'like_' + params.name
       }
       if (params && params.batchId) {
         opts.batchId = params.batchId
+      }
+      if (params && params.batchName) {
+        opts.batchName = 'like_' + params.batchName
+      }
+      if (params && params.user_id) {
+        opts.userId = params.user_id
       }
       if (params && params.status && params.status !== '') {
         opts.status = params.status
@@ -283,10 +289,16 @@ export default {
         opts.page_no = params.page_no - 1
       }
       if (params && params.name) {
-        opts.name = params.name
+        opts.name = 'like_' + params.name
       }
       if (params && params.batchId) {
         opts.batchId = params.batchId
+      }
+      if (params && params.batchName) {
+        opts.batchName = 'like_' + params.batchName
+      }
+      if (params && params.user_id) {
+        opts.userId = params.user_id
       }
       if (params && params.status && params.status !== '') {
         opts.status = params.status
@@ -314,10 +326,16 @@ export default {
         opts.page_no = params.page_no - 1
       }
       if (params && params.name) {
-        opts.name = params.name
+        opts.name = 'like_' + params.name
       }
       if (params && params.batchId) {
         opts.batchId = params.batchId
+      }
+      if (params && params.batchName) {
+        opts.batchName = 'like_' + params.batchName
+      }
+      if (params && params.user_id) {
+        opts.userId = params.user_id
       }
       if (params && params.status && params.status !== '') {
         opts.status = params.status
@@ -407,6 +425,12 @@ export default {
       if (params && params.name) {
         opts.name = params.name
       }
+      if (params && params.id) {
+        opts.id = params.id
+      }
+      if (params && params.createTime) {
+        opts.createTime = params.createTime
+      }
       var res = await axios.get(`/api/face/v1/batch`, {
         params: opts
       })
@@ -464,11 +488,8 @@ export default {
       if (params && params.name) {
         opts.name = params.name
       }
-      if (params && params.frame_rate) {
-        opts.frameRate = params.frame_rate
-      }
-      if (params && params.prority) {
-        opts.prority = params.prority
+      if (params && params.user_id) {
+        opts.userId = params.user_id
       }
       if (params && params.createTime) {
         opts.createTime = params.createTime

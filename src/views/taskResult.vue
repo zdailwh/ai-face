@@ -4,7 +4,7 @@
       <div class="media-wrapper">
         <div class="media-player">
           <div class="playwrap">
-            <video src="" video controls="controls" id="myvideo"></video>
+            <video src="" width="100%" video controls="controls" id="myvideo"></video>
             <div v-if="showLineControl" class="lineParent">
               <div v-for="it in timePoints" :key="it" class="point" :style="{ left: (it / task.duration * 100).toFixed(2) + '%' }" @click="videoImgFixed(it)"></div>
             </div>
@@ -98,7 +98,8 @@ export default {
           this.task = resBody.data
           if (this.task && this.task.file_path && this.task.file_path !== 'undefined') {
             var halfH = document.querySelectorAll('.locationDetailWrap')[0].clientHeight
-            document.getElementById('myvideo').style.height = (halfH - 48) + 'px'
+            // document.getElementById('myvideo').style.height = (halfH - 48) + 'px'
+            document.getElementById('myvideo').setAttribute('height', halfH - 48)
             document.getElementById('myvideo').setAttribute('src', '/resource/' + this.task.file_path)
             document.querySelectorAll('.detailImgBox')[0].style.height = (halfH - 44 - 20) + 'px'
             // this.createPlayer()
