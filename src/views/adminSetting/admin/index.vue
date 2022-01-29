@@ -231,7 +231,7 @@ export default {
         }
       }).catch(error => {
         this.listLoading = false
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           this.$store.dispatch('authentication/resetToken').then(() => {
             this.$router.push({ path: '/login' })
           })
@@ -269,7 +269,7 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           this.$store.dispatch('authentication/resetToken').then(() => {
             this.$router.push({ path: '/login' })
           })
@@ -290,7 +290,7 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           this.$store.dispatch('authentication/resetToken').then(() => {
             this.$router.push({ path: '/login' })
           })
@@ -311,7 +311,7 @@ export default {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           this.$store.dispatch('authentication/resetToken').then(() => {
             this.$router.push({ path: '/login' })
           })
@@ -349,7 +349,7 @@ export default {
           this.$message.error(resBody.message || '请求出错！')
         }
       }).catch(error => {
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           this.$store.dispatch('authentication/resetToken').then(() => {
             this.$router.push({ path: '/login' })
           })

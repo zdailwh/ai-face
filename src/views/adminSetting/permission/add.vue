@@ -92,7 +92,7 @@ export default {
         }
       }).catch((error) => {
         this.loading = false
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           this.$store.dispatch('authentication/resetToken').then(() => {
             this.$router.push({ path: '/login' })
           })

@@ -181,7 +181,7 @@ export default {
         }
       }).catch(error => {
         this.addLoading = false
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           this.$store.dispatch('authentication/resetToken').then(() => {
             this.$router.push({ path: '/login' })
           })
@@ -194,6 +194,7 @@ export default {
       })
     },
     delFeature (feature) {
+      var _this = this
       this.$confirm({
         content: '确定要删除该人像特征图吗？',
         okText: '继续删除',
@@ -201,21 +202,21 @@ export default {
         onOk () {
           api.delFeature({ id: feature.id }).then(res => {
             if (res.data.code === 0) {
-              this.$emit('getfacelist')
-              this.$message.success('特征图删除成功')
+              _this.$emit('getfacelist')
+              _this.$message.success('特征图删除成功')
             } else {
-              this.$message.error(res.data.message || '请求出错！')
+              _this.$message.error(res.data.message || '请求出错！')
             }
           }).catch(error => {
-            if (error.response.status === 401) {
-              this.$store.dispatch('authentication/resetToken').then(() => {
-                this.$router.push({ path: '/login' })
+            if (error.response && error.response.status === 401) {
+              _this.$store.dispatch('authentication/resetToken').then(() => {
+                _this.$router.push({ path: '/login' })
               })
             }
             if (error.response && error.response.data) {
-              this.$message.error(error.response.data.message || '删除出错！')
+              _this.$message.error(error.response.data.message || '删除出错！')
             } else {
-              this.$message.error('接口调用失败！')
+              _this.$message.error('接口调用失败！')
             }
           })
         },
