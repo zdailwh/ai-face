@@ -331,6 +331,9 @@ export default {
         var icon = document.createElement('img')
         icon.setAttribute('src', bigimg)
         mydiv.append(icon)
+        var p = document.createElement('p')
+        p.innerHTML = '上传进度'
+        mydiv.append(p)
         document.body.append(mydiv)
       }
       var _this = this
@@ -345,15 +348,18 @@ export default {
               h('div', null, [h('p', { style: { color: '#1890ff' } }, item.file.name)]),
               h('div', { style: { display: 'flex' } }, [
                 h('p', { style: { width: '90px', color: '#999' } }, 'hash进度'),
-                h('a-progress', {props: { size: 'small', status: 'active', percent: item.percentageHash }})
+                h('a-progress', { props: { size: 'small', status: 'active', percent: item.percentageHash } })
               ]),
               h('div', { style: { display: 'flex' } }, [
                 h('p', { style: { width: '90px', color: '#999' } }, '上传进度'),
-                h('a-progress', {props: { size: 'small', status: 'active', percent: item.percentage }})
+                h('a-progress', { props: { size: 'small', status: 'active', percent: item.percentage } })
               ])
             ])
           })
           return h('div', null, pers)
+        },
+        closeIcon: (h) => {
+          return h('a-icon', { props: { type: 'minus' } })
         },
         onClose () {
           document.querySelector('#smallNotify').style.display = 'block'

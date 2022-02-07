@@ -449,6 +449,9 @@ i {
   padding: 15px 5px 15px 15px;
   text-align: right;
 }
+.mypagination .ant-pagination-total-text {
+  color: #fff;
+}
 
 .tableWrap .ant-table-thead > tr > th,
 .tableWrap .ant-table-tbody > tr > td {
@@ -493,12 +496,20 @@ i {
 
 .smallNotify {
   display: none;
-  width: 20px;
-  height: 20px;
+  width: 56px;
+  height: 50px;
   position: absolute;
   bottom: 24px;
   right: 24px;
   background-color: #fff;
   z-index: 2000;
   cursor: pointer;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+  color: #666;
+  border-radius: 4px;
+}
+.smallNotify > img {
+  max-height: 30px;
 }
