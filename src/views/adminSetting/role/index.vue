@@ -44,6 +44,7 @@
           v-model="listQuery.page"
           :page-size-options="pageSizeOptions"
           :total="total"
+          :show-total="total => `共 ${total} 条`"
           show-size-changer
           :page-size="listQuery.limit"
           @showSizeChange="onShowSizeChange"

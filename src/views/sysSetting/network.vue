@@ -11,6 +11,7 @@
           v-model="page_no"
           :page-size-options="pageSizeOptions"
           :total="dataTotal"
+          :show-total="total => `共 ${total} 条`"
           show-size-changer
           :page-size="page_size"
           @showSizeChange="onShowSizeChange"
