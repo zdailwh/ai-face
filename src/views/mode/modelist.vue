@@ -445,6 +445,7 @@ export default {
       this.$refs[formName].resetFields()
     },
     getTemps () {
+      document.querySelector('.ant-table-body').scrollTop = 0
       var params = {
         page_no: this.page_no,
         page_size: this.page_size

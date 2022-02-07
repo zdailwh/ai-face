@@ -138,7 +138,7 @@ const columns = [
     title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' },
-    width: 200
+    width: 210
   }
 ]
 
@@ -258,6 +258,7 @@ export default {
       this.getList()
     },
     getList () {
+      document.querySelector('.ant-table-body').scrollTop = 0
       this.listLoading = true
       apiRoleperm.fetchList(this.listQuery).then(res => {
         this.listLoading = false

@@ -125,7 +125,7 @@ const columns = [
     title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' },
-    width: 120
+    width: 160
   }
 ]
 
@@ -193,6 +193,7 @@ export default {
       this.$refs[formName].resetFields()
     },
     getBatchs () {
+      document.querySelector('.ant-table-body').scrollTop = 0
       var params = {
         page_no: this.page_no,
         page_size: this.page_size

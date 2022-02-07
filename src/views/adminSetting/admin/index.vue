@@ -219,6 +219,7 @@ export default {
       this.getList()
     },
     getList () {
+      document.querySelector('.ant-table-body').scrollTop = 0
       this.listLoading = true
       apiAdmin.fetchList(this.listQuery).then(res => {
         this.listLoading = false
