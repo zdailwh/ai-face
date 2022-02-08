@@ -452,6 +452,10 @@ i {
 .mypagination .ant-pagination-total-text {
   color: #fff;
 }
+.mypagination .ant-pagination-jump-next .ant-pagination-item-container .ant-pagination-item-ellipsis,
+.mypagination .ant-pagination-jump-prev .ant-pagination-item-container .ant-pagination-item-ellipsis {
+  color: #fff;
+}
 
 .tableWrap .ant-table-thead > tr > th,
 .tableWrap .ant-table-tbody > tr > td {

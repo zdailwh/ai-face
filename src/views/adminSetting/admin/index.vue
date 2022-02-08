@@ -18,7 +18,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="list" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="list" :scroll="{ x: true, y: tableHeight }" size="middle" rowKey="id" :pagination="false">
         <span slot="level" slot-scope="level">
           {{level | levelFilter}}
         </span>
@@ -158,6 +158,7 @@ export default {
       columns,
       pageSizeOptions: ['10', '20', '30', '40', '50'],
       smallLayout: false,
+      tableHeight: 0,
       list: null,
       total: 0,
       listLoading: true,
@@ -207,6 +208,10 @@ export default {
       this.smallLayout = true
     }
 
+    var viewHeight = document.documentElement.clientHeight
+    var searchH = document.querySelector('.searchWrap') ? (document.querySelector('.searchWrap').clientHeight + 20) : 0
+    this.tableHeight = viewHeight - 60 - (60 + 24 * 2) - searchH - (32 + 15 * 2) - 24 - 54
+
     this.getList()
     this.getAllRoles()
   },
@@ -220,7 +225,9 @@ export default {
       this.getList()
     },
     getList () {
-      document.querySelector('.ant-table-body').scrollTop = 0
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.listLoading = true
       apiAdmin.fetchList(this.listQuery).then(res => {
         this.listLoading = false

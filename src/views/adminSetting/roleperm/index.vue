@@ -22,7 +22,7 @@
     <!--搜索 end-->
 
     <div class="tableWrap" v-if="listPermsOfRole.length">
-      <a-table :columns="columns" :data-source="listPermsOfRole" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="listPermsOfRole" :scroll="{ x: true, y: tableHeight }" size="middle" rowKey="id" :pagination="false">
         <span slot="role" slot-scope="role">
           {{ role && role.name }}
         </span>
@@ -177,6 +177,7 @@ export default {
       columns,
       pageSizeOptions: ['10', '20', '30', '40', '50'],
       smallLayout: false,
+      tableHeight: 0,
       isVisitor: (Cookies.get('Programme-isVisitor') && JSON.parse(Cookies.get('Programme-isVisitor'))) || false,
       list: null,
       total: 0,
@@ -244,6 +245,10 @@ export default {
       this.smallLayout = true
     }
 
+    var viewHeight = document.documentElement.clientHeight
+    var searchH = document.querySelector('.searchWrap') ? (document.querySelector('.searchWrap').clientHeight + 20) : 0
+    this.tableHeight = viewHeight - 60 - (60 + 24 * 2) - searchH - (32 + 15 * 2) - 24 - 54
+
     this.getAllPermissions()
     this.getAllRoles()
     // this.getList()
@@ -259,7 +264,9 @@ export default {
       this.getList()
     },
     getList () {
-      document.querySelector('.ant-table-body').scrollTop = 0
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.listLoading = true
       apiRoleperm.fetchList(this.listQuery).then(res => {
         this.listLoading = false

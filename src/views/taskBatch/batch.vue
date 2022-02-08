@@ -15,7 +15,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: tableHeight }" size="middle" rowKey="id" :pagination="false">
         <span slot="status" slot-scope="status" style="color: #87d068;">
           {{status === 0? '初始化': status === 1? '排队中' : status === 2? '处理中' : '处理完成'}}
         </span>
@@ -141,6 +141,7 @@ export default {
       stream_type: 'offline',
       smallLayout: false,
       spinning: false,
+      tableHeight: 0,
       searchForm: {
         createTime: []
       },
@@ -173,6 +174,10 @@ export default {
       this.smallLayout = true
     }
 
+    var viewHeight = document.documentElement.clientHeight
+    var searchH = document.querySelector('.searchWrap') ? (document.querySelector('.searchWrap').clientHeight + 20) : 0
+    this.tableHeight = viewHeight - 60 - (60 + 24 * 2) - searchH - (32 + 15 * 2) - 24 - 54
+
     this.getBatchs()
     this.getAllTemps()
     this.getAllGroups()
@@ -194,7 +199,9 @@ export default {
       this.$refs[formName].resetFields()
     },
     getBatchs () {
-      document.querySelector('.ant-table-body').scrollTop = 0
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       var params = {
         page_no: this.page_no,
         page_size: this.page_size

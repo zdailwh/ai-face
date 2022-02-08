@@ -1,7 +1,7 @@
 <template>
   <div class="faceContainer">
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="name" :pagination="false">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: tableHeight }" size="middle" rowKey="name" :pagination="false">
         <span slot="action" slot-scope="record, index, idx">
           <a @click="toEdit(record, idx)">编辑</a>
         </span>
@@ -121,6 +121,7 @@ export default {
       locale,
       smallLayout: false,
       spinning: false,
+      tableHeight: 0,
       datalist: [],
       dataTotal: 0,
       pageSizeOptions: ['10', '20', '30', '40', '50'],
@@ -172,6 +173,10 @@ export default {
       this.smallLayout = true
     }
 
+    var viewHeight = document.documentElement.clientHeight
+    var searchH = document.querySelector('.searchWrap') ? (document.querySelector('.searchWrap').clientHeight + 20) : 0
+    this.tableHeight = viewHeight - 60 - (60 + 24 * 2) - searchH - (32 + 15 * 2) - 24 - 54
+
     this.getNetworks()
   },
   methods: {
@@ -191,7 +196,9 @@ export default {
       this.$refs[formName].resetFields()
     },
     getNetworks () {
-      document.querySelector('.ant-table-body').scrollTop = 0
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       var params = {
         page_no: this.page_no,
         page_size: this.page_size

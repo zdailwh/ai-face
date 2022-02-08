@@ -18,7 +18,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: 600 }" size="middle" rowKey="id" :pagination="false">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: tableHeight }" size="middle" rowKey="id" :pagination="false">
         <span slot="faceNames" slot-scope="faceNames">
           {{faceNames.join(',')}}
         </span>
@@ -210,6 +210,7 @@ export default {
     return {
       locale,
       smallLayout: false,
+      tableHeight: 0,
       spinning: false,
       datalist: [],
       dataTotal: 0,
@@ -255,6 +256,10 @@ export default {
       this.smallLayout = true
     }
 
+    var viewHeight = document.documentElement.clientHeight
+    var searchH = document.querySelector('.searchWrap') ? (document.querySelector('.searchWrap').clientHeight + 20) : 0
+    this.tableHeight = viewHeight - 60 - (60 + 24 * 2) - searchH - (32 + 15 * 2) - 24 - 54
+
     this.getGroups()
     this.getAllFaces()
   },
@@ -275,7 +280,9 @@ export default {
       this.$refs[formName].resetFields()
     },
     getGroups () {
-      document.querySelector('.ant-table-body').scrollTop = 0
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       var params = {
         page_no: this.page_no,
         page_size: this.page_size
