@@ -46,7 +46,7 @@
           </template>
           <!-- <a-button size="small" type="primary" icon="scissor" @click="startCrop" v-if="!crap">开始截图</a-button>
           <a-button size="small" type="primary" icon="scissor" @click="stopCrop" v-else>停止截图</a-button> -->
-          <a-button size="small" type="primary" ghost icon="zoom-in" @click="changeScale(1)">放大</a-button>
+          <a-button size="small" type="primary" ghost icon="zoom-in" :disabled="disableScaleBig" @click="changeScale(1)">放大</a-button>
           <a-button size="small" type="primary" ghost icon="zoom-out" @click="changeScale(-1)">缩小</a-button>
           <a-button size="small" type="primary" ghost @click="rotateLeft">↺ 左旋转</a-button>
           <a-button size="small" type="primary" ghost @click="rotateRight">↻ 右旋转</a-button>
@@ -118,7 +118,7 @@ export default {
         outputSize: 1, // 裁剪生成图片的质量(可选0.1 - 1)
         outputType: 'jpeg', // 裁剪生成图片的格式（jpeg || png || webp）
         info: true, // 图片大小信息
-        canScale: true, // 图片是否允许滚轮缩放
+        canScale: false, // 图片是否允许滚轮缩放
         autoCrop: true, // 是否默认生成截图框
         autoCropWidth: 200, // 默认生成截图框宽度
         autoCropHeight: 300, // 默认生成截图框高度
@@ -135,7 +135,10 @@ export default {
         maxImgSize: 3000, // 限制图片最大宽度和高度
         enlarge: 1, // 图片根据截图框输出比例倍数
         mode: 'contain' // 图片默认渲染方式
-      }
+      },
+      disableScaleBig: false,
+      originWidth: 0,
+      originHeight: 0
     }
   },
   watch: {
@@ -178,6 +181,20 @@ export default {
     // 图片缩放
     changeScale (num) {
       num = num || 1
+
+      var trans = document.querySelector('.cropper-box-canvas').style.transform.split(' ')
+      var scaleStr = trans.filter(item => {
+        return item.indexOf('scale') !== -1
+      })
+      var scale = scaleStr[0].substring(6, scaleStr[0].length - 1)
+
+      if (num > 0 && scale * this.originWidth >= this.originWidth) {
+        this.disableScaleBig = true
+        return
+      } else {
+        this.disableScaleBig = false
+      }
+
       this.$refs.cropper.changeScale(num)
     },
     // 向左旋转
@@ -194,9 +211,9 @@ export default {
     },
     // 选择图片
     selectImg (e) {
+      var _this = this
       let file = e.target.files[0]
       this.selectedImg = file
-      console.log(this.selectedImg)
       if (!/\.(jpg|jpeg|png|JPG|PNG)$/.test(e.target.value)) {
         this.$message({
           message: '图片类型要求：jpeg、jpg、png',
@@ -214,6 +231,12 @@ export default {
           data = e.target.result
         }
         this.option.img = data
+        var newimg = new Image()
+        newimg.src = data
+        newimg.onload = function () {
+          _this.originWidth = this.width
+          _this.originHeight = this.height
+        }
       }
       // 转化为base64
       reader.readAsDataURL(file)
