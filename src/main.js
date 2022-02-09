@@ -13,6 +13,11 @@ import './styles/reset.css'
 
 import { getToken } from './utils/auth'
 
+import moment from 'moment'
+import 'moment/locale/zh-cn'
+
+moment.locale('zh-cn')
+
 Vue.use(Antd)
 Vue.use(VueLazyload, {
   error: 'static/error.png', // 这个是请求失败后显示的图片

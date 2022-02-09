@@ -136,6 +136,9 @@ export default {
       if (params && params.name) {
         opts.name = params.name
       }
+      if (params && params.description) {
+        opts.description = 'like_' + params.description
+      }
       if (params && params.createTime) {
         opts.createTime = params.createTime
       }
@@ -170,6 +173,9 @@ export default {
       }
       if (params && params.name) {
         opts.name = params.name
+      }
+      if (params && params.description) {
+        opts.description = 'like_' + params.description
       }
       if (params && params.createTime) {
         opts.createTime = params.createTime

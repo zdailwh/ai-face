@@ -156,6 +156,7 @@ export default {
       immediate: true
     },
     cropperVisible () {
+      document.querySelector('#uploads').value = ''
       this.option.img = ''
       this.selectedImg = {}
     }
@@ -195,6 +196,7 @@ export default {
     selectImg (e) {
       let file = e.target.files[0]
       this.selectedImg = file
+      console.log(this.selectedImg)
       if (!/\.(jpg|jpeg|png|JPG|PNG)$/.test(e.target.value)) {
         this.$message({
           message: '图片类型要求：jpeg、jpg、png',
@@ -234,6 +236,7 @@ export default {
     // 上传图片
     uploadImg (type) {
       let _this = this
+      console.log(this.selectedImg)
       if (!this.selectedImg.name) {
         this.$message.error('请选择图片！')
         return

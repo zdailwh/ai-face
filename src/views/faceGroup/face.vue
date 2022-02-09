@@ -14,6 +14,9 @@
         <a-form-model-item label="人名" prop="name">
           <a-input v-model="searchForm.name" style="width: 120px;" />
         </a-form-model-item>
+        <a-form-model-item label="描述" prop="description">
+          <a-input v-model="searchForm.description" style="width: 160px;" />
+        </a-form-model-item>
         <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
           <a-range-picker :locale="locale" v-model="searchForm.createTime" style="width: 220px;" />
         </a-form-model-item>
@@ -193,7 +196,7 @@ const columns = [
     title: '描述',
     dataIndex: 'description',
     key: 'description',
-    width: 120
+    width: 250
   },
   {
     title: '生日',
@@ -290,6 +293,7 @@ export default {
       addVisible: false,
       searchForm: {
         name: '',
+        description: '',
         groupId: '',
         createTime: []
       },
@@ -370,6 +374,9 @@ export default {
       }
       if (this.searchForm.name) {
         params.name = this.searchForm.name
+      }
+      if (this.searchForm.description) {
+        params.description = this.searchForm.description
       }
       if (this.searchForm.groupId) {
         params.groupId = this.searchForm.groupId
@@ -473,8 +480,8 @@ export default {
                 description: '',
                 gender: '',
                 birthday: null,
-                title: [],
-                history: []
+                title: '',
+                history: ''
               }
               this.$message.success('人脸创建成功')
             } else {
@@ -517,7 +524,7 @@ export default {
         if (valid) {
           var formdata = {
             id: this.editForm.id,
-            name: this.editForm.description,
+            name: this.editForm.name,
             description: this.editForm.description,
             gender: this.editForm.gender,
             birthday: this.editForm.birthday ? moment(this.editForm.birthday).format('YYYY-MM-DD') : '',
