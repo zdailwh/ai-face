@@ -160,6 +160,7 @@ export default {
     },
     cropperVisible () {
       document.querySelector('#uploads').value = ''
+      this.disableScaleBig = false
       this.option.img = ''
       this.selectedImg = {}
     }

@@ -50,7 +50,7 @@
             </template>
             <img class="tableImg" :src="i.fileuri" />
           </a-popover> -->
-          <Feature :face="record" @getfacelist="getFaces"></Feature>
+          <Feature :face="record" @getfacelist="getFaces" v-on:change-cropper-visible="changeCropperVisible($event, record)"></Feature>
         </span>
         <span slot="birthday" slot-scope="birthday">
           {{birthday | birthFormat}}
@@ -168,6 +168,15 @@
     <!--图片预览-->
     <a-modal :visible="previewVisible" :footer="null" @cancel="previewVisible = false">
       <img alt="example" style="width: 100%" :src="previewImage" />
+    </a-modal>
+    <!--图片裁剪-->
+    <a-modal
+      title="裁剪人脸"
+      width="800px"
+      :footer="null"
+      v-model="cropperVisible"
+    >
+      <CropperImage :show-input-img="true" :show-upload-img="true" :cropper-visible="cropperVisible" @uploadCropperImg="handleAddFeature" ref="child"></CropperImage>
     </a-modal>
   </div>
 </template>
@@ -309,7 +318,13 @@ export default {
       editVisible: false,
       previewVisible: false,
       previewImage: '',
-      groupsData: []
+      groupsData: [],
+      currCropperFace: {},
+      cropperVisible: false,
+      addFeatureForm: {
+        faceId: '',
+        file: ''
+      }
     }
   },
   filters: {
@@ -592,6 +607,52 @@ export default {
         }
       })
     },
+    changeCropperVisible (e, record) {
+      this.currCropperFace = record
+      this.cropperVisible = e
+    },
+    handleAddFeature (data) {
+      console.log(data)
+      if (!data.url) {
+        this.$message.error('请上传人脸图片！')
+        return
+      }
+
+      this.cropperVisible = false
+      var originFileObj = dataURLtoFile(data.url, data.file.name)
+
+      var formdata = new FormData()
+      formdata.append('side', data.side)
+      formdata.append('file', originFileObj, data.file.name)
+
+      this.addLoading = true
+      api.addFeature({ faceId: this.currCropperFace.id, formdata: formdata }).then(res => {
+        if (res.data.code === 0) {
+          this.getFaces()
+
+          this.addLoading = false
+          this.addFeatureForm = {
+            faceId: '',
+            file: ''
+          }
+          this.$message.success('人脸特征创建成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
+        }
+      }).catch(error => {
+        this.addLoading = false
+        if (error.response && error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '创建出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
     getAllGroups () {
       api.getGroups().then(res => {
         var resBody = res.data
@@ -614,6 +675,22 @@ export default {
       })
     }
   }
+}
+
+// 将base64转换为文件对象
+function dataURLtoFile (dataurl, filename) {
+  var arr = dataurl.split(',')
+  var mime = arr[0].match(/:(.*?);/)[1]
+  var bstr = atob(arr[1])
+  var n = bstr.length
+  var u8arr = new Uint8Array(n)
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n)
+  }
+  // 转换成file对象
+  return new File([u8arr], filename, { type: mime })
+  // 转换成成blob对象
+  // return new Blob([u8arr],{type:mime});
 }
 
 function getBase64 (file) {

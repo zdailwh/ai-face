@@ -27,45 +27,20 @@
         <p class="errMsg">{{item.errorMessage}}</p>
       </div>
     </template>
-    <div class="my-addimg" v-if="fileList.length < imgMaxLength" @click="cropperVisible = true">
+    <div class="my-addimg" v-if="fileList.length < imgMaxLength" @click="$emit('change-cropper-visible', true)">
       <a-icon type="plus" />
     </div>
-    <!-- <a-upload
-      list-type="picture-card"
-      :multiple="false"
-      :beforeUpload="beforeUpload"
-      :file-list="fileList"
-      :remove="handleRemove"
-      @preview="cropperPicture"
-      @change="handleChange"
-    >
-      <div v-if="fileList.length < imgMaxLength">
-        <a-icon type="plus" />
-        <div class="ant-upload-text">
-          上传图片
-        </div>
-      </div>
-    </a-upload> -->
-    <a-modal
-      title="裁剪人脸"
-      width="800px"
-      :footer="null"
-      v-model="cropperVisible"
-    >
-      <CropperImage :show-input-img="true" :show-upload-img="true" :cropper-visible="cropperVisible" @uploadCropperImg="handleAddFeature" ref="child"></CropperImage>
-    </a-modal>
+
     <!--图片预览-->
-    <a-modal :visible="previewVisible" :footer="null" @cancel="previewVisible = false">
-      <img alt="example" style="width: 100%" :src="previewImage" />
+    <a-modal :visible="previewVisible" :footer="null" @cancel="previewVisible = false" width="250px">
+      <img alt="example" style="margin-top: 30px;" :src="previewImage" />
     </a-modal>
   </div>
 </template>
 <script>
 import api from '../api'
-import CropperImage from '../components/Cropper.vue'
 export default {
   props: [ 'face' ],
-  components: { CropperImage },
   data () {
     return {
       previewImage: '',
@@ -93,17 +68,7 @@ export default {
           url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
           fileuri: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
         }
-      ],
-      cropperVisible: false,
-      cropperUid: '',
-      cropperName: '',
-      cropperImgName: '',
-      cropperImgVisible: false,
-      currImgFile: {},
-      addFeatureForm: {
-        faceId: '',
-        file: ''
-      }
+      ]
     }
   },
   watch: {
@@ -131,67 +96,8 @@ export default {
       }
       return false
     },
-    handleChange ({ file, fileList }) {
-      fileList = fileList.slice(0, this.imgMaxLength)
-      this.fileList = fileList
-      if (file.status === 'done') {
-        // 选完图片直接打开裁剪窗口
-        this.cropperPicture(file)
-      }
-    },
     handleRemove (file) {
       this.delFeature(file)
-    },
-    cropperPicture (file) {
-      if (!file.id) {
-        this.cropperUid = file.uid
-        this.cropperName = file.name
-        this.currImgFile = file
-        this.cropperVisible = true
-      }
-    },
-    handleAddFeature (data) {
-      console.log(data)
-      if (!data.url) {
-        this.$message.error('请上传人脸图片！')
-        return
-      }
-
-      this.cropperVisible = false
-      var originFileObj = dataURLtoFile(data.url, data.file.name)
-
-      var formdata = new FormData()
-      formdata.append('side', data.side)
-      formdata.append('file', originFileObj, data.file.name)
-
-      this.addLoading = true
-      api.addFeature({ faceId: this.face.id, formdata: formdata }).then(res => {
-        if (res.data.code === 0) {
-          this.$emit('getfacelist')
-
-          this.addFeatureVisible = false
-          this.addLoading = false
-          this.addFeatureForm = {
-            faceId: '',
-            file: ''
-          }
-          this.$message.success('人脸特征创建成功')
-        } else {
-          this.$message.error(res.data.message || '请求出错！')
-        }
-      }).catch(error => {
-        this.addLoading = false
-        if (error.response && error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '创建出错！')
-        } else {
-          this.$message.error('接口调用失败！')
-        }
-      })
     },
     delFeature (feature) {
       var _this = this
@@ -230,21 +136,6 @@ export default {
   }
 }
 
-// 将base64转换为文件对象
-function dataURLtoFile (dataurl, filename) {
-  var arr = dataurl.split(',')
-  var mime = arr[0].match(/:(.*?);/)[1]
-  var bstr = atob(arr[1])
-  var n = bstr.length
-  var u8arr = new Uint8Array(n)
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n)
-  }
-  // 转换成file对象
-  return new File([u8arr], filename, { type: mime })
-  // 转换成成blob对象
-  // return new Blob([u8arr],{type:mime});
-}
 </script>
 
 <style>
