@@ -185,23 +185,29 @@ export default {
   methods: {
     onPageChange (current) {
       this.page_no = current
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.getBatchs()
     },
     onShowSizeChange (current, pageSize) {
       this.page_size = pageSize
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.getBatchs()
     },
     searchHandleOk () {
       this.page_no = 1
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.getBatchs()
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
     },
     getBatchs () {
-      if (document.querySelector('.ant-table-body')) {
-        document.querySelector('.ant-table-body').scrollTop = 0
-      }
       var params = {
         page_no: this.page_no,
         page_size: this.page_size

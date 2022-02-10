@@ -277,23 +277,29 @@ export default {
   methods: {
     onPageChange (current) {
       this.page_no = current
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.getTasks()
     },
     onShowSizeChange (current, pageSize) {
       this.page_size = pageSize
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.getTasks()
     },
     searchHandleOk () {
       this.page_no = 1
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.getTasks()
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
     },
     getTasks () {
-      if (document.querySelector('.ant-table-body')) {
-        document.querySelector('.ant-table-body').scrollTop = 0
-      }
       var params = {
         page_no: this.page_no,
         page_size: this.page_size

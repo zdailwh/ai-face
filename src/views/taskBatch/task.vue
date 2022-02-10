@@ -47,7 +47,7 @@
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: tableHeight }" size="middle" rowKey="id" :pagination="false">
         <span slot="batch_name" slot-scope="batch_name, record">
-          <a href="javascript:;" @click="searchForm.batchName = batch_name">{{batch_name}}</a>
+          <a href="javascript:;" @click="searchForm.batchName = batch_name; searchHandleOk()">{{batch_name}}</a>
         </span>
         <span slot="groups" slot-scope="groups">
           <template v-if="groups.length">
@@ -361,23 +361,29 @@ export default {
   methods: {
     onPageChange (current) {
       this.page_no = current
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.getTasks()
     },
     onShowSizeChange (current, pageSize) {
       this.page_size = pageSize
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.getTasks()
     },
     searchHandleOk () {
       this.page_no = 1
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.getTasks()
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
     },
     getTasks () {
-      if (document.querySelector('.ant-table-body')) {
-        document.querySelector('.ant-table-body').scrollTop = 0
-      }
       var params = {
         page_no: this.page_no,
         page_size: this.page_size

@@ -176,16 +176,19 @@ export default {
   methods: {
     onPageChange (current) {
       this.listQuery.page = current
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
+      }
       this.getList()
     },
     onShowSizeChange (current, pageSize) {
       this.listQuery.limit = pageSize
-      this.getList()
-    },
-    getList () {
       if (document.querySelector('.ant-table-body')) {
         document.querySelector('.ant-table-body').scrollTop = 0
       }
+      this.getList()
+    },
+    getList () {
       this.listLoading = true
       apiRole.fetchList(this.listQuery).then(res => {
         this.listLoading = false
@@ -217,6 +220,9 @@ export default {
       }
       if (this.filterForm.name !== '') {
         this.listQuery.name = this.filterForm.name
+      }
+      if (document.querySelector('.ant-table-body')) {
+        document.querySelector('.ant-table-body').scrollTop = 0
       }
       this.getList()
     },
