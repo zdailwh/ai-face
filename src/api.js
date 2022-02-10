@@ -134,7 +134,7 @@ export default {
         opts.page_no = params.page_no - 1
       }
       if (params && params.name) {
-        opts.name = params.name
+        opts.name = 'like_' + params.name
       }
       if (params && params.description) {
         opts.description = 'like_' + params.description
@@ -172,7 +172,7 @@ export default {
         opts.page_no = params.page_no - 1
       }
       if (params && params.name) {
-        opts.name = params.name
+        opts.name = 'like_' + params.name
       }
       if (params && params.description) {
         opts.description = 'like_' + params.description
