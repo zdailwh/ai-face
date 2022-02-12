@@ -216,7 +216,8 @@ let templateAuthentication = {
     'delete_id': 0,
     'id': 2,
     'level': 4,
-    'menu': 'AdminSetting,AdminList,RoleList,RolePerm,LogList,Log_,ModeList,Mode_,SysSetting,SysInfo,SysRestart,Network,Storage,FaceGroup,Face,Group,TaskBatch,Task,Batch,Queue,My,All,AdminSetting,AdminList,RoleList,RolePerm,LogList,Log_,ModeList,Mode_,SysSetting,SysInfo,SysRestart,Network,Storage,FaceGroup,Face,Group,TaskBatch,Task,Batch,Queue,My,All,TaskResult',
+    // 'menu': 'AdminSetting,AdminList,RoleList,RolePerm,LogList,Log_,ModeList,Mode_,SysSetting,SysInfo,SysRestart,Network,Storage,FaceGroup,Face,Group,TaskBatch,Task,Batch,Queue,My,All,AdminSetting,AdminList,RoleList,RolePerm,LogList,Log_,ModeList,Mode_,SysSetting,SysInfo,SysRestart,Network,Storage,FaceGroup,Face,Group,TaskBatch,Task,Batch,Queue,My,All,TaskResult',
+    'menu': 'Queue,My,All,TaskBatch,Task,Batch,TaskResult',
     'name': '管理员',
     'status': 0,
     'update_time': 1635502933000

@@ -128,6 +128,7 @@ export default {
       this.topRoute = JSON.parse(currTopRoute)
     },
     logout () {
+      // this.$store.commit('permission/SET_ROUTES', [])
       this.showMenus = false
       this.$store.dispatch('authentication/logout').then((res) => {
         if (res.data.code === 0) {
@@ -139,6 +140,7 @@ export default {
         if (error.response.status === 401) {
           this.$store.dispatch('authentication/resetToken').then(() => {
             this.$router.push({ path: '/login' })
+            window.history.go(0)
           })
         }
         this.$message.error(error.response.data.message || error.response.data || '接口调用失败！')
