@@ -1,6 +1,6 @@
 <template>
   <div class="faceWrap" :style="smalllayout? 'height: auto;': ''" v-infinite-scroll="handleInfiniteOnLoad" :infinite-scroll-disabled="busy" :infinite-scroll-distance="30">
-    <a-collapse :bordered="false" v-if="taskresult" :activeKey="activeKey" @change="changeActivekey">
+    <a-collapse accordion :bordered="false" v-if="taskresult" :activeKey="activeKey" @change="changeActivekey">
       <template v-for="(fItem, fid) in taskresult">
         <a-collapse-panel :key="fid" :header="`${fItem[0].name} ${fItem.length}次`">
           <div class="faceList">

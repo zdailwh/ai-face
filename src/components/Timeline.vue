@@ -10,20 +10,7 @@
           </div>
           <div class="desc-box">
             <div class="timeWrap">
-              <a-popover :title="it.name" trigger="click" arrow-point-at-center>
-                <template slot="content">
-                  <template v-if="clickFace">
-                    <p>人名：{{clickFace.name}}</p>
-                    <p>描述：{{clickFace.description}}</p>
-                    <p>性别：{{!clickFace.gender? '未知':(clickFace.gender === 1)? '男': '女'}}</p>
-                    <p>生日：{{clickFace.birthday}}</p>
-                    <p>别名：{{clickFace.title}}</p>
-                    <p>履历：{{clickFace.history}}</p>
-                    <p><img class="tablePopImg" v-for="(i,k) in clickFace.features" :key="k" :src="i.fileuri" /></p>
-                  </template>
-                </template>
-                <p><a href="javascript:;" @click="getFace(it.faceId)">{{it.name}}</a></p>
-              </a-popover>
+              <p><a href="javascript:;" @click="getFace(it.faceId)">{{it.name}}</a></p>
               <p>{{ second | formateSeconds }}</p>
 
             </div>
@@ -35,6 +22,24 @@
       </div>
     </ul>
     <!-- <div v-else><p>还没有识别结果！</p></div> -->
+
+    <a-drawer
+      :title="clickFace && clickFace.name"
+      placement="right"
+      :closable="true"
+      :visible="visibleDrawer"
+      @close="onCloseDrawer"
+    >
+      <template v-if="clickFace">
+        <p>人名：{{clickFace.name}}</p>
+        <p>描述：{{clickFace.description}}</p>
+        <p>性别：{{!clickFace.gender? '未知':(clickFace.gender === 1)? '男': '女'}}</p>
+        <p>生日：{{clickFace.birthday}}</p>
+        <p>别名：{{clickFace.title}}</p>
+        <p>履历：{{clickFace.history}}</p>
+        <p><img class="tablePopImg" v-for="(i,k) in clickFace.features" :key="k" :src="i.fileuri" /></p>
+      </template>
+    </a-drawer>
   </div>
 </template>
 <script>
@@ -71,7 +76,8 @@ export default {
       busy: false,
       limit: 100,
       page: 0,
-      offset: 0
+      offset: 0,
+      visibleDrawer: false
     }
   },
   watch: {
@@ -120,6 +126,10 @@ export default {
       this.$emit('videofixed', { currentTime: second, item: fItem })
       this.currBoxKey = second + '-' + k
     },
+    onCloseDrawer () {
+      this.clickFace = {}
+      this.visibleDrawer = false
+    },
     getFace (faceId) {
       this.spinning = true
       api.getFace({ id: faceId }).then(res => {
@@ -127,6 +137,7 @@ export default {
         var resBody = res.data
         if (resBody.code === 0) {
           this.clickFace = resBody.data
+          this.visibleDrawer = true
         } else {
           this.$message.error(resBody.message || '请求出错！')
         }
