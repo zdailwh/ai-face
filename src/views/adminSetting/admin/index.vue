@@ -3,7 +3,7 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="filterForm" :model="filterForm" layout="inline">
-        <a-form-model-item label="用户名" prop="username">
+        <a-form-model-item label="登录名" prop="username">
           <a-input v-model="filterForm.username" style="width: 120px;" />
         </a-form-model-item>
         <!-- <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
@@ -95,17 +95,23 @@ const columns = [
     width: 50
   },
   {
-    title: '用户名',
+    title: '登录名',
     dataIndex: 'username',
     key: 'username',
     width: 100
   },
-  // {
-  //   title: '手机号',
-  //   dataIndex: 'mobile',
-  //   key: 'mobile',
-  //   width: 120
-  // },
+  {
+    title: '实名',
+    dataIndex: 'realname',
+    key: 'realname',
+    width: 100
+  },
+  {
+    title: '手机号',
+    dataIndex: 'mobile',
+    key: 'mobile',
+    width: 120
+  },
   {
     title: '管理员标识',
     dataIndex: 'level',

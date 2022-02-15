@@ -5,15 +5,18 @@
   >
     <div>
       <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
-        <a-form-model-item label="用户名" prop="username">
+        <a-form-model-item label="登录名" prop="username">
           <a-input v-model="formadd.username" />
+        </a-form-model-item>
+        <a-form-model-item label="实名" prop="realname">
+          <a-input v-model="formadd.realname" />
         </a-form-model-item>
         <a-form-model-item label="密码" prop="password">
           <a-input v-model="formadd.password" />
         </a-form-model-item>
-        <!-- <a-form-model-item label="手机号" prop="mobile">
+        <a-form-model-item label="手机号" prop="mobile">
           <a-input v-model="formadd.mobile" />
-        </a-form-model-item> -->
+        </a-form-model-item>
         <a-form-model-item label="角色" prop="role_id">
           <a-select v-model="formadd.role_id" :allowClear="true">
             <a-select-option :value="item.value" v-for="item in optionsRoles" v-bind:key="item.value">
@@ -92,22 +95,26 @@ export default {
       loading: false,
       formadd: {
         username: '',
+        realname: '',
         password: '',
-        // mobile: '',
+        mobile: '',
         role_id: ''
       },
       ruleValidate: {
         username: [
-          { required: true, type: 'string', message: '姓名不能为空', trigger: 'blur' }
-          // { type: 'string', message: '用户名为2-8位字符', min: 2, max: 8, trigger: 'blur' }
+          { required: true, message: '登录名不能为空', trigger: 'blur' },
+          { type: 'string', message: '登录名由2-8位字母、数字组成', min: 2, max: 8, pattern: /^[0-9A-Za-z]{2,8}$/, trigger: 'blur' }
+        ],
+        realname: [
+          { required: true, type: 'string', message: '实名不能为空', trigger: 'blur' }
         ],
         password: [
           { required: true, validator: validatePwd, trigger: 'blur' }
         ],
-        // mobile: [
-        //   { required: false, message: '手机号码不能为空', trigger: 'blur' },
-        //   { type: 'string', message: '手机号格式不正确', length: 11, pattern: /^1[3|5|8|7]([0-9]{9})$/, trigger: 'blur' }
-        // ],
+        mobile: [
+          { required: true, message: '手机号码不能为空', trigger: 'blur' },
+          { type: 'string', message: '手机号格式不正确', length: 11, pattern: /^1[3|5|8|7]([0-9]{9})$/, trigger: 'blur' }
+        ],
         role_id: [
           { required: true, message: '请选择用户角色！', trigger: 'blur' }
         ]
@@ -138,8 +145,9 @@ export default {
           this.createRoleUser(resBody.data.id, this.formadd.role_id)
           this.formadd = {
             username: '',
+            realname: '',
             password: '',
-            // mobile: '',
+            mobile: '',
             role_id: ''
           }
           // this.$emit('changeVisible', false)
