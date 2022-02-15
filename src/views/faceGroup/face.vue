@@ -30,6 +30,14 @@
     <!--搜索 end-->
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: tableHeight }" size="middle" rowKey="id" :pagination="false">
+        <p slot="description" slot-scope="description">
+          <a-popover title="描述" trigger="hover" arrow-point-at-center>
+            <template slot="content">
+              <p style="width: 300px">{{description}}</p>
+            </template>
+            <span class="ellipText">{{description}}</span>
+          </a-popover>
+        </p>
         <span slot="gender" slot-scope="gender">
           {{!gender? '未知':(gender === 1)? '男': '女'}}
         </span>
@@ -205,6 +213,7 @@ const columns = [
     title: '描述',
     dataIndex: 'description',
     key: 'description',
+    scopedSlots: { customRender: 'description' },
     width: 250
   },
   {
@@ -715,5 +724,14 @@ function getBase64 (file) {
 }
 .tableImg + .tableImg {
   margin-left: 5px;
+}
+.ellipText {
+  width: 230px;
+  display: block;
+  white-space: nowrap;
+  word-break: break-all;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
 }
 </style>

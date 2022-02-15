@@ -30,13 +30,13 @@
         >
         </vue-cropper>
       </div>
-      <div>
+      <!-- <div>
         <a-radio-group v-model="side">
-      <a-radio :value="0">正脸</a-radio>
-      <a-radio :value="1">左侧</a-radio>
-      <a-radio :value="2">右侧</a-radio>
-    </a-radio-group>
-      </div>
+          <a-radio :value="0">正脸</a-radio>
+          <a-radio :value="1">左侧</a-radio>
+          <a-radio :value="2">右侧</a-radio>
+        </a-radio-group>
+      </div> -->
       <!--底部操作工具按钮-->
       <div class="footer-btn">
         <div class="scope-btn">
@@ -48,8 +48,8 @@
           <a-button size="small" type="primary" icon="scissor" @click="stopCrop" v-else>停止截图</a-button> -->
           <a-button size="small" type="primary" ghost icon="zoom-in" :disabled="disableScaleBig" @click="changeScale(1)">放大</a-button>
           <a-button size="small" type="primary" ghost icon="zoom-out" @click="changeScale(-1)">缩小</a-button>
-          <a-button size="small" type="primary" ghost @click="rotateLeft">↺ 左旋转</a-button>
-          <a-button size="small" type="primary" ghost @click="rotateRight">↻ 右旋转</a-button>
+          <!-- <a-button size="small" type="primary" ghost @click="rotateLeft">↺ 左旋转</a-button>
+          <a-button size="small" type="primary" ghost @click="rotateRight">↻ 右旋转</a-button> -->
         </div>
         <div class="upload-btn" v-if="showUseImg">
           <a-button size="small" type="primary" icon="cloud-upload" @click="useImg('base64')">使用截图</a-button>

@@ -1,6 +1,6 @@
 <template>
   <div class="faceWrap" :style="smalllayout? 'height: auto;': ''" v-infinite-scroll="handleInfiniteOnLoad" :infinite-scroll-disabled="busy" :infinite-scroll-distance="30">
-    <a-collapse accordion :bordered="false" v-if="taskresult" :activeKey="activeKey" @change="changeActivekey">
+    <a-collapse accordion :bordered="false" v-if="Object.keys(taskresult).length" :activeKey="activeKey" @change="changeActivekey">
       <template v-for="(fItem, fid) in taskresult">
         <a-collapse-panel :key="fid" :header="`${fItem[0].name} ${fItem.length}次`">
           <div class="faceList">
@@ -16,7 +16,7 @@
         </a-collapse-panel>
       </template>
     </a-collapse>
-    <!-- <div v-else><p>还没有识别结果！</p></div> -->
+    <div v-else><p>没有识别到目标人像！</p></div>
   </div>
 </template>
 <script>

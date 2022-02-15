@@ -1,6 +1,6 @@
 <template>
   <div class="faceWrap" :style="smalllayout? 'height: auto;': ''">
-    <ul class="listWrap" v-infinite-scroll="handleInfiniteOnLoad" :infinite-scroll-disabled="busy" :infinite-scroll-distance="10">
+    <ul v-if="Object.keys(taskresult).length" class="listWrap" v-infinite-scroll="handleInfiniteOnLoad" :infinite-scroll-disabled="busy" :infinite-scroll-distance="10">
       <template v-for="(fItem, second) in slicedTaskresult">
         <li :key="second" :id="'point_' + second"></li>
         <li class="list-item" v-if="fItem" :class="{ currBox: currBoxKey === second + '-' + k }" v-bind:key="second + '-' + k" v-for="(it, k) in fItem.items">
@@ -21,7 +21,7 @@
         <a-spin />
       </div>
     </ul>
-    <!-- <div v-else><p>还没有识别结果！</p></div> -->
+    <div v-else><p>没有识别到目标人像！</p></div>
 
     <a-drawer
       :title="clickFace && clickFace.name"

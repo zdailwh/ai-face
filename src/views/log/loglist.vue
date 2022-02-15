@@ -79,28 +79,34 @@ const columns = [
     key: 'userName',
     width: 120
   },
-  {
-    title: 'url',
-    dataIndex: 'url',
-    key: 'url',
-    width: 120
-  },
+  // {
+  //   title: 'url',
+  //   dataIndex: 'url',
+  //   key: 'url',
+  //   width: 120
+  // },
   {
     title: '描述',
     dataIndex: 'info',
     key: 'info',
     width: 120
   },
+  // {
+  //   title: '请求方式',
+  //   dataIndex: 'method_type',
+  //   key: 'method_type',
+  //   width: 120
+  // },
+  // {
+  //   title: '请求参数',
+  //   dataIndex: 'request_param',
+  //   key: 'request_param',
+  //   width: 120
+  // },
   {
-    title: '请求方式',
-    dataIndex: 'method_type',
-    key: 'method_type',
-    width: 120
-  },
-  {
-    title: '请求参数',
-    dataIndex: 'request_param',
-    key: 'request_param',
+    title: '客户访问ip',
+    dataIndex: 'ip',
+    key: 'ip',
     width: 120
   },
   {
