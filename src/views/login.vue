@@ -10,7 +10,7 @@
           <p class="login_title">账号登录</p>
           <a-form-model ref="loginForm" :model="loginForm" :rules="rules" v-bind="layout">
             <a-form-model-item has-feedback label="用户名" prop="username">
-              <a-input v-model="loginForm.username" placeholder="请输入用户名" />
+              <a-input v-model="loginForm.username" placeholder="请输入用户名" @pressEnter="submitForm('loginForm')" />
             </a-form-model-item>
             <a-form-model-item has-feedback label="密码" prop="password">
               <a-input v-model="loginForm.password" type="password" placeholder="请输入密码" @pressEnter="submitForm('loginForm')" />

@@ -46,11 +46,12 @@
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: tableHeight }" size="middle" rowKey="id" :pagination="false">
         <span slot="statusStr" slot-scope="statusStr, record">
-          {{statusStr}}<br>
+          {{record.statusStr}}<br>
           <template v-if="record.status === 5">
             <a-tag v-if="record.resultstatus === 1" color="#f50">发现敏感人物</a-tag>
             <a-tag v-if="record.resultstatus === 0" color="#87d068">审核通过</a-tag>
           </template>
+          <template v-else><a-progress :percent="(record.processTime / record.duration * 100).toFixed(2)" /></template>
         </span>
         <span slot="groups" slot-scope="groups">
           <template v-if="groups.length">
@@ -146,39 +147,39 @@ const columns = [
     scopedSlots: { customRender: 'statusStr' },
     width: 150
   },
-  {
-    title: '进度',
-    dataIndex: 'process',
-    key: 'process',
-    scopedSlots: { customRender: 'process' },
-    width: 120
-  },
-  {
-    title: '模板',
-    dataIndex: 'modeName',
-    key: 'modeName',
-    width: 120
-  },
-  {
-    title: '人像组',
-    dataIndex: 'groups',
-    key: 'groups',
-    scopedSlots: { customRender: 'groups' },
-    width: 120
-  },
-  {
-    title: '帧率',
-    dataIndex: 'frame_rate',
-    key: 'frame_rate',
-    scopedSlots: { customRender: 'frame_rate' },
-    width: 60
-  },
-  {
-    title: '优先级',
-    dataIndex: 'prority',
-    key: 'prority',
-    width: 80
-  },
+  // {
+  //   title: '进度',
+  //   dataIndex: 'process',
+  //   key: 'process',
+  //   scopedSlots: { customRender: 'process' },
+  //   width: 120
+  // },
+  // {
+  //   title: '模板',
+  //   dataIndex: 'modeName',
+  //   key: 'modeName',
+  //   width: 120
+  // },
+  // {
+  //   title: '人像组',
+  //   dataIndex: 'groups',
+  //   key: 'groups',
+  //   scopedSlots: { customRender: 'groups' },
+  //   width: 120
+  // },
+  // {
+  //   title: '帧率',
+  //   dataIndex: 'frame_rate',
+  //   key: 'frame_rate',
+  //   scopedSlots: { customRender: 'frame_rate' },
+  //   width: 60
+  // },
+  // {
+  //   title: '优先级',
+  //   dataIndex: 'prority',
+  //   key: 'prority',
+  //   width: 80
+  // },
   {
     title: '创建时间',
     dataIndex: 'create_time',
