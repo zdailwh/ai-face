@@ -269,7 +269,7 @@ export default {
       if (params && params.user_id) {
         opts.userId = params.user_id
       }
-      if (params && params.status && params.status !== '') {
+      if (params && params.status !== '') {
         opts.status = params.status
       }
       if (params && params.createTime) {
@@ -306,7 +306,7 @@ export default {
       if (params && params.user_id) {
         opts.userId = params.user_id
       }
-      if (params && params.status && params.status !== '') {
+      if (params && params.status !== '') {
         opts.status = params.status
       }
       if (params && params.createTime) {
@@ -343,7 +343,7 @@ export default {
       if (params && params.user_id) {
         opts.userId = params.user_id
       }
-      if (params && params.status && params.status !== '') {
+      if (params && params.status !== '') {
         opts.status = params.status
       }
       if (params && params.createTime) {

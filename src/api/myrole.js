@@ -32,12 +32,15 @@ export default {
       return { status: 200, data: data }
     }
   },
-  async getAllRoles () {
+  async getAllRoles (params) {
     if (process.env.NODE_ENV === 'production') {
-      var params = {}
-      params.orderby = 'id'
+      var opts = {}
+      opts.orderby = 'id'
+      if (params && params.name) {
+        opts.name = params.name
+      }
       var res = await axios.get(`/api/admin/v1/roles`, {
-        params
+        params: opts
       })
       return res
     } else {

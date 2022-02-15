@@ -75,12 +75,12 @@ export const routes = [
         title: '角色列表',
         name: 'RoleList',
         parent: 'AdminSetting'
-      },
-      {
-        title: '角色配置',
-        name: 'RolePerm',
-        parent: 'AdminSetting'
       }
+      // {
+      //   title: '角色配置',
+      //   name: 'RolePerm',
+      //   parent: 'AdminSetting'
+      // }
     ]
   },
   {
