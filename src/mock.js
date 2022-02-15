@@ -17,7 +17,7 @@ let templateFace = {
   'update_time': '2020-10-15T17:54:52.43+08:00',
   'faceId': '8692-f7a505-df13',
   'name': 'test1',
-  'description': '',
+  'description': '男，藏族，1971年8月出生，西藏朗县人，1999年6月加入中国共产党，1990年12月参加工作，大专学历。曾任西藏自治区林芝市米林县县委常委、政法委书记、公安局局长。 2022年1月，尼玛涉嫌严重违纪违法，正接受林芝市纪委监委纪律审查和监察调查',
   'gender': 1,
   'birthday': '1998-10-01',
   'history': '演员|歌手',
@@ -104,6 +104,7 @@ let templateTask = {
   'processTime': 12,
   'duration': 30,
   'status|1': [0, 1, 2], // 0新建，1进⾏中，2完成
+  'statusStr': '处理完成',
   'stream_type': 'offline',
   'type': '1'
 }
@@ -216,8 +217,8 @@ let templateAuthentication = {
     'delete_id': 0,
     'id': 2,
     'level': 4,
-    // 'menu': 'AdminSetting,AdminList,RoleList,RolePerm,LogList,Log_,ModeList,Mode_,SysSetting,SysInfo,SysRestart,Network,Storage,FaceGroup,Face,Group,TaskBatch,Task,Batch,Queue,My,All,AdminSetting,AdminList,RoleList,RolePerm,LogList,Log_,ModeList,Mode_,SysSetting,SysInfo,SysRestart,Network,Storage,FaceGroup,Face,Group,TaskBatch,Task,Batch,Queue,My,All,TaskResult',
-    'menu': 'Queue,My,All,TaskBatch,Task,Batch,TaskResult',
+    'menu': 'AdminSetting,AdminList,RoleList,RolePerm,LogList,Log_,ModeList,Mode_,SysSetting,SysInfo,SysRestart,Network,Storage,FaceGroup,Face,Group,TaskBatch,Task,Batch,Queue,My,All,AdminSetting,AdminList,RoleList,RolePerm,LogList,Log_,ModeList,Mode_,SysSetting,SysInfo,SysRestart,Network,Storage,FaceGroup,Face,Group,TaskBatch,Task,Batch,Queue,My,All,TaskResult',
+    // 'menu': 'Queue,My,All,TaskBatch,Task,Batch,TaskResult',
     'name': '管理员',
     'status': 0,
     'update_time': 1635502933000
@@ -314,20 +315,37 @@ let templateLogs = {
 let templateDeviceInfo = {
   'code': 0,
   'data': {
+    'system': {
+      'Mem': {
+        'total': 2.659441E7,
+        'avail': 3918688.0,
+        'writeable': 1
+      },
+      'CPU': {
+        'cpuNum': 32,
+        'total': 318500.0,
+        'sys': 0.06,
+        'used': 1.26,
+        'wait': 0.0,
+        'free': 98.52
+      },
+      'uptime': ' 09:18:28 up 3 days, 16:40,  0 users,  load average: 0.52, 0.50, 0.53\n'
+    },
     'software': {
       'name': '广电专业人像检索系统',
       'version': '2.0'
     },
-    'system': {
-      'uptime': '19:54:30 up 8 days',
-      'CPU': '3.7 us,  1.9 sy,  0.0 ni, 94.3 id',
-      'Mem': '263463610 total, 66792900 free,  9309352 used, 187534148 buff/cache'
-    },
     'facedata': {
-      'total': 100,
-      'total_images': 103,
-      'version': 1896315661,
-      'update_time': '2022-01-03 12:03:30'
+      'id': 1019,
+      'total': 80,
+      'version': 1644591315,
+      'faces_path': 'total/1644591315/faces_total.json',
+      'features_path': 'total/1644591315/features_total.npy',
+      'status': 1,
+      'delete_id': 0,
+      'create_time': '2022-02-11T22:55:15',
+      'update_time': '2022-02-11T22:55:16',
+      'total_images': 130
     }
   }
 }

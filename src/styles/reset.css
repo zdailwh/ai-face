@@ -353,6 +353,7 @@ i {
 }
 /*二级菜单*/
 .mySubMenu {
+  position: relative;
   margin: 24px;
   padding: 0 15px;
   background-color: #2d353e;
@@ -397,6 +398,9 @@ i {
 .searchWrap .ant-input, .searchWrap .ant-select-selection {
   background-color: transparent;  
   border: 1px solid #9aa1a8;
+  color: #fdfdfd;
+}
+.searchWrap .ant-select-arrow {
   color: #fdfdfd;
 }
 
@@ -472,12 +476,26 @@ i {
 .mydesc .ant-descriptions-bordered .ant-descriptions-item-label {
   background-color: #1a2025;
   color: #9aa1a8;
+  width: 180px;
 }
 .mydesc .ant-descriptions-bordered .ant-descriptions-item-label,
 .mydesc .ant-descriptions-bordered .ant-descriptions-item-content {
   border: 1px solid #707070;
 }
 .mydesc .ant-descriptions-item-content {
+  color: #fdfdfd;
+}
+
+.mydesc .subTitle {
+  color: #9aa1a8;
+  font-size: 24px;
+  line-height: 32px;
+  margin: 50px 0 15px;
+}
+.mydesc .ant-statistic-title {
+  color: #9aa1a8;
+}
+.mydesc .ant-statistic-content {
   color: #fdfdfd;
 }
 
@@ -516,4 +534,11 @@ i {
 }
 .smallNotify > img {
   max-height: 30px;
+}
+
+.myReboot {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translate(0, -50%);
 }

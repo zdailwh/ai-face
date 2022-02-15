@@ -44,7 +44,7 @@
         <div class="file-main" :style="{ paddingLeft: $route.path !== '/login'? '166px': '0px' }">
           <div v-if="showSubMenu" class="mySubMenu">
             <a-menu v-if="topRoute && topRoute.children && topRoute.children.length" v-model="currentChild" mode="horizontal">
-              <a-menu-item v-if="!rou.hidden" v-for="rou in topRoute.children" :key="`${topRoute.path}/${rou.path}`">
+              <a-menu-item v-if="!rou.hidden" v-for="rou in topRoute.children" :key="`${topRoute.path}/${rou.path}`" :style="{float: rou.path.indexOf('sysrestart') !== -1 ? 'right' : ''}">
                 {{rou.meta.title}}
               </a-menu-item>
             </a-menu>

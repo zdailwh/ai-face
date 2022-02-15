@@ -1,7 +1,7 @@
 <template>
   <div class="faceContainer">
     <p style="text-align: center;margin: 30px auto;">
-      <a-button type="danger" :loading="loading" size="large" @click="toReboot">
+      <a-button type="danger" :loading="loading" @click="toReboot">
         重启
       </a-button>
     </p>

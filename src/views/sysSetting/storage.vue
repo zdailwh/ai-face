@@ -1,16 +1,41 @@
 <template>
   <div class="faceContainer mydesc">
-    <a-descriptions bordered title="设备存储信息" size="middle" :column="{ xxl: 1, xl: 1, lg: 1, md: 1, sm: 1, xs: 1 }" style="margin-top: 20px;">
-      <a-descriptions-item label="space_limit">
+    <!-- <div class="subTitle">磁盘清理策略<a-button key="submit" type="primary" style="float: right;" @click="toEdit">修改配置</a-button></div>
+    <a-row :gutter="16">
+      <a-col :span="6">
+        <a-statistic title="空间占用百分比" :value="deviceInfo && deviceInfo.space_limit" style="margin-right: 30px">
+          <template #suffix>
+            <span> %</span>
+          </template>
+        </a-statistic>
+      </a-col>
+      <a-col :span="6">
+        <a-statistic title="空间满额自动删除" :value="deviceInfo && deviceInfo.space_enable === 1 ? '启用' : '禁用'" :value-style="{ color: deviceInfo.space_enable === 1 ? '#3f8600' : '#cf1322' }" style="margin-right: 30px">
+        </a-statistic>
+      </a-col>
+      <a-col :span="6">
+        <a-statistic title="过期天数" :value="deviceInfo && deviceInfo.days_limit" style="margin-right: 30px">
+          <template #suffix>
+            <span> 天</span>
+          </template>
+        </a-statistic>
+      </a-col>
+      <a-col :span="6">
+        <a-statistic title="过期自动删除" :value="deviceInfo && deviceInfo.days_enable === 1 ? '启用' : '禁用'" :value-style="{ color: deviceInfo.space_enable === 1 ? '#3f8600' : '#cf1322' }">
+        </a-statistic>
+      </a-col>
+    </a-row> -->
+    <a-descriptions bordered title="磁盘清理策略" size="middle" :column="{ xxl: 1, xl: 1, lg: 1, md: 1, sm: 1, xs: 1 }" style="margin-top: 20px;">
+      <a-descriptions-item label="空间占用百分比">
         {{ deviceInfo && deviceInfo.space_limit }}
       </a-descriptions-item>
-      <a-descriptions-item label="space_enable">
+      <a-descriptions-item label="空间满额自动删除">
         {{ deviceInfo && deviceInfo.space_enable === 1 ? '启用' : '禁用' }}
       </a-descriptions-item>
-      <a-descriptions-item label="days_limit">
+      <a-descriptions-item label="过期天数">
         {{ deviceInfo && deviceInfo.days_limit }}
       </a-descriptions-item>
-      <a-descriptions-item label="days_enable">
+      <a-descriptions-item label="过期自动删除">
         {{ deviceInfo && deviceInfo.days_enable === 1 ? '启用' : '禁用' }}
       </a-descriptions-item>
     </a-descriptions>
@@ -23,20 +48,20 @@
       v-model="editVisible"
     >
       <div>
-        <a-form-model ref="editform" :model="editForm" :rules="ruleValidate" :label-col="{span:5}" :wrapper-col="{span:14}">
-          <a-form-model-item label="space_limit" prop="space_limit">
+        <a-form-model ref="editform" :model="editForm" :rules="ruleValidate" :label-col="{span:8}" :wrapper-col="{span:16}">
+          <a-form-model-item label="空间占用百分比" prop="space_limit">
             <a-input-number v-model="editForm.space_limit" :min="30" :max="90" />
           </a-form-model-item>
-          <a-form-model-item label="space_enable" prop="space_enable">
+          <a-form-model-item label="空间满额自动删除" prop="space_enable">
             <a-radio-group v-model="editForm.space_enable" default-value="a" button-style="solid">
               <a-radio-button :value="1">启用</a-radio-button>
               <a-radio-button :value="0">禁用</a-radio-button>
             </a-radio-group>
           </a-form-model-item>
-          <a-form-model-item label="days_limit" prop="days_limit">
+          <a-form-model-item label="过期天数" prop="days_limit">
             <a-input-number v-model="editForm.days_limit" :min="15" :max="90" />
           </a-form-model-item>
-          <a-form-model-item label="days_enable" prop="days_enable">
+          <a-form-model-item label="过期自动删除" prop="days_enable">
             <a-radio-group v-model="editForm.days_enable" default-value="a" button-style="solid">
               <a-radio-button :value="1">启用</a-radio-button>
               <a-radio-button :value="0">禁用</a-radio-button>
