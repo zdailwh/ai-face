@@ -6,11 +6,32 @@
   "description": "",
   "glyphs": [
     {
-      "icon_id": "15726894",
+      "icon_id": "6282765",
+      "name": "人脸识别",
+      "font_class": "renlianshibie",
+      "unicode": "e6b6",
+      "unicode_decimal": 59062
+    },
+    {
+      "icon_id": "27601307",
+      "name": "人脸1",
+      "font_class": "renlian1",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "27601314",
+      "name": "人脸1",
+      "font_class": "renlian1-copy",
+      "unicode": "e764",
+      "unicode_decimal": 59236
+    },
+    {
+      "icon_id": "27600877",
       "name": "审批审核",
-      "font_class": "shenpishenhe",
-      "unicode": "e633",
-      "unicode_decimal": 58931
+      "font_class": "shenpishenhe-copy-copy",
+      "unicode": "e763",
+      "unicode_decimal": 59235
     },
     {
       "icon_id": "27419974",
@@ -18,6 +39,13 @@
       "font_class": "shenpishenhe-copy",
       "unicode": "e75b",
       "unicode_decimal": 59227
+    },
+    {
+      "icon_id": "27600858",
+      "name": "用户管理",
+      "font_class": "yonghuguanli-copy",
+      "unicode": "e762",
+      "unicode_decimal": 59234
     },
     {
       "icon_id": "27419975",
@@ -95,6 +123,13 @@
       "font_class": "renwuguanli",
       "unicode": "e75a",
       "unicode_decimal": 59226
+    },
+    {
+      "icon_id": "27600856",
+      "name": "用户管理",
+      "font_class": "yonghuguanli-copy1",
+      "unicode": "e761",
+      "unicode_decimal": 59233
     }
   ]
 }

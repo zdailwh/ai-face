@@ -288,7 +288,7 @@ export const asyncRoutes = [
     path: '/facegroup',
     name: 'FaceGroup',
     component: () => import('@/views/faceGroup/index'),
-    meta: { title: '人像库', active: 'facegroup', icon: 'icon-renxiang-copy' },
+    meta: { title: '人像库', active: 'facegroup', icon: 'icon-renlian1' },
     redirect: '/facegroup/face',
     children: [
       {
@@ -309,7 +309,7 @@ export const asyncRoutes = [
     path: '/mode',
     name: 'Mode',
     component: () => import('@/views/mode/index'),
-    meta: { title: '审核模板', active: 'mode', icon: 'icon-shenpishenhe' },
+    meta: { title: '审核模板', active: 'mode', icon: 'icon-shenpishenhe-copy' },
     redirect: '/mode/list',
     children: [
       {
