@@ -288,7 +288,7 @@ export const asyncRoutes = [
     path: '/facegroup',
     name: 'FaceGroup',
     component: () => import('@/views/faceGroup/index'),
-    meta: { title: '人像库', active: 'facegroup', icon: 'icon-renlian1' },
+    meta: { title: '人像库', active: 'facegroup', icon: 'icon-renlianshibie' },
     redirect: '/facegroup/face',
     children: [
       {
@@ -350,7 +350,8 @@ export const asyncRoutes = [
         path: 'roleperm/index',
         component: () => import('@/views/adminSetting/roleperm/index'),
         name: 'RolePerm',
-        meta: { title: '角色配置', active: 'adminSetting' }
+        meta: { title: '角色配置', active: 'adminSetting' },
+        hidden: true
       },
       {
         path: 'pwdSet/index',

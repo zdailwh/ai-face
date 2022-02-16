@@ -49,9 +49,11 @@ export default {
     }
   },
 
-  async deviceReboot () {
+  async deviceReboot (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post(`/api/admin/v1/device/reboot`)
+      var res = await axios.post(`/api/admin/v1/device/reboot`, {
+        password: params.password
+      })
       return res
     } else {
       const data = await await timeout(200).then(() => mock.deviceinfo)

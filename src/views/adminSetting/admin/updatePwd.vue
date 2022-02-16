@@ -1,33 +1,23 @@
 <template>
   <div class="faceContainer">
+    <h2 class="formTitle">修改密码</h2>
     <div class="formWrap">
-      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:20}">
+      <a-form-model ref="form" :model="formadd" :rules="ruleValidate" :label-col="{span:5}" :wrapper-col="{span:19}">
         <a-form-model-item label="原密码" prop="old">
           <a-input v-model="formadd.old" type="password" />
         </a-form-model-item>
         <a-form-model-item label="新密码" prop="new">
           <a-input v-model="formadd.new" type="password" />
         </a-form-model-item>
-        <a-form-model-item :wrapper-col="{ span: 14, offset: 4 }">
+        <a-form-model-item label="重复新密码" prop="renew">
+          <a-input v-model="formadd.renew" type="password" />
+        </a-form-model-item>
+        <a-form-model-item :wrapper-col="{ span: 19, offset: 5 }">
           <a-button type="primary" :loading="loading" @click="commit">
             确定
           </a-button>
         </a-form-model-item>
       </a-form-model>
-
-      <!-- <el-form ref="form" :model="formadd" :rules="ruleValidate" label-width="80px">
-        <el-form-item label="原密码" prop="old">
-          <el-input v-model="formadd.old" type="password" />
-        </el-form-item>
-        <el-form-item label="新密码" prop="new">
-          <el-input v-model="formadd.new" type="password" />
-        </el-form-item>
-        <el-form-item>
-          <el-button class="filter-item" type="primary" @click="commit">
-            确定
-          </el-button>
-        </el-form-item>
-      </el-form> -->
     </div>
   </div>
 </template>
@@ -37,29 +27,38 @@ import Cookies from 'js-cookie'
 export default {
   data () {
     var validatePwd = (rule, value, callback) => {
-      var len = this.pwdset.length
-      var complexity = this.pwdset.complexity
-      var reg = new RegExp('^.*(?=.{8,})(?=.*[0-9])(?=.*[a-zA-Z]).*$')
-      var regMsg = '至少8位字母数字'
-      if (complexity === 1) {
-        // 字母数字
-        reg = new RegExp('^.*(?=.{' + len + ',})(?=.*[0-9])(?=.*[a-zA-Z]).*$')
-        regMsg = `至少${len}位字母数字`
-      } if (complexity === 2) {
-        // 大小写及数字
-        reg = new RegExp('^.*(?=.{' + len + ',})(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).*$')
-        regMsg = `至少${len}位大小写字母加数字`
-      } if (complexity === 3) {
-        // 大小写、数字及特殊符号
-        reg = new RegExp('^.*(?=.{' + len + ',})(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*? ]).*$')
-        regMsg = `至少${len}位大小写字母加数字加特殊符号`
-      }
+      // var len = this.pwdset.length
+      // var complexity = this.pwdset.complexity
+      var reg = new RegExp('^.*(?=.{8,})(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[!@#$%^&*? ]).*$')
+      var regMsg = '至少8位字母加数字加特殊符号'
+      // if (complexity === 1) {
+      //   // 字母数字
+      //   reg = new RegExp('^.*(?=.{' + len + ',})(?=.*[0-9])(?=.*[a-zA-Z]).*$')
+      //   regMsg = `至少${len}位字母数字`
+      // } if (complexity === 2) {
+      //   // 大小写及数字
+      //   reg = new RegExp('^.*(?=.{' + len + ',})(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).*$')
+      //   regMsg = `至少${len}位大小写字母加数字`
+      // } if (complexity === 3) {
+      //   // 大小写、数字及特殊符号
+      //   reg = new RegExp('^.*(?=.{' + len + ',})(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*? ]).*$')
+      //   regMsg = `至少${len}位大小写字母加数字加特殊符号`
+      // }
       if (value === '') {
         callback(new Error('新密码不能为空'))
+      } else if (value === this.formadd.old) {
+        callback(new Error('新密码与旧密码一致'))
       } else if (!reg.test(value)) {
         callback(new Error(regMsg))
       } else {
         callback()
+      }
+    }
+    var validateRePwd = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('再次输入新密码'))
+      } else if (value !== this.formadd.new) {
+        callback(new Error('两次输入的新密码不一致'))
       }
     }
     return {
@@ -68,7 +67,8 @@ export default {
       loading: false,
       formadd: {
         old: '',
-        new: ''
+        new: '',
+        renew: ''
       },
       ruleValidate: {
         old: [
@@ -76,6 +76,9 @@ export default {
         ],
         new: [
           { required: true, validator: validatePwd, trigger: 'blur' }
+        ],
+        renew: [
+          { required: true, validator: validateRePwd, trigger: 'blur' }
         ]
       }
     }
