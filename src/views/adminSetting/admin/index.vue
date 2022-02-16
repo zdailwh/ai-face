@@ -22,6 +22,9 @@
         <span slot="level" slot-scope="level">
           {{level | levelFilter}}
         </span>
+        <span slot="statusstr" slot-scope="statusstr, record">
+          <span :style="{ color: record.status === 1 ? '#52c41a' : record.status === 2 ? '#f5222d' : '#fff' }">{{statusstr}}</span>
+        </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
@@ -137,7 +140,7 @@ const columns = [
     title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' },
-    width: 240
+    width: 280
   }
 ]
 

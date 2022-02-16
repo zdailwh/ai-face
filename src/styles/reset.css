@@ -568,3 +568,10 @@ i {
 .myPageSpinning .ant-spin-container::after {
   background-color: #000;
 }
+/*结果页面 404/500*/
+.myResultCont .ant-result-title {
+  color: #fff;
+}
+.myResultCont .ant-result-subtitle {
+  color: rgba(255,255,255,.45);
+}

@@ -188,7 +188,8 @@ let templateUser = {
   'username': 'test1',
   'mobile': '',
   'level': 4,
-  'activity': '@integer(100, 500)'
+  'activity': '@integer(100, 500)',
+  'initialPwd': 1
 }
 let templateUsers = {
   'code': 0,

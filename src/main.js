@@ -37,46 +37,51 @@ router.beforeEach(async (to, from, next) => {
 
   if (hasToken) {
     store.commit('authentication/SET_TOKEN', hasToken)
-    if (to.path === '/login') {
-      // if is logged in, redirect to the home page
-      next({ path: '/' })
+    var currUser = JSON.parse(hasToken)
+    if (currUser.initialPwd === 0 && to.path !== '/updatePwdFirst') {
+      // 初次登陆 去修改密码
+      next('/updatePwdFirst')
     } else {
-      // determine whether the user has obtained his permission roles through getInfo
-      const hasRoles = store.getters.roles && store.getters.roles.length > 0
-      if (hasRoles) {
-        if (to.name === null) {
-          // 找不到路由 跳转到默认页面
-          next(`/my/admin/edit`)
-        } else {
-          next()
-        }
+      if (to.path === '/login') {
+        // if is logged in, redirect to the home page
+        next({ path: '/' })
       } else {
-        try {
-          var currUser = JSON.parse(hasToken)
-          var roles = []
-          if (parseInt(currUser.level) === 5) {
-            roles = ['admin']
+        // determine whether the user has obtained his permission roles through getInfo
+        const hasRoles = store.getters.roles && store.getters.roles.length > 0
+        if (hasRoles) {
+          if (to.name === null) {
+            // 找不到路由 跳转到默认页面
+            next(`/my/admin/edit`)
           } else {
-            roles = ['editor']
+            next()
           }
-          await store.dispatch('authentication/setRole', roles)
-
-          const menuArr = (currUser.role && currUser.role.menu) || ''
-          const menus = menuArr.split(',').map(item => {
-            if (item.indexOf('_') !== -1) {
-              return item.substr(0, item.indexOf('_'))
+        } else {
+          try {
+            var roles = []
+            if (parseInt(currUser.level) === 5) {
+              roles = ['admin']
             } else {
-              return item
+              roles = ['editor']
             }
-          })
-          const accessRoutes = await store.dispatch('permission/generateRoutesByMenu', { roles: roles, perms: menus })
-          // const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
-          router.addRoutes(accessRoutes)
-          next({ ...to, replace: true })
-        } catch (error) {
-          // remove token and go to login page to re-login
-          await store.dispatch('authentication/resetToken')
-          next(`/login?redirect=${to.path}`)
+            await store.dispatch('authentication/setRole', roles)
+
+            const menuArr = (currUser.role && currUser.role.menu) || ''
+            const menus = menuArr.split(',').map(item => {
+              if (item.indexOf('_') !== -1) {
+                return item.substr(0, item.indexOf('_'))
+              } else {
+                return item
+              }
+            })
+            const accessRoutes = await store.dispatch('permission/generateRoutesByMenu', { roles: roles, perms: menus })
+            // const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
+            router.addRoutes(accessRoutes)
+            next({ ...to, replace: true })
+          } catch (error) {
+            // remove token and go to login page to re-login
+            await store.dispatch('authentication/resetToken')
+            next(`/login?redirect=${to.path}`)
+          }
         }
       }
     }

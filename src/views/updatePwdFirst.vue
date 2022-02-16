@@ -107,7 +107,7 @@ export default {
           this.$message.success('密码修改成功，请重新登录！')
 
           await this.$store.dispatch('authentication/logout')
-          this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+          this.$router.push(`/login`)
         } else {
           this.$message.error(resBody.message || '请求出错！')
         }

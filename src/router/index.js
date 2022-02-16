@@ -30,6 +30,27 @@ export const constantRoutes = [
     hidden: true
   },
   {
+    path: '/updatePwdFirst',
+    name: 'UpdatePwdFirst',
+    component: () => import('@/views/updatePwdFirst'),
+    meta: { title: '修改密码', active: 'updatePwdFirst' },
+    hidden: true
+  },
+  {
+    path: '/404',
+    name: '404',
+    component: () => import('@/views/error-page/404'),
+    meta: { title: '404' },
+    hidden: true
+  },
+  {
+    path: '/500',
+    name: '500',
+    component: () => import('@/views/error-page/500'),
+    meta: { title: '500' },
+    hidden: true
+  },
+  {
     path: '/test',
     name: 'Test',
     component: () => import('@/views/test'),

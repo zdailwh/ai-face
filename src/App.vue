@@ -15,7 +15,7 @@
                 <!-- <a-menu-item>
                   <router-link to="/user/admin/edit">编辑个人信息</router-link>
                 </a-menu-item> -->
-                <a-menu-item>
+                <a-menu-item v-if="$route.path !== '/updatePwdFirst'">
                   <router-link to="/user/admin/updatePwd">修改密码</router-link>
                 </a-menu-item>
                 <a-menu-item>
@@ -28,7 +28,7 @@
       </div>
       <div class="container">
         <div class="file-page">
-          <div v-if="$route.path !== '/login'" class="file-slider">
+          <div v-if="routeWhiteList.indexOf($route.path) === -1" class="file-slider">
             <div class="myTopMenu">
               <a-menu theme="dark" v-model="current" @click="menuClick">
                 <template v-if="permission_routes.length">
@@ -42,7 +42,7 @@
               </a-menu>
             </div>
           </div>
-          <div class="file-main" :style="{ paddingLeft: $route.path !== '/login'? '166px': '0px' }">
+          <div class="file-main" :style="{ paddingLeft: routeWhiteList.indexOf($route.path) === -1? '166px': '0px' }">
             <div v-if="showSubMenu" class="mySubMenu">
               <a-menu v-if="topRoute && topRoute.children && topRoute.children.length" v-model="currentChild" mode="horizontal">
                 <a-menu-item v-if="!rou.hidden" v-for="rou in topRoute.children" :key="`${topRoute.path}/${rou.path}`" :style="{float: rou.path.indexOf('sysrestart') !== -1 ? 'right' : ''}">
@@ -66,7 +66,8 @@ export default {
     return {
       smallLayout: false,
       showMenus: false,
-      topRoute: {}
+      topRoute: {},
+      routeWhiteList: [ '/login', '/updatePwdFirst', '/404', '/500' ]
     }
   },
   computed: {
@@ -96,7 +97,7 @@ export default {
       }
     },
     showSubMenu () {
-      var hideSubMenuRoute = ['Login', 'TaskResult', 'MyEdit', 'MyUpdatePwd']
+      var hideSubMenuRoute = ['Login', 'UpdatePwdFirst', 'TaskResult', 'MyEdit', 'MyUpdatePwd', '404', '500']
       if (hideSubMenuRoute.indexOf(this.$route.name) !== -1) {
         return false
       } else {
@@ -145,8 +146,9 @@ export default {
             this.$router.push({ path: '/login' })
             window.history.go(0)
           })
+        } else {
+          this.$message.error(error.response.data.message || error.response.data || '接口调用失败！')
         }
-        this.$message.error(error.response.data.message || error.response.data || '接口调用失败！')
       })
     }
   }
