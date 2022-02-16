@@ -500,6 +500,11 @@ i {
 }
 
 /*编辑个人信息、修改密码*/
+.formTitle {
+  width: 500px;
+  margin: 20px auto;
+  color: #fff;
+}
 .formWrap {
   width: 500px;
   margin: 20px auto;
@@ -514,6 +519,9 @@ i {
   background-color: transparent;  
   border: 1px solid #9aa1a8;
   color: #fdfdfd;
+}
+.formWrap .has-error .ant-input, .formWrap .has-error .ant-input:hover {
+  background-color: transparent;
 }
 
 .smallNotify {
@@ -541,4 +549,22 @@ i {
   top: 50%;
   right: 20px;
   transform: translate(0, -50%);
+}
+/* 整个页面的加载中 */
+.myPageSpinning {
+  width: 100%;
+  height: 100%;
+}
+.myPageSpinning.ant-spin-nested-loading > div > .ant-spin {
+  max-height: initial;
+}
+.myPageSpinning.ant-spin-nested-loading > div > .ant-spin .ant-spin-text {
+  text-shadow: none;
+}
+.myPageSpinning .ant-spin-container {
+  width: 100%;
+  height: 100%;
+}
+.myPageSpinning .ant-spin-container::after {
+  background-color: #000;
 }

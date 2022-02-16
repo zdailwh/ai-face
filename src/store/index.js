@@ -12,11 +12,16 @@ const store = new Vuex.Store({
     faces: [],
     faceTotal: 0,
     groupTotal: 0,
-    hosturl: (window.localStorage && window.localStorage.getItem('KS_host')) || '182.92.115.19:8001'
+    hosturl: (window.localStorage && window.localStorage.getItem('KS_host')) || '182.92.115.19:8001',
+    pageSpin: {
+      spinning: false,
+      tip: '加载中...'
+    }
   },
   getters: {
     roles: state => state.authentication.roles,
-    permission_routes: state => state.permission.routes
+    permission_routes: state => state.permission.routes,
+    pageSpin: state => state.pageSpin
   },
   mutations: {
     increment (state) {
@@ -38,6 +43,12 @@ const store = new Vuex.Store({
       state.hosturl = url
       var storage = window.localStorage
       storage.setItem('KS_host', url)
+    },
+    setPageSpin (state, param) {
+      state.pageSpin = {
+        spinning: param.spinning,
+        tip: param.tip || '加载中...'
+      }
     }
   },
   actions: {

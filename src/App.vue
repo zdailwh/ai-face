@@ -1,58 +1,60 @@
 <template>
   <div id="app">
-    <div class="lager-layout">
-      <div class="header">
-        <div class="opt">
-          <div class="logo" v-show="smallLayout === false"><img src="./assets/zg_logo.png"><span class="logo_title">广电专业人像检索系统</span></div>
-        </div>
-        <div class="opt" style="justify-content: flex-end;flex:1;margin-right: 10px;">
-          <a-dropdown v-if="currUser.id">
-            <a class="ant-dropdown-link" style="color: #9aa1a8; font-size: 16px;" @click="e => e.preventDefault()">
-               {{currUser.username}} <img src="./assets/user.png" alt="" style="width: 28px; margin: 0 5px;"><a-icon type="down" />
-            </a>
-            <a-menu slot="overlay">
-              <!-- <a-menu-item>
-                <router-link to="/user/admin/edit">编辑个人信息</router-link>
-              </a-menu-item> -->
-              <a-menu-item>
-                <router-link to="/user/admin/updatePwd">修改密码</router-link>
-              </a-menu-item>
-              <a-menu-item>
-                <a href="javascript:;" @click="logout">退出登录</a>
-              </a-menu-item>
-            </a-menu>
-          </a-dropdown>
-        </div>
-      </div>
-    </div>
-    <div class="container">
-      <div class="file-page">
-        <div v-if="$route.path !== '/login'" class="file-slider">
-          <div class="myTopMenu">
-            <a-menu theme="dark" v-model="current" @click="menuClick">
-              <template v-if="permission_routes.length">
-                <a-menu-item v-if="!route.hidden" v-for="route in permission_routes" :key="route.meta.active">
-                  <router-link :to="route.redirect" :data-top-route="JSON.stringify(route)">
-                    <p class="myMenuIcon"><span :class="`iconfont ${route.meta.icon}`"></span></p>
-                    <p class="myMenuTitle">{{route.meta.title}}</p>
-                  </router-link>
+    <a-spin :spinning="pageSpin.spinning" size="large" :tip="pageSpin.tip" class="myPageSpinning">
+      <div class="lager-layout">
+        <div class="header">
+          <div class="opt">
+            <div class="logo" v-show="smallLayout === false"><img src="./assets/zg_logo.png"><span class="logo_title">广电专业人像检索系统</span></div>
+          </div>
+          <div class="opt" style="justify-content: flex-end;flex:1;margin-right: 10px;">
+            <a-dropdown v-if="currUser.id">
+              <a class="ant-dropdown-link" style="color: #9aa1a8; font-size: 16px;" @click="e => e.preventDefault()">
+                 {{currUser.username}} <img src="./assets/user.png" alt="" style="width: 28px; margin: 0 5px;"><a-icon type="down" />
+              </a>
+              <a-menu slot="overlay">
+                <!-- <a-menu-item>
+                  <router-link to="/user/admin/edit">编辑个人信息</router-link>
+                </a-menu-item> -->
+                <a-menu-item>
+                  <router-link to="/user/admin/updatePwd">修改密码</router-link>
                 </a-menu-item>
-              </template>
-            </a-menu>
+                <a-menu-item>
+                  <a href="javascript:;" @click="logout">退出登录</a>
+                </a-menu-item>
+              </a-menu>
+            </a-dropdown>
           </div>
-        </div>
-        <div class="file-main" :style="{ paddingLeft: $route.path !== '/login'? '166px': '0px' }">
-          <div v-if="showSubMenu" class="mySubMenu">
-            <a-menu v-if="topRoute && topRoute.children && topRoute.children.length" v-model="currentChild" mode="horizontal">
-              <a-menu-item v-if="!rou.hidden" v-for="rou in topRoute.children" :key="`${topRoute.path}/${rou.path}`" :style="{float: rou.path.indexOf('sysrestart') !== -1 ? 'right' : ''}">
-                {{rou.meta.title}}
-              </a-menu-item>
-            </a-menu>
-          </div>
-          <router-view/>
         </div>
       </div>
-    </div>
+      <div class="container">
+        <div class="file-page">
+          <div v-if="$route.path !== '/login'" class="file-slider">
+            <div class="myTopMenu">
+              <a-menu theme="dark" v-model="current" @click="menuClick">
+                <template v-if="permission_routes.length">
+                  <a-menu-item v-if="!route.hidden" v-for="route in permission_routes" :key="route.meta.active">
+                    <router-link :to="route.redirect" :data-top-route="JSON.stringify(route)">
+                      <p class="myMenuIcon"><span :class="`iconfont ${route.meta.icon}`"></span></p>
+                      <p class="myMenuTitle">{{route.meta.title}}</p>
+                    </router-link>
+                  </a-menu-item>
+                </template>
+              </a-menu>
+            </div>
+          </div>
+          <div class="file-main" :style="{ paddingLeft: $route.path !== '/login'? '166px': '0px' }">
+            <div v-if="showSubMenu" class="mySubMenu">
+              <a-menu v-if="topRoute && topRoute.children && topRoute.children.length" v-model="currentChild" mode="horizontal">
+                <a-menu-item v-if="!rou.hidden" v-for="rou in topRoute.children" :key="`${topRoute.path}/${rou.path}`" :style="{float: rou.path.indexOf('sysrestart') !== -1 ? 'right' : ''}">
+                  {{rou.meta.title}}
+                </a-menu-item>
+              </a-menu>
+            </div>
+            <router-view/>
+          </div>
+        </div>
+      </div>
+    </a-spin>
   </div>
 </template>
 
@@ -102,7 +104,8 @@ export default {
       }
     },
     ...mapGetters([
-      'permission_routes'
+      'permission_routes',
+      'pageSpin'
     ])
   },
   watch: {

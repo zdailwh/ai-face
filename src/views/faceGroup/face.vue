@@ -640,22 +640,19 @@ export default {
       formdata.append('side', data.side)
       formdata.append('file', originFileObj, data.file.name)
 
-      this.addLoading = true
       api.addFeature({ faceId: this.currCropperFace.id, formdata: formdata }).then(res => {
         if (res.data.code === 0) {
-          this.getFaces()
-
-          this.addLoading = false
           this.addFeatureForm = {
             faceId: '',
             file: ''
           }
-          this.$message.success('人脸特征创建成功')
+          // this.$message.success('人脸特征创建成功')
+
+          this.getFeature(res.data.data.id)
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
       }).catch(error => {
-        this.addLoading = false
         if (error.response && error.response.status === 401) {
           this.$store.dispatch('authentication/resetToken').then(() => {
             this.$router.push({ path: '/login' })
@@ -663,6 +660,40 @@ export default {
         }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '创建出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    getFeature (fid) {
+      this.$store.commit('setPageSpin', { spinning: true, tip: '等待人像核验...' })
+      api.getFeature({ featureId: fid }).then(res => {
+        if (res.data.code === 0) {
+          var feat = res.data.data
+          if (feat.status === 1) {
+            this.getFeature(fid)
+          } else {
+            this.getFaces()
+            if (feat.status === 2) {
+              this.$store.commit('setPageSpin', { spinning: false })
+              this.$message.success('人像核验通过')
+            } else if (feat.status === 3) {
+              this.$store.commit('setPageSpin', { spinning: false })
+              this.$message.error(feat.errorMessage)
+            }
+          }
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
+        }
+      }).catch(error => {
+        this.$store.commit('setPageSpin', { spinning: false })
+        if (error.response && error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取人像图出错！')
         } else {
           this.$message.error('接口调用失败！')
         }

@@ -200,6 +200,16 @@ export default {
     }
   },
 
+  async getFeature ({ featureId }) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.get(`/api/admin/v1/feature/${featureId}`)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.feature)
+      return { status: 200, data: data }
+    }
+  },
+
   async delFeature (params) {
     if (process.env.NODE_ENV === 'production') {
       var res = await axios.delete(`/api/admin/v1/feature/${params.id}`)
