@@ -34,7 +34,7 @@ export default {
 
   async addGroup (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post(`/api/admin/v1/group`, params)
+      var res = await axios.post(`/api/admin/v1/label`, params)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.group)
@@ -44,7 +44,7 @@ export default {
 
   async editGroup (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.put(`/api/admin/v1/group/${params.id}`, {
+      var res = await axios.put(`/api/admin/v1/label/${params.id}`, {
         faceIds: params.faceIds || []
       })
       return res
@@ -56,7 +56,7 @@ export default {
 
   async delGroup (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.delete(`/api/admin/v1/group/${params.id}`)
+      var res = await axios.delete(`/api/admin/v1/label/${params.id}`)
       return res
     } else {
       return { status: 200 }
@@ -78,7 +78,7 @@ export default {
       if (params && params.createTime) {
         opts.createTime = params.createTime
       }
-      var res = await axios.get(`/api/admin/v1/group`, {
+      var res = await axios.get(`/api/admin/v1/label`, {
         params: opts
       })
       return res
@@ -106,7 +106,7 @@ export default {
         gender: params.gender || '',
         birthday: params.birthday || '',
         title: params.title || '',
-        history: params.history || ''
+        labelIds: params.labelIds
       })
       return res
     } else {
@@ -180,7 +180,7 @@ export default {
       if (params && params.createTime) {
         opts.createTime = params.createTime
       }
-      var res = await axios.get(`/api/admin/v1/group/faces/${params.groupId}`, {
+      var res = await axios.get(`/api/admin/v1/label/faces/${params.groupId}`, {
         params: opts
       })
       return res

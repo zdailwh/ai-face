@@ -3,7 +3,7 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="分组名" prop="name">
+        <a-form-model-item label="标签名" prop="name">
           <a-input v-model="searchForm.name" style="width: 120px;" />
         </a-form-model-item>
         <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
@@ -12,24 +12,24 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
-          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建分组</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建标签</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: tableHeight }" size="middle" rowKey="id" :pagination="false">
-        <span slot="faceNames" slot-scope="faceNames">
+        <!-- <span slot="faceNames" slot-scope="faceNames">
           {{faceNames.join(',')}}
-        </span>
+        </span> -->
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
         <span slot="action" slot-scope="record, index, idx">
-          <a @click="toEdit(record, idx)">编辑</a>
-          <a-divider type="vertical" />
+          <!-- <a @click="toEdit(record, idx)">编辑</a>
+          <a-divider type="vertical" /> -->
           <a-popconfirm
-            title="确定要删除该分组吗?"
+            title="确定要删除该标签吗?"
             ok-text="删除"
             cancel-text="取消"
             @confirm="delGroup(record, idx)"
@@ -58,17 +58,17 @@
         </a-pagination>
       </div>
     </div>
-    <!--创建分组-->
+    <!--创建标签-->
     <a-modal
-      title="创建分组"
+      title="创建标签"
       v-model="addVisible"
     >
       <div>
-        <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
-          <a-form-model-item label="名称">
+        <a-form-model ref="addform" :model="addForm" :rules="ruleValidate" :label-col="{span:4}" :wrapper-col="{span:14}">
+          <a-form-model-item label="名称" prop="name">
             <a-input v-model="addForm.name" />
           </a-form-model-item>
-          <a-form-model-item label="描述">
+          <a-form-model-item label="描述" prop="description">
             <a-input v-model="addForm.description" />
           </a-form-model-item>
         </a-form-model>
@@ -82,9 +82,9 @@
         </a-button>
       </template>
     </a-modal>
-    <!--编辑分组-->
+    <!--编辑标签-->
     <a-modal
-      title="分组维护"
+      title="标签维护"
       width="800px"
       v-model="editVisible"
     >
@@ -181,12 +181,12 @@ const columns = [
     key: 'description',
     width: 120
   },
-  {
-    title: '人脸',
-    dataIndex: 'faceNames',
-    key: 'faceNames',
-    scopedSlots: { customRender: 'faceNames' }
-  },
+  // {
+  //   title: '人脸',
+  //   dataIndex: 'faceNames',
+  //   key: 'faceNames',
+  //   scopedSlots: { customRender: 'faceNames' }
+  // },
   {
     title: '创建时间',
     dataIndex: 'create_time',
@@ -218,6 +218,14 @@ export default {
       page_no: 1,
       page_size: 20,
       columns,
+      ruleValidate: {
+        name: [
+          { required: true, message: '请填写标签名称', trigger: 'blur' }
+        ]
+        // description: [
+        //   { required: true, message: '请填写标签描述', trigger: 'blur' }
+        // ]
+      },
       addForm: {
         name: '',
         description: ''
@@ -335,38 +343,40 @@ export default {
       }
     },
     handleAdd (e) {
-      if (this.addForm.name === '') {
-        this.$message.error('请填写分组名称！')
-        return
-      }
+      this.$refs.addform.validate((valid) => {
+        if (valid) {
+          this.addLoading = true
+          api.addGroup(this.addForm).then(res => {
+            this.addLoading = false
+            if (res.data.code === 0) {
+              this.page_no = 1
+              this.getGroups()
 
-      this.addLoading = true
-      api.addGroup(this.addForm).then(res => {
-        if (res.data.code === 0) {
-          this.page_no = 1
-          this.getGroups()
-
-          this.addVisible = false
-          this.addLoading = false
-          this.addForm = {
-            name: '',
-            description: ''
-          }
-          this.$message.success('分组创建成功')
-        } else {
-          this.$message.error(res.data.message || '请求出错！')
-        }
-      }).catch(error => {
-        this.addLoading = false
-        if (error.response && error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
+              this.addVisible = false
+              this.addForm = {
+                name: '',
+                description: ''
+              }
+              this.$message.success('标签创建成功')
+            } else {
+              this.$message.error(res.data.message || '请求出错！')
+            }
+          }).catch(error => {
+            this.addLoading = false
+            if (error.response && error.response.status === 401) {
+              this.$store.dispatch('authentication/resetToken').then(() => {
+                this.$router.push({ path: '/login' })
+              })
+            }
+            if (error.response && error.response.data) {
+              this.$message.error(error.response.data.message || '创建出错！')
+            } else {
+              this.$message.error('接口调用失败！')
+            }
           })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '创建出错！')
         } else {
-          this.$message.error('接口调用失败！')
+          console.log('error submit!!')
+          return false
         }
       })
     },
@@ -403,7 +413,7 @@ export default {
           this.editVisible = false
           this.editLoading = false
           this.editForm = {}
-          this.$message.success('分组编辑成功')
+          this.$message.success('标签编辑成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
@@ -432,7 +442,7 @@ export default {
       api.delGroup({id: record.id}).then(res => {
         if (res.data.code === 0) {
           this.datalist.splice(idx, 1)
-          this.$message.success('分组删除成功')
+          this.$message.success('标签删除成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }

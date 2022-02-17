@@ -116,7 +116,7 @@ export const constantRoutes = [
   //       path: 'group',
   //       name: 'Group',
   //       component: () => import('@/views/faceGroup/group'),
-  //       meta: { title: '分组', active: 'facegroup' }
+  //       meta: { title: '标签', active: 'facegroup' }
   //     }
   //   ]
   // },
@@ -322,7 +322,7 @@ export const asyncRoutes = [
         path: 'group',
         name: 'Group',
         component: () => import('@/views/faceGroup/group'),
-        meta: { title: '分组', active: 'facegroup' }
+        meta: { title: '标签', active: 'facegroup' }
       }
     ]
   },

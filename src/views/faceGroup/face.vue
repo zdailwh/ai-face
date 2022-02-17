@@ -3,7 +3,7 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="人脸组" prop="groupId">
+        <a-form-model-item label="标签" prop="groupId">
           <a-select v-model="searchForm.groupId" :dropdownMatchSelectWidth="false" style="width: 100px;">
             <a-select-option value="">全部</a-select-option>
             <a-select-option :value="item.id" v-for="item in groupsData" v-bind:key="item.id">
@@ -23,7 +23,7 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
-          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建人脸</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建人像</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
@@ -35,13 +35,21 @@
             <template slot="content">
               <p style="width: 300px">{{description}}</p>
             </template>
-            <span class="ellipText">{{description}}</span>
+            <span class="ellipText" style="width: 230px;">{{description}}</span>
+          </a-popover>
+        </p>
+        <p slot="labels" slot-scope="labels">
+          <a-popover title="标签" trigger="hover">
+            <template slot="content">
+              <p style="width: 200px"><template v-for="label in labels">{{label.name}}、</template></p>
+            </template>
+            <span class="ellipText" style="width: 80px;"><template v-for="label in labels">{{label.name}}、</template></span>
           </a-popover>
         </p>
         <span slot="gender" slot-scope="gender">
           {{!gender? '未知':(gender === 1)? '男': '女'}}
         </span>
-        <span slot="groups" slot-scope="groups">
+        <!-- <span slot="groups" slot-scope="groups">
           <a-popover title="所属分组" trigger="hover" arrow-point-at-center>
             <template slot="content">
               <template v-if="groups">
@@ -50,7 +58,7 @@
             </template>
             <a href="javascript:;" v-if="groups.length">查看分组</a>
           </a-popover>
-        </span>
+        </span> -->
         <span slot="features" slot-scope="text, record, index">
           <!-- <a-popover title="" v-for="(i,k) in features" :key="k">
             <template slot="content">
@@ -70,7 +78,7 @@
           <a @click="toEdit(record, idx)">编辑</a>
           <a-divider type="vertical" />
           <a-popconfirm
-            title="确定要删除该人脸吗?"
+            title="确定要删除该人像吗?"
             ok-text="删除"
             cancel-text="取消"
             @confirm="delFace(record, idx)"
@@ -97,9 +105,9 @@
         </a-pagination>
       </div>
     </div>
-    <!--创建人脸-->
+    <!--创建人像-->
     <a-modal
-      title="创建人脸"
+      title="创建人像"
       v-model="addVisible"
     >
       <div>
@@ -121,8 +129,8 @@
           <a-form-model-item label="别名" prop="title">
             <Tag :curr-tags="addForm.title" @commitTag="commitAddTitle"></Tag>
           </a-form-model-item>
-          <a-form-model-item label="履历" prop="history">
-            <Tag :curr-tags="addForm.history" @commitTag="commitAddHistory"></Tag>
+          <a-form-model-item label="标签" prop="labelIds">
+            <CheckableTag :curr-tags="addForm.labelIds" :option-tags="groupsData" @commitTag="commitAddLabel" @refreshTags="getAllGroups"></CheckableTag>
           </a-form-model-item>
         </a-form-model>
       </div>
@@ -135,9 +143,9 @@
         </a-button>
       </template>
     </a-modal>
-    <!--编辑人脸-->
+    <!--编辑人像-->
     <a-modal
-      title="编辑人脸"
+      title="编辑人像"
       v-model="editVisible"
     >
       <div>
@@ -159,8 +167,8 @@
           <a-form-model-item label="别名" prop="title">
             <Tag :curr-tags="editForm.title" @commitTag="commitEditTitle"></Tag>
           </a-form-model-item>
-          <a-form-model-item label="履历" prop="history">
-            <Tag :curr-tags="editForm.history" @commitTag="commitEditHistory"></Tag>
+          <a-form-model-item label="标签" prop="labelIds">
+            <CheckableTag :curr-tags="editForm.labelIds" :option-tags="groupsData" @commitTag="commitEditLabel" @refreshTags="getAllGroups"></CheckableTag>
           </a-form-model-item>
         </a-form-model>
       </div>
@@ -179,7 +187,7 @@
     </a-modal>
     <!--图片裁剪-->
     <a-modal
-      title="裁剪人脸"
+      title="裁剪人像"
       width="800px"
       :footer="null"
       v-model="cropperVisible"
@@ -192,6 +200,7 @@
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import api from '@/api'
 import Tag from '@/components/Tag.vue'
+import CheckableTag from '@/components/CheckableTag.vue'
 import CropperImage from '@/components/Cropper.vue'
 import Feature from '@/components/Feature.vue'
 
@@ -238,26 +247,26 @@ const columns = [
     width: 100
   },
   {
-    title: '履历',
-    dataIndex: 'history',
-    key: 'history',
-    scopedSlots: { customRender: 'history' },
+    title: '标签',
+    dataIndex: 'labels',
+    key: 'labels',
+    scopedSlots: { customRender: 'labels' },
     width: 100
   },
   {
-    title: '人脸特征图',
+    title: '人像特征图',
     dataIndex: 'features',
     key: 'features',
     scopedSlots: { customRender: 'features' },
     width: 300
   },
-  {
-    title: '所属分组',
-    dataIndex: 'groups',
-    key: 'groups',
-    scopedSlots: { customRender: 'groups' },
-    width: 100
-  },
+  // {
+  //   title: '所属分组',
+  //   dataIndex: 'groups',
+  //   key: 'groups',
+  //   scopedSlots: { customRender: 'groups' },
+  //   width: 100
+  // },
   {
     title: '创建时间',
     dataIndex: 'create_time',
@@ -277,11 +286,11 @@ export default {
   beforeRouteEnter (to, from, next) {
     next()
   },
-  components: { CropperImage, Feature, Tag },
+  components: { CropperImage, Feature, Tag, CheckableTag },
   data () {
     return {
       locale,
-      imgMaxLength: 5, // 最多上传5张人脸图
+      imgMaxLength: 5, // 最多上传5张人像图
       smallLayout: false,
       spinning: false,
       tableHeight: 0,
@@ -305,7 +314,7 @@ export default {
         gender: '',
         birthday: null,
         title: '',
-        history: ''
+        labelIds: []
       },
       addLoading: false,
       addVisible: false,
@@ -349,14 +358,14 @@ export default {
   watch: {
     $route (newVal, oldVal) {
       if (newVal.query && newVal.query.groupId) {
-        // 查询分组人脸列表
+        // 查询分组人像列表
         this.searchForm.groupId = newVal.query.groupId
       }
     }
   },
   mounted () {
     if (this.$route.query && this.$route.query.groupId) {
-      // 查询分组人脸列表
+      // 查询分组人像列表
       this.searchForm.groupId = this.$route.query.groupId
     }
 
@@ -436,7 +445,7 @@ export default {
             })
           }
           if (error.response && error.response.data) {
-            this.$message.error(error.response.data.message || '获取人脸库出错！')
+            this.$message.error(error.response.data.message || '获取人像库出错！')
           } else {
             this.$message.error('接口调用失败！')
           }
@@ -462,7 +471,7 @@ export default {
             })
           }
           if (error.response && error.response.data) {
-            this.$message.error(error.response.data.message || '获取人脸库出错！')
+            this.$message.error(error.response.data.message || '获取人像库出错！')
           } else {
             this.$message.error('接口调用失败！')
           }
@@ -472,14 +481,14 @@ export default {
     commitAddTitle (params) {
       this.addForm.title = params.join('|')
     },
-    commitAddHistory (params) {
-      this.addForm.history = params.join('|')
+    commitAddLabel (params) {
+      this.addForm.labelIds = params
     },
     commitEditTitle (params) {
       this.editForm.title = params.join('|')
     },
-    commitEditHistory (params) {
-      this.editForm.history = params.join('|')
+    commitEditLabel (params) {
+      this.editForm.labelIds = params
     },
     handleCancel_add () {
       this.addVisible = false
@@ -494,7 +503,7 @@ export default {
             gender: this.addForm.gender,
             birthday: this.addForm.birthday ? moment(this.addForm.birthday).format('YYYY-MM-DD') : '',
             title: this.addForm.title,
-            history: this.addForm.history
+            labelIds: this.addForm.labelIds
           }
 
           this.addLoading = true
@@ -511,9 +520,9 @@ export default {
                 gender: '',
                 birthday: null,
                 title: '',
-                history: ''
+                labelIds: []
               }
-              this.$message.success('人脸创建成功')
+              this.$message.success('人像创建成功')
             } else {
               this.$message.error(res.data.message || '请求出错！')
             }
@@ -559,7 +568,7 @@ export default {
             gender: this.editForm.gender,
             birthday: this.editForm.birthday ? moment(this.editForm.birthday).format('YYYY-MM-DD') : '',
             title: this.editForm.title,
-            history: this.editForm.history
+            labelIds: this.editForm.labelIds
           }
 
           this.editLoading = true
@@ -571,7 +580,7 @@ export default {
               this.editVisible = false
               this.editLoading = false
               this.editForm = {}
-              this.$message.success('人脸编辑成功')
+              this.$message.success('人像编辑成功')
             } else {
               this.$message.error(res.data.message || '请求出错！')
             }
@@ -605,7 +614,7 @@ export default {
       api.delFace({ id: record.id }).then(res => {
         if (res.data.code === 0) {
           this.getFaces()
-          this.$message.success('人脸删除成功')
+          this.$message.success('人像删除成功')
         } else {
           this.$message.error(res.data.message || '请求出错！')
         }
@@ -629,7 +638,7 @@ export default {
     handleAddFeature (data) {
       console.log(data)
       if (!data.url) {
-        this.$message.error('请上传人脸图片！')
+        this.$message.error('请上传人像图片！')
         return
       }
 
@@ -646,7 +655,7 @@ export default {
             faceId: '',
             file: ''
           }
-          // this.$message.success('人脸特征创建成功')
+          // this.$message.success('人像特征创建成功')
 
           this.getFeature(res.data.data.id)
         } else {
@@ -757,7 +766,6 @@ function getBase64 (file) {
   margin-left: 5px;
 }
 .ellipText {
-  width: 230px;
   display: block;
   white-space: nowrap;
   word-break: break-all;

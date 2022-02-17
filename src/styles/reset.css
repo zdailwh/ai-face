@@ -403,6 +403,9 @@ i {
 .searchWrap .ant-select-arrow {
   color: #fdfdfd;
 }
+.searchWrap .ant-calendar-range-picker-separator {
+  color: #fff;
+}
 
 .faceContainer {
   width: 100%;
