@@ -180,7 +180,7 @@ export default {
 
     this.getBatchs()
     this.getAllTemps()
-    this.getAllGroups()
+    // this.getAllGroups()
   },
   methods: {
     onPageChange (current) {
@@ -290,32 +290,32 @@ export default {
         //   this.$message.error('接口调用失败！')
         // }
       })
-    },
-    getAllGroups () {
-      api.getGroups().then(res => {
-        var resBody = res.data
-        if (resBody.code === 0) {
-          var groupArr = resBody.data.item
-          groupArr.unshift({ id: 0, name: '全部' })
-          groupArr.map((item, key, arr) => {
-            item.key = '' + item.id
-            item.title = item.name
-          })
-          this.groupDatalist = groupArr
-        }
-      }).catch(error => {
-        if (error.response && error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        // if (error.response && error.response.data) {
-        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
-        // } else {
-        //   this.$message.error('接口调用失败！')
-        // }
-      })
     }
+    // getAllGroups () {
+    //   api.getGroups().then(res => {
+    //     var resBody = res.data
+    //     if (resBody.code === 0) {
+    //       var groupArr = resBody.data.item
+    //       groupArr.unshift({ id: 0, name: '全部' })
+    //       groupArr.map((item, key, arr) => {
+    //         item.key = '' + item.id
+    //         item.title = item.name
+    //       })
+    //       this.groupDatalist = groupArr
+    //     }
+    //   }).catch(error => {
+    //     if (error.response && error.response.status === 401) {
+    //       this.$store.dispatch('authentication/resetToken').then(() => {
+    //         this.$router.push({ path: '/login' })
+    //       })
+    //     }
+    //     // if (error.response && error.response.data) {
+    //     //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+    //     // } else {
+    //     //   this.$message.error('接口调用失败！')
+    //     // }
+    //   })
+    // }
   }
 }
 

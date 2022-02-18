@@ -3,18 +3,17 @@
     title="创建任务"
     width="800px"
     v-model="addVisible"
-    :closable="false"
-    :keyboard="false"
-    :maskClosable="false"
+    @cancel="reset"
   >
     <div>
       <a-form-model ref="form" :model="addForm" :rules="ruleValidate">
         <a-form-model-item label="任务单名称" prop="batch" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-input v-model="addForm.batch" placeholder="任务单是一批相同条件的文件任务合集，如不填默认以当前时间命名" :disabled="!!(batch && batch.id)" />
         </a-form-model-item>
-        <a-form-model-item label="上传视频" v-if="addForm.type === 1" :label-col="{span:3}" :wrapper-col="{span:21}">
+        <a-form-model-item label="上传视频" v-if="addForm.type === 1" :label-col="{span:3}" :wrapper-col="{span:21}" :help="`视频上载支持的文件类型有${enableFile.join('、')}`">
           <a-upload
             list-type="text"
+            :show-upload-list="false"
             :multiple="true"
             :beforeUpload="beforeUpload"
             @change="uploadVideoChange"
@@ -22,13 +21,22 @@
             <a-button> <a-icon type="upload" /> 选择视频文件 </a-button>
           </a-upload>
           <a-table :columns="filecolumns" :data-source="filterList" row-key="file.name" v-if="filterList.length" size="small" :pagination="false">
+            <span slot="size" slot-scope="size">
+              {{ size | change }}
+            </span>
+            <span slot="percentage" slot-scope="percentage">
+              {{ percentage }}%
+            </span>
+            <span slot="percentageHash" slot-scope="percentageHash">
+              {{ percentageHash }}%
+            </span>
           </a-table>
         </a-form-model-item>
         <a-form-model-item label="直播流地址" prop="url" v-if="addForm.type !== 1" :label-col="{span:3}" :wrapper-col="{span:21}">
           <a-input v-model="addForm.url" :disabled="addForm.type === 1" />
         </a-form-model-item>
         <a-form-model-item label="模板" prop="mymode" :label-col="{span:3}" :wrapper-col="{span:21}">
-          <a-select v-model="addForm.mymode" :allowClear="true" @change="handleChangeMode" :disabled="true">
+          <a-select v-model="addForm.mymode" :allowClear="true" @change="handleChangeMode">
             <a-select-option :value="item.id" v-for="item in modesData" v-bind:key="item.id" :myitem="item">
               {{item.name}}
             </a-select-option>
@@ -36,7 +44,7 @@
           </a-select>
         </a-form-model-item>
         <template v-if="addForm.mymode !== ''">
-          <a-form-model-item label="帧率" prop="frame_rate" :label-col="{span:3}" :wrapper-col="{span:21}" extra="扫描检测时每秒时长抽取的画面帧数">
+          <!-- <a-form-model-item label="帧率" prop="frame_rate" :label-col="{span:3}" :wrapper-col="{span:21}" extra="扫描检测时每秒时长抽取的画面帧数">
             <a-select v-model="addForm.frame_rate" :disabled="true">
               <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -45,7 +53,7 @@
               <a-select-option :value="20">20</a-select-option>
               <a-select-option :value="25">25</a-select-option>
             </a-select>
-          </a-form-model-item>
+          </a-form-model-item> -->
           <!-- <a-form-model-item label="动态帧率" prop="dynamic_rate" :label-col="{span:3}" :wrapper-col="{span:21}">
             <a-select v-model="addForm.dynamic_rate" :disabled="true" @change="handleChangeDynamicRate">
               <a-select-option :value="0">不启用</a-select-option>
@@ -56,12 +64,12 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item> -->
-          <a-form-model-item label="优先级" prop="prority" :label-col="{span:3}" :wrapper-col="{span:21}" extra="数值越大，任务越先执行">
+          <!-- <a-form-model-item label="优先级" prop="prority" :label-col="{span:3}" :wrapper-col="{span:21}" extra="数值越大，任务越先执行">
             <a-select v-model="addForm.prority" :disabled="true">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
-          </a-form-model-item>
-          <a-form-model-item label="选择人脸组" prop="groupId" :label-col="{span:3}" :wrapper-col="{span:21}">
+          </a-form-model-item> -->
+          <!-- <a-form-model-item label="选择人脸组" prop="groupId" :label-col="{span:3}" :wrapper-col="{span:21}">
             <a-transfer
               :data-source="groupsData"
               :filter-option="filterOption"
@@ -107,7 +115,7 @@
                 </a-table>
               </template>
             </a-transfer>
-          </a-form-model-item>
+          </a-form-model-item> -->
         </template>
       </a-form-model>
     </div>
@@ -123,7 +131,7 @@
 </template>
 
 <script>
-import difference from 'lodash/difference'
+// import difference from 'lodash/difference'
 import api from '../api'
 import bigimg from '@/assets/big.png'
 
@@ -142,21 +150,21 @@ export default {
             this.addForm.frame_rate = userObj.mode.frameRate
             // this.addForm.dynamic_rate = userObj.mode.dynamic_rate
             this.addForm.prority = userObj.mode.prority
-            this.addForm.groupId = userObj.mode.groupIds
-            this.updateParentData('targetKeys', userObj.mode.groupIds.split(','))
+            // this.addForm.groupId = userObj.mode.groupIds
+            // this.updateParentData('targetKeys', userObj.mode.groupIds.split(','))
           } else {
             this.addForm.mymode = 0
             this.addForm.frame_rate = 5
             this.addForm.prority = 1
-            this.addForm.groupId = ''
-            this.updateParentData('targetKeys', ['0'])
+            // this.addForm.groupId = ''
+            // this.updateParentData('targetKeys', ['0'])
           }
         } else {
           this.addForm.mymode = 0
           this.addForm.frame_rate = 5
           this.addForm.prority = 1
-          this.addForm.groupId = ''
-          this.updateParentData('targetKeys', ['0'])
+          // this.addForm.groupId = ''
+          // this.updateParentData('targetKeys', ['0'])
         }
       }
     },
@@ -191,6 +199,27 @@ export default {
       }
     }
   },
+  filters: {
+    change (limit) {
+      var size = ''
+      if (limit < 0.1 * 1024) { // 小于0.1KB，则转化成B
+        size = limit.toFixed(2) + 'B'
+      } else if (limit < 0.1 * 1024 * 1024) { // 小于0.1MB，则转化成KB
+        size = (limit / 1024).toFixed(2) + 'KB'
+      } else if (limit < 0.1 * 1024 * 1024 * 1024) { // 小于0.1GB，则转化成MB
+        size = (limit / (1024 * 1024)).toFixed(2) + 'MB'
+      } else { // 其他转化成GB
+        size = (limit / (1024 * 1024 * 1024)).toFixed(2) + 'GB'
+      }
+      var sizeStr = size + '' // 转成字符串
+      var index = sizeStr.indexOf('.') // 获取小数点处的索引
+      var dou = sizeStr.substr(index + 1, 2) // 获取小数点后两位的值
+      if (dou === '00') { // 判断后两位是否为00，如果是则删除00
+        return sizeStr.substring(0, index) + sizeStr.substr(index + 3, 2)
+      }
+      return size
+    }
+  },
   data () {
     return {
       leftColumns: leftTableColumns,
@@ -204,7 +233,7 @@ export default {
         frame_rate: 5,
         // dynamic_rate: 0,
         prority: 1,
-        groupId: '',
+        // groupId: '',
         files: []
       },
       newBatch: {},
@@ -229,7 +258,7 @@ export default {
         { value: 1, text: '文件' },
         { value: 2, text: '实时直播流' }
       ],
-      targetGroupIds: [],
+      // targetGroupIds: [],
       // 上传视频相关 ----------------------------------------------
       filecolumns,
       container: {
@@ -246,19 +275,19 @@ export default {
   },
   methods: {
     handleChangeMode (val, opt) {
-      if (val !== 0) {
+      if (val) {
         var selMode = opt.data.attrs.myitem
         this.addForm.frame_rate = selMode.frame_rate
         // this.addForm.dynamic_rate = selMode.dynamic_rate
         this.addForm.prority = selMode.prority
-        this.addForm.groupId = selMode.group_ids
-        this.updateParentData('targetKeys', selMode.group_ids.split(','))
+        // this.addForm.groupId = selMode.group_ids
+        // this.updateParentData('targetKeys', selMode.group_ids.split(','))
       } else {
         this.addForm.frame_rate = 5
         // this.addForm.dynamic_rate = 0
         this.addForm.prority = 1
-        this.addForm.groupId = ''
-        this.updateParentData('targetKeys', ['0'])
+        // this.addForm.groupId = ''
+        // this.updateParentData('targetKeys', ['0'])
       }
     },
     // handleChangeFrameRate (val) {
@@ -344,17 +373,32 @@ export default {
         placement: 'bottomRight',
         description: (h) => {
           var pers = list.map(item => {
-            return h('div', null, [
-              h('div', null, [h('p', { style: { color: '#1890ff' } }, item.file.name)]),
-              h('div', { style: { display: 'flex' } }, [
-                h('p', { style: { width: '90px', color: '#999' } }, 'hash进度'),
-                h('a-progress', { props: { size: 'small', status: 'active', percent: item.percentageHash } })
-              ]),
-              h('div', { style: { display: 'flex' } }, [
-                h('p', { style: { width: '90px', color: '#999' } }, '上传进度'),
-                h('a-progress', { props: { size: 'small', status: 'active', percent: item.percentage } })
+            var totalPercent = parseInt((item.percentageHash + item.percentage) / 2)
+            if (totalPercent < 100) {
+              return h('div', null, [
+                h('div', null, [h('p', { style: { color: '#1890ff' } }, item.file.name)]),
+                // h('div', { style: { display: 'flex' } }, [
+                //   h('p', { style: { width: '90px', color: '#999' } }, 'hash进度'),
+                //   h('a-progress', { props: { size: 'small', status: 'active', percent: item.percentageHash } })
+                // ]),
+                h('div', { style: { display: 'flex' } }, [
+                  h('p', { style: { width: '90px', color: '#999' } }, '上传进度'),
+                  h('a-progress', { props: { size: 'small', status: 'active', percent: totalPercent } }) // 把hash进度和上传进度放在一个进度条里
+                ])
               ])
-            ])
+            } else {
+              return h('div', null, [
+                h('div', null, [h('p', { style: { color: '#1890ff' } }, item.file.name)]),
+                // h('div', { style: { display: 'flex' } }, [
+                //   h('p', { style: { width: '90px', color: '#999' } }, 'hash进度'),
+                //   h('a-progress', { props: { size: 'small', status: 'active', percent: item.percentageHash } })
+                // ]),
+                h('div', { style: { display: 'flex' } }, [
+                  h('p', { style: { width: '90px', color: '#999' } }, '上传进度'),
+                  h('a-progress', { props: { size: 'small', status: 'success', percent: 100 } }) // 把hash进度和上传进度放在一个进度条里
+                ])
+              ])
+            }
           })
           return h('div', null, pers)
         },
@@ -378,6 +422,11 @@ export default {
       this.updateParentData('addVisible', false)
     },
     beforeUpload (file, fileList) {
+      var ext = file.name.substring(file.name.lastIndexOf('.') + 1)
+      const isAvailable = this.enableFile.indexOf(ext.toUpperCase()) >= 0
+      if (!isAvailable) {
+        this.$message.error(`视频上载支持的文件类型有${this.enableFile.join('、')}`)
+      }
       return false
     },
     uploadVideoChange ({ fileList }) {
@@ -392,43 +441,43 @@ export default {
         }
       }
     },
-    filterOption (inputValue, option) {
-      return option.title.indexOf(inputValue) > -1
-    },
-    getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
-      return {
-        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled } }),
-        onSelectAll (selected, selectedRows) {
-          const treeSelectedKeys = selectedRows
-            .filter(item => !item.disabled)
-            .map(({ key }) => key)
-          const diffKeys = selected
-            ? difference(treeSelectedKeys, selectedKeys)
-            : difference(selectedKeys, treeSelectedKeys)
-          itemSelectAll(diffKeys, selected)
-        },
-        onSelect ({ key }, selected) {
-          itemSelect(key, selected)
-        },
-        selectedRowKeys: selectedKeys
-      }
-    },
-    handleChange (nextTargetKeys, direction, moveKeys) {
-      // this.targetKeys = nextTargetKeys
-      this.updateParentData('targetKeys', nextTargetKeys)
-      this.targetGroupIds = nextTargetKeys
+    // filterOption (inputValue, option) {
+    //   return option.title.indexOf(inputValue) > -1
+    // },
+    // getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
+    //   return {
+    //     getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled } }),
+    //     onSelectAll (selected, selectedRows) {
+    //       const treeSelectedKeys = selectedRows
+    //         .filter(item => !item.disabled)
+    //         .map(({ key }) => key)
+    //       const diffKeys = selected
+    //         ? difference(treeSelectedKeys, selectedKeys)
+    //         : difference(selectedKeys, treeSelectedKeys)
+    //       itemSelectAll(diffKeys, selected)
+    //     },
+    //     onSelect ({ key }, selected) {
+    //       itemSelect(key, selected)
+    //     },
+    //     selectedRowKeys: selectedKeys
+    //   }
+    // },
+    // handleChange (nextTargetKeys, direction, moveKeys) {
+    //   // this.targetKeys = nextTargetKeys
+    //   this.updateParentData('targetKeys', nextTargetKeys)
+    //   this.targetGroupIds = nextTargetKeys
 
-      // console.log('targetKeys: ', nextTargetKeys)
-      // console.log('direction: ', direction)
-      // console.log('moveKeys: ', moveKeys)
-    },
-    handleSelectChange (sourceSelectedKeys, targetSelectedKeys) {
-      // this.selectedKeys = [...sourceSelectedKeys, ...targetSelectedKeys]
-      this.updateParentData('selectedKeys', [...sourceSelectedKeys, ...targetSelectedKeys])
+    //   // console.log('targetKeys: ', nextTargetKeys)
+    //   // console.log('direction: ', direction)
+    //   // console.log('moveKeys: ', moveKeys)
+    // },
+    // handleSelectChange (sourceSelectedKeys, targetSelectedKeys) {
+    //   // this.selectedKeys = [...sourceSelectedKeys, ...targetSelectedKeys]
+    //   this.updateParentData('selectedKeys', [...sourceSelectedKeys, ...targetSelectedKeys])
 
-      // console.log('sourceSelectedKeys: ', sourceSelectedKeys)
-      // console.log('targetSelectedKeys: ', targetSelectedKeys)
-    },
+    //   // console.log('sourceSelectedKeys: ', sourceSelectedKeys)
+    //   // console.log('targetSelectedKeys: ', targetSelectedKeys)
+    // },
     updateParentData (key, val) {
       this.$emit('updateData', { key: key, val: val })
     },
@@ -476,7 +525,7 @@ export default {
         frame_rate: this.addForm.frame_rate,
         // dynamic_rate: this.addForm.dynamic_rate,
         prority: this.addForm.prority,
-        group_ids: this.addForm.groupId !== '' ? this.addForm.groupId : this.targetGroupIds.join(','),
+        // group_ids: this.addForm.groupId !== '' ? this.addForm.groupId : this.targetGroupIds.join(','),
         batch_id: this.currBatch.id || this.newBatch.id,
         filename: fileItem.file.name,
         md5: md5,
@@ -516,10 +565,17 @@ export default {
       await Promise.all(requestList).then(async (result) => {
         console.log('上传分片结果')
         console.log(result)
-        // 合并切片
-        await this.mergeRequest(listItem)
+        var errRes = result.filter(item => {
+          return JSON.parse(item.data).code !== 0
+        })
+        if (errRes.length) {
+          this.$message.error(JSON.parse(errRes[0].data).message)
+        } else {
+          // 合并切片
+          await this.mergeRequest(listItem)
+        }
       }).catch((error) => {
-        console.log('分片上传失败了')
+        console.log('分片上传接口调用出错')
         console.log(error)
       })
     },
@@ -581,8 +637,12 @@ export default {
             return it.percentage !== 100
           })
           if (!notFinish.length) {
-            this.$notification.close('uploadProgress')
+            // 全部文件上传成功 5s后关闭上传进度小窗口
             this.reset()
+            var _this = this
+            window.setTimeout(function () {
+              _this.$notification.close('uploadProgress')
+            }, 5000)
           }
           this.$message.success('合并成功！')
         } else {
@@ -597,7 +657,7 @@ export default {
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '文件合并出错！')
         } else {
-          this.$message.error('接口调用失败！')
+          this.$message.error('合并-接口调用失败！')
         }
       })
     },
@@ -652,7 +712,8 @@ const filecolumns = [
   {
     title: '大小',
     dataIndex: 'file.size',
-    key: 'size'
+    key: 'size',
+    scopedSlots: { customRender: 'size' }
   },
   {
     title: '类型',
@@ -669,12 +730,14 @@ const filecolumns = [
   {
     title: 'hash进度',
     dataIndex: 'percentageHash',
-    key: 'percentageHash'
+    key: 'percentageHash',
+    scopedSlots: { customRender: 'percentageHash' }
   },
   {
     title: '上传进度',
     key: 'percentage',
-    dataIndex: 'percentage'
+    dataIndex: 'percentage',
+    scopedSlots: { customRender: 'percentage' }
   }
 ]
 

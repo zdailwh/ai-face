@@ -13,7 +13,7 @@
       <li v-if="taskinfo.type === 1"><p class="title">源文件名：</p><p class="cont">{{ taskinfo.file_name }}</p></li>
       <li v-if="taskinfo.type === 2"><p class="title">直播流地址：</p><p class="cont">{{ taskinfo.url }}</p></li>
       <li><p class="title">状态：</p><p class="cont">{{ taskinfo.statusStr }}</p></li>
-      <li>
+      <!-- <li>
         <p class="title">关联人脸组：</p>
         <p class="cont">
           <a-popover title="包含人像" trigger="click" arrow-point-at-center>
@@ -25,7 +25,7 @@
             <a href="javascript:;" v-for="(item, key) in taskinfo.groups" :key="key" @click="getFacesByGroup(item.id)"> {{item.name}} </a>
           </a-popover>
         </p>
-      </li>
+      </li> -->
       <!-- <li><p class="title">动态帧率：</p><p class="cont">{{ taskinfo.dynamic_rate === 0 ? '不启用' : taskinfo.dynamic_rate }}</p></li> -->
       <li><p class="title">帧率：</p><p class="cont">{{ taskinfo.frame_rate }}</p></li>
       <li><p class="title">优先级：</p><p class="cont">{{ taskinfo.prority }}</p></li>

@@ -46,7 +46,7 @@
           </template>
           <template v-else><a-progress :percent="(record.processTime / record.duration * 100).toFixed(2)" /></template>
         </span>
-        <span slot="groups" slot-scope="groups">
+        <!-- <span slot="groups" slot-scope="groups">
           <template v-if="groups.length">
             <a-popover title="包含人像" trigger="click" arrow-point-at-center>
               <template slot="content">
@@ -61,7 +61,7 @@
         </span>
         <span slot="frame_rate" slot-scope="frame_rate">
           {{frame_rate === 0 ? '源帧率' : frame_rate}}
-        </span>
+        </span> -->
         <span slot="duration" slot-scope="duration">
           {{duration | formateSeconds}}
         </span>

@@ -26,7 +26,7 @@
           <a-input v-model="searchForm.name" style="width: 120px;" />
         </a-form-model-item>
         <a-form-model-item label="用户" prop="user_id">
-          <a-select v-model="searchForm.user_id" :dropdownMatchSelectWidth="false" style="width: 100px;">
+          <a-select v-model="searchForm.user_id" :dropdownMatchSelectWidth="false" show-search :filter-option="filterOption" style="width: 100px;">
             <a-select-option value="">全部</a-select-option>
             <a-select-option :value="item.id" v-for="item in usersData" v-bind:key="item.id">
               {{item.username}}
@@ -49,7 +49,7 @@
         <span slot="batch_name" slot-scope="batch_name, record">
           <a href="javascript:;" @click="searchForm.batchName = batch_name; searchHandleOk()">{{batch_name}}</a>
         </span>
-        <span slot="groups" slot-scope="groups">
+        <!-- <span slot="groups" slot-scope="groups">
           <template v-if="groups.length">
             <a-popover title="包含人像" trigger="click" arrow-point-at-center>
               <template slot="content">
@@ -64,7 +64,7 @@
         </span>
         <span slot="frame_rate" slot-scope="frame_rate">
           {{frame_rate === 0 ? '源帧率' : frame_rate}}
-        </span>
+        </span> -->
         <span slot="statusStr" slot-scope="statusStr, record">
           {{record.statusStr}}<br>
           <template v-if="record.status === 5">
@@ -356,10 +356,15 @@ export default {
     this.getTasks()
     this.getAllBatchs()
     this.getAllTemps()
-    this.getAllGroups()
+    // this.getAllGroups()
     this.getAllUsers()
   },
   methods: {
+    filterOption (input, option) {
+      return (
+        option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      )
+    },
     onPageChange (current) {
       this.page_no = current
       if (document.querySelector('.ant-table-body')) {
@@ -590,31 +595,31 @@ export default {
         // }
       })
     },
-    getAllGroups () {
-      api.getGroups().then(res => {
-        var resBody = res.data
-        if (resBody.code === 0) {
-          var groupArr = resBody.data.item
-          groupArr.unshift({ id: 0, name: '全部' })
-          groupArr.map((item, key, arr) => {
-            item.key = '' + item.id
-            item.title = item.name
-          })
-          this.groupDatalist = groupArr
-        }
-      }).catch(error => {
-        if (error.response && error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        // if (error.response && error.response.data) {
-        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
-        // } else {
-        //   this.$message.error('接口调用失败！')
-        // }
-      })
-    },
+    // getAllGroups () {
+    //   api.getGroups().then(res => {
+    //     var resBody = res.data
+    //     if (resBody.code === 0) {
+    //       var groupArr = resBody.data.item
+    //       groupArr.unshift({ id: 0, name: '全部' })
+    //       groupArr.map((item, key, arr) => {
+    //         item.key = '' + item.id
+    //         item.title = item.name
+    //       })
+    //       this.groupDatalist = groupArr
+    //     }
+    //   }).catch(error => {
+    //     if (error.response && error.response.status === 401) {
+    //       this.$store.dispatch('authentication/resetToken').then(() => {
+    //         this.$router.push({ path: '/login' })
+    //       })
+    //     }
+    //     // if (error.response && error.response.data) {
+    //     //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+    //     // } else {
+    //     //   this.$message.error('接口调用失败！')
+    //     // }
+    //   })
+    // },
     getFacesByGroup (groupId) {
       this.loadingFacesOfGroup = true
       api.getGroupFaces({groupId: groupId}).then(res => {

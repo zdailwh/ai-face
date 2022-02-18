@@ -26,7 +26,7 @@
           <a-input v-model="searchForm.name" style="width: 120px;" />
         </a-form-model-item>
         <a-form-model-item label="用户" prop="user_id">
-          <a-select v-model="searchForm.user_id" :dropdownMatchSelectWidth="false" style="width: 100px;">
+          <a-select v-model="searchForm.user_id" :dropdownMatchSelectWidth="false" show-search :filter-option="filterOption" style="width: 100px;">
             <a-select-option value="">全部</a-select-option>
             <a-select-option :value="item.id" v-for="item in usersData" v-bind:key="item.id">
               {{item.username}}
@@ -53,7 +53,7 @@
           </template>
           <template v-else><a-progress :percent="(record.processTime / record.duration * 100).toFixed(2)" /></template>
         </span>
-        <span slot="groups" slot-scope="groups">
+        <!-- <span slot="groups" slot-scope="groups">
           <template v-if="groups.length">
             <a-popover title="包含人像" trigger="click" arrow-point-at-center>
               <template slot="content">
@@ -68,7 +68,7 @@
         </span>
         <span slot="frame_rate" slot-scope="frame_rate">
           {{frame_rate === 0 ? '源帧率' : frame_rate}}
-        </span>
+        </span> -->
         <span slot="duration" slot-scope="duration">
           {{duration | formateSeconds}}
         </span>
@@ -107,6 +107,7 @@
 <script>
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import api from '@/api'
+import apiAdmin from '@/api/admin'
 var moment = require('moment')
 
 const statusArr = [
@@ -221,6 +222,7 @@ export default {
         user_id: '',
         createTime: []
       },
+      usersData: [],
       datalist: [],
       dataTotal: 0,
       pageSizeOptions: ['10', '20', '30', '40', '50'],
@@ -274,8 +276,14 @@ export default {
 
     this.getTasks()
     this.getAllBatchs()
+    this.getAllUsers()
   },
   methods: {
+    filterOption (input, option) {
+      return (
+        option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      )
+    },
     onPageChange (current) {
       this.page_no = current
       if (document.querySelector('.ant-table-body')) {
@@ -400,6 +408,27 @@ export default {
         } else {
           this.$message.error('接口调用失败！')
         }
+      })
+    },
+    getAllUsers () {
+      apiAdmin.fetchList().then(res => {
+        var resBody = res.data
+        if (resBody.code === 0) {
+          var userArr = resBody.data.item
+          this.usersData = userArr
+        }
+      }).catch(error => {
+        console.log(error)
+        if (error.response && error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        // if (error.response && error.response.data) {
+        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+        // } else {
+        //   this.$message.error('接口调用失败！')
+        // }
       })
     }
   }

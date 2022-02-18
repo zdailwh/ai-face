@@ -1,7 +1,6 @@
 <template>
   <a-modal
     title="关联用户"
-    width="800px"
     v-model="visible"
   >
     <div>
@@ -49,7 +48,7 @@
               </a-table>
             </template>
           </a-transfer> -->
-          <a-select v-model="editform.user_id">
+          <a-select v-model="editform.user_id" show-search :filter-option="userFilterOption">
             <a-select-option :value="item.id" v-for="item in optionsUsers" v-bind:key="item.id">
               {{item.username}}
             </a-select-option>
@@ -133,6 +132,11 @@ export default {
   mounted () {
   },
   methods: {
+    userFilterOption (input, option) {
+      return (
+        option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      )
+    },
     commit () {
       this.$refs.form.validate((valid) => {
         if (valid) {

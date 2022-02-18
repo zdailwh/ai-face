@@ -7,7 +7,7 @@
           <a-input v-model="searchForm.name" style="width: 120px" />
         </a-form-model-item>
         <a-form-model-item label="用户" prop="user_id">
-          <a-select v-model="searchForm.user_id" :dropdownMatchSelectWidth="false" style="width: 100px;">
+          <a-select v-model="searchForm.user_id" :dropdownMatchSelectWidth="false" show-search :filter-option="userFilterOption" style="width: 100px;">
             <a-select-option value="">全部</a-select-option>
             <a-select-option :value="item.id" v-for="item in allUsers" v-bind:key="item.id">
               {{item.username}}
@@ -27,16 +27,9 @@
     <!--搜索 end-->
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true, y: tableHeight }" size="middle" rowKey="id" :pagination="false">
-        <span slot="groups" slot-scope="groups">
-          <template v-if="!groups">全部人像</template>
-          <template v-else v-for="(it, k) in groups">
-            <router-link :to="{ path: '/facegroup/face', query: { groupId: it.id }}" :key="k">{{it.name}}|</router-link>
-          </template>
-        </span>
         <span slot="user" slot-scope="user">
           <template v-if="user && user.id">
             <span>{{user.username}}</span>
-            <!-- <router-link :to="{ path: '/setting/admin/index', query: { groupId: it }}" :key="k">{{it}}、</router-link> -->
           </template>
         </span>
         <span slot="create_time" slot-scope="create_time">
@@ -61,8 +54,6 @@
           <template v-if="currUser.level !== '' && currUser.level > 3">
             <a @click="toModeAssign(record, idx)">关联用户</a>
           </template>
-          <!-- <a-divider type="vertical" />
-          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看关联用户<a-icon type="right" /></router-link> -->
         </span>
       </a-table>
       <div class="mypagination">
@@ -119,7 +110,7 @@
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="选择人像组">
+          <!-- <a-form-model-item label="选择人像组">
             <a-transfer
               :data-source="groupsDatalist"
               :filter-option="filterOption"
@@ -165,7 +156,7 @@
                 </a-table>
               </template>
             </a-transfer>
-          </a-form-model-item>
+          </a-form-model-item> -->
         </a-form-model>
       </div>
       <template slot="footer">
@@ -213,7 +204,7 @@
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
           </a-form-model-item>
-          <a-form-model-item label="选择人像组">
+          <!-- <a-form-model-item label="选择人像组">
             <a-transfer
               :data-source="groupsDatalist"
               :filter-option="filterOption"
@@ -259,7 +250,7 @@
                 </a-table>
               </template>
             </a-transfer>
-          </a-form-model-item>
+          </a-form-model-item> -->
         </a-form-model>
       </div>
       <template slot="footer">
@@ -276,7 +267,7 @@
   </div>
 </template>
 <script>
-import difference from 'lodash/difference'
+// import difference from 'lodash/difference'
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import api from '@/api'
 import apiAdmin from '@/api/admin'
@@ -313,13 +304,6 @@ const columns = [
     dataIndex: 'prority',
     key: 'prority',
     width: 90
-  },
-  {
-    title: '人像组',
-    dataIndex: 'groups',
-    key: 'groups',
-    scopedSlots: { customRender: 'groups' },
-    width: 200
   },
   {
     title: '关联用户',
@@ -393,12 +377,12 @@ export default {
       editItem: {},
       editKey: '',
       editVisible: false,
-      leftColumns: leftTableColumns,
-      rightColumns: rightTableColumns,
-      targetGroupIds: [],
-      targetKeys: [],
-      selectedKeys: [],
-      groupsDatalist: [],
+      // leftColumns: leftTableColumns,
+      // rightColumns: rightTableColumns,
+      // targetGroupIds: [],
+      // targetKeys: [],
+      // selectedKeys: [],
+      // groupsDatalist: [],
       allUsers: [],
       modeAssignVisible: false
     }
@@ -431,10 +415,15 @@ export default {
     this.tableHeight = viewHeight - 60 - (60 + 24 * 2) - searchH - (32 + 15 * 2) - 24 - 54
 
     this.getTemps()
-    this.getAllGroups()
+    // this.getAllGroups()
     this.getAllUsers()
   },
   methods: {
+    userFilterOption (input, option) {
+      return (
+        option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      )
+    },
     onPageChange (current) {
       this.page_no = current
       if (document.querySelector('.ant-table-body')) {
@@ -509,12 +498,12 @@ export default {
             this.$message.error('请选择帧率！')
             return
           }
-          if (!this.targetGroupIds.length) {
-            this.$message.error('请选择人像组！')
-            return
-          } else {
-            this.addForm.group_ids = this.targetGroupIds.join(',')
-          }
+          // if (!this.targetGroupIds.length) {
+          //   this.$message.error('请选择人像组！')
+          //   return
+          // } else {
+          //   this.addForm.group_ids = this.targetGroupIds.join(',')
+          // }
           console.log(this.addForm)
           this.addLoading = true
           api.addTemp(this.addForm).then(res => {
@@ -557,8 +546,8 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-      this.targetKeys = this.editForm.group_ids.split(',')
-      this.targetGroupIds = this.targetKeys
+      // this.targetKeys = this.editForm.group_ids.split(',')
+      // this.targetGroupIds = this.targetKeys
     },
     handleCancel_edit () {
       this.editVisible = false
@@ -566,8 +555,8 @@ export default {
       this.editForm = {}
       this.editItem = {}
       this.editKey = ''
-      this.targetKeys = []
-      this.targetGroupIds = []
+      // this.targetKeys = []
+      // this.targetGroupIds = []
     },
     handleEdit () {
       this.$refs.editform.validate((valid) => {
@@ -576,17 +565,17 @@ export default {
             this.$message.error('请选择帧率！')
             return
           }
-          if (!this.targetGroupIds.length) {
-            this.$message.error('请选择人像组！')
-            return
-          }
+          // if (!this.targetGroupIds.length) {
+          //   this.$message.error('请选择人像组！')
+          //   return
+          // }
           var params = {
             id: this.editItem.id,
             name: this.editForm.name,
             frame_rate: this.editForm.frame_rate,
             // dynamic_rate: this.editForm.dynamic_rate,
-            prority: this.editForm.prority,
-            group_ids: this.targetGroupIds.join(',')
+            prority: this.editForm.prority
+            // group_ids: this.targetGroupIds.join(',')
           }
 
           this.editLoading = true
@@ -642,69 +631,69 @@ export default {
         }
       })
     },
-    getAllGroups () {
-      api.getGroups().then(res => {
-        var resBody = res.data
-        if (resBody.code === 0) {
-          var groupArr = resBody.data.item
-          groupArr.unshift({ id: 0, name: '全部' })
-          groupArr.map((item, key, arr) => {
-            item.key = '' + item.id
-            item.title = item.name
-          })
-          this.groupsDatalist = groupArr
-        } else {
-          this.$message.error(resBody.message || '请求出错！')
-        }
-      }).catch(error => {
-        console.log(error)
-        if (error.response && error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        // if (error.response && error.response.data) {
-        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
-        // } else {
-        //   this.$message.error('接口调用失败！')
-        // }
-      })
-    },
-    filterOption (inputValue, option) {
-      return option.title.indexOf(inputValue) > -1
-    },
-    getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
-      return {
-        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled } }),
-        onSelectAll (selected, selectedRows) {
-          const treeSelectedKeys = selectedRows
-            .filter(item => !item.disabled)
-            .map(({ key }) => key)
-          const diffKeys = selected
-            ? difference(treeSelectedKeys, selectedKeys)
-            : difference(selectedKeys, treeSelectedKeys)
-          itemSelectAll(diffKeys, selected)
-        },
-        onSelect ({ key }, selected) {
-          itemSelect(key, selected)
-        },
-        selectedRowKeys: selectedKeys
-      }
-    },
-    handleChange (nextTargetKeys, direction, moveKeys) {
-      this.targetKeys = nextTargetKeys
-      this.targetGroupIds = nextTargetKeys
+    // getAllGroups () {
+    //   api.getGroups().then(res => {
+    //     var resBody = res.data
+    //     if (resBody.code === 0) {
+    //       var groupArr = resBody.data.item
+    //       groupArr.unshift({ id: 0, name: '全部' })
+    //       groupArr.map((item, key, arr) => {
+    //         item.key = '' + item.id
+    //         item.title = item.name
+    //       })
+    //       this.groupsDatalist = groupArr
+    //     } else {
+    //       this.$message.error(resBody.message || '请求出错！')
+    //     }
+    //   }).catch(error => {
+    //     console.log(error)
+    //     if (error.response && error.response.status === 401) {
+    //       this.$store.dispatch('authentication/resetToken').then(() => {
+    //         this.$router.push({ path: '/login' })
+    //       })
+    //     }
+    //     // if (error.response && error.response.data) {
+    //     //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+    //     // } else {
+    //     //   this.$message.error('接口调用失败！')
+    //     // }
+    //   })
+    // },
+    // filterOption (inputValue, option) {
+    //   return option.title.indexOf(inputValue) > -1
+    // },
+    // getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
+    //   return {
+    //     getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled } }),
+    //     onSelectAll (selected, selectedRows) {
+    //       const treeSelectedKeys = selectedRows
+    //         .filter(item => !item.disabled)
+    //         .map(({ key }) => key)
+    //       const diffKeys = selected
+    //         ? difference(treeSelectedKeys, selectedKeys)
+    //         : difference(selectedKeys, treeSelectedKeys)
+    //       itemSelectAll(diffKeys, selected)
+    //     },
+    //     onSelect ({ key }, selected) {
+    //       itemSelect(key, selected)
+    //     },
+    //     selectedRowKeys: selectedKeys
+    //   }
+    // },
+    // handleChange (nextTargetKeys, direction, moveKeys) {
+    //   this.targetKeys = nextTargetKeys
+    //   this.targetGroupIds = nextTargetKeys
 
-      // console.log('targetKeys: ', nextTargetKeys)
-      // console.log('direction: ', direction)
-      // console.log('moveKeys: ', moveKeys)
-    },
-    handleSelectChange (sourceSelectedKeys, targetSelectedKeys) {
-      this.selectedKeys = [...sourceSelectedKeys, ...targetSelectedKeys]
+    //   // console.log('targetKeys: ', nextTargetKeys)
+    //   // console.log('direction: ', direction)
+    //   // console.log('moveKeys: ', moveKeys)
+    // },
+    // handleSelectChange (sourceSelectedKeys, targetSelectedKeys) {
+    //   this.selectedKeys = [...sourceSelectedKeys, ...targetSelectedKeys]
 
-      // console.log('sourceSelectedKeys: ', sourceSelectedKeys)
-      // console.log('targetSelectedKeys: ', targetSelectedKeys)
-    },
+    //   // console.log('sourceSelectedKeys: ', sourceSelectedKeys)
+    //   // console.log('targetSelectedKeys: ', targetSelectedKeys)
+    // },
     getAllUsers () {
       apiAdmin.getAllUsers().then(res => {
         var resBody = res.data
@@ -761,20 +750,20 @@ export default {
   }
 }
 
-const leftTableColumns = [
-  {
-    dataIndex: 'title',
-    title: '名称',
-    scopedSlots: { customRender: 'name' }
-  }
-]
-const rightTableColumns = [
-  {
-    dataIndex: 'title',
-    title: '名称',
-    scopedSlots: { customRender: 'name' }
-  }
-]
+// const leftTableColumns = [
+//   {
+//     dataIndex: 'title',
+//     title: '名称',
+//     scopedSlots: { customRender: 'name' }
+//   }
+// ]
+// const rightTableColumns = [
+//   {
+//     dataIndex: 'title',
+//     title: '名称',
+//     scopedSlots: { customRender: 'name' }
+//   }
+// ]
 </script>
 <style scoped>
 </style>
