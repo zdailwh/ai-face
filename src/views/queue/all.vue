@@ -25,7 +25,7 @@
         <a-form-model-item label="任务名称" prop="name">
           <a-input v-model="searchForm.name" style="width: 120px;" />
         </a-form-model-item>
-        <a-form-model-item label="用户" prop="user_id">
+        <a-form-model-item label="用户" prop="user_id" v-if="currUser.level !== '' && currUser.level > 3">
           <a-select v-model="searchForm.user_id" :dropdownMatchSelectWidth="false" show-search :filter-option="filterOption" style="width: 100px;">
             <a-select-option value="">全部</a-select-option>
             <a-select-option :value="item.id" v-for="item in usersData" v-bind:key="item.id">
@@ -262,6 +262,17 @@ export default {
       }
       result = `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${secondTime.toString().padStart(2, '0')}.${haomiao}`
       return result
+    }
+  },
+  computed: {
+    currUser: {
+      get () {
+        var token = this.$store.state.authentication.token
+        return token ? JSON.parse(token) : {}
+      },
+      set (val) {
+        // this.$router.push({ path: val[0] || '/' })
+      }
     }
   },
   mounted () {

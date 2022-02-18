@@ -1,6 +1,7 @@
 import api from '../../api'
 import { getToken, setToken, removeToken } from '../../utils/auth'
 import { resetRouter } from '@/router'
+import Cookies from 'js-cookie'
 
 const state = {
   token: null,
@@ -38,6 +39,7 @@ const actions = {
           commit('SET_INFO', item.user)
           commit('SET_TOKEN', JSON.stringify(item.user))
           setToken(JSON.stringify(item.user))
+          Cookies.set('aiface-isVisitor', item.user.level === 2)
         }
         resolve(response)
       }).catch(error => {
