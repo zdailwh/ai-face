@@ -97,14 +97,14 @@
             </a-popconfirm>
             <a-divider type="vertical" />
           </template>
-          <template v-if="record.status === 3">
+          <template v-if="record.status === 3 || record.status === 4">
             <a-popconfirm
-              title="确定要暂停该任务吗?"
-              ok-text="暂停"
+              title="确定要取消该任务吗?"
+              ok-text="取消"
               cancel-text="取消"
               @confirm="pause(record, idx)"
             >
-              <a>暂停</a>
+              <a>取消</a>
             </a-popconfirm>
             <a-divider type="vertical" />
           </template>
@@ -520,7 +520,7 @@ export default {
       api.taskPause(params).then(res => {
         if (res.data.code === 0) {
           // this.datalist[key].status = 2
-          this.$message.success('任务已暂停')
+          this.$message.success('任务已取消')
           this.getTasks()
         } else {
           this.$message.error(res.data.message || '请求出错！')
@@ -532,7 +532,7 @@ export default {
           })
         }
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '任务暂停出错！')
+          this.$message.error(error.response.data.message || '任务取消出错！')
         } else {
           this.$message.error('接口调用失败！')
         }

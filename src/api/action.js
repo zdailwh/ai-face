@@ -118,5 +118,15 @@ export default {
       const data = await await timeout(200).then(() => mock.devicestorage)
       return { status: 200, data: data }
     }
+  },
+
+  async addConfig (formdata) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.post(`/api/admin/v1/device/configure`, formdata)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.feature)
+      return { status: 200, data: data }
+    }
   }
 }

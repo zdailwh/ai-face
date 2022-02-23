@@ -14,7 +14,10 @@ function timeout (ms) {
 export default {
   async login (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post(`/login?username=${params.username}&password=${params.password}`)
+      var res = await axios.post(`/login`, {
+        username: params.username,
+        password: params.password
+      })
       return res
     } else {
       const data = await await timeout(200).then(() => mock.loginRes)

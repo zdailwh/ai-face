@@ -39,9 +39,12 @@
         {{ deviceInfo && deviceInfo.days_enable === 1 ? '启用' : '禁用' }}
       </a-descriptions-item>
     </a-descriptions>
-    <p style="text-align: center;margin: 20px 0;"><a-button key="submit" type="primary" @click="toEdit">修改配置</a-button></p>
+    <p style="text-align: center;margin: 20px 0;">
+      <a-button key="submit" type="primary" @click="toEdit">修改配置</a-button>
+      <a-button type="primary" style="margin-left: 10px;" @click="uploadVisible = true"><a-icon type="upload" /> 上传配置文件 </a-button>
+    </p>
 
-    <!--编辑模板-->
+    <!--编辑设备存储配置-->
     <a-modal
       title="编辑设备存储配置"
       width="600px"
@@ -75,6 +78,31 @@
         </a-button>
         <a-button key="submit" type="primary" :loading="editLoading" @click="handleEdit">
           更新
+        </a-button>
+      </template>
+    </a-modal>
+
+    <!--上传配置文件-->
+    <a-modal
+      title="上传配置文件"
+      width="600px"
+      v-model="uploadVisible"
+    >
+      <div>
+        <a-upload
+          name="configFile"
+          :multiple="false"
+          @change="handleChange"
+        >
+          <a-button> <a-icon type="upload" /> 选择配置文件 </a-button>
+        </a-upload>
+      </div>
+      <template slot="footer">
+        <a-button key="back" @click="uploadVisible = false;fileList = [];">
+          取消
+        </a-button>
+        <a-button key="submit" type="primary" :disabled="fileList.length === 0" :loading="uploading" @click="handleUpload">
+          上传
         </a-button>
       </template>
     </a-modal>
@@ -112,7 +140,10 @@ export default {
         days_enable: [
           { required: true, message: 'days_enable不能为空', trigger: 'change' }
         ]
-      }
+      },
+      uploadVisible: false,
+      uploading: false,
+      fileList: []
     }
   },
   filters: {
@@ -201,6 +232,43 @@ export default {
         } else {
           console.log('error submit!!')
           return false
+        }
+      })
+    },
+    handleChange ({ file, fileList }) {
+      console.log(fileList)
+      this.fileList = fileList
+      return false
+    },
+    handleUpload () {
+      if (!this.fileList.length) {
+        this.$message.error('请选择配置文件！')
+        return
+      }
+
+      var formdata = new FormData()
+      formdata.append('file', this.fileList[0].originFileObj, this.fileList[0].name)
+      this.uploading = true
+      api.addConfig(formdata).then(res => {
+        this.uploading = false
+        if (res.data.code === 0) {
+          this.uploadVisible = false
+          this.fileList = []
+          this.$message.success('配置文件上传成功')
+        } else {
+          this.$message.error(res.data.message || '请求出错！')
+        }
+      }).catch(error => {
+        this.uploading = false
+        if (error.response && error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '创建出错！')
+        } else {
+          this.$message.error('接口调用失败！')
         }
       })
     }

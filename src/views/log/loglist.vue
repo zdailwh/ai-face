@@ -30,6 +30,7 @@
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
+          <a-button style="margin-left: 10px;" type="primary" @click="toDownload"><a-icon key="download" type="download"/>下载</a-button>
         </a-form-model-item>
       </a-form-model>
     </div>
@@ -245,6 +246,19 @@ export default {
         //   this.$message.error('接口调用失败！')
         // }
       })
+    },
+    toDownload () {
+      var time = moment().format('YYYY-MM-DD HH:mm:ss')
+      console.log(time)
+      var name = time + 'Log.xlsx'
+      var aLink = document.createElement('a')
+      aLink.style.display = 'none'
+      aLink.href = '/api/face/v1/export-order'
+      aLink.setAttribute('target', '_blank')
+      aLink.setAttribute('download', name)
+      document.body.appendChild(aLink)
+      aLink.click()
+      document.body.removeChild(aLink) // 下载完成移除元素
     }
   }
 }
