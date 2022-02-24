@@ -37,7 +37,7 @@
             <a>删除</a>
           </a-popconfirm>
           <a-divider type="vertical" />
-          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看人脸<a-icon type="right" /></router-link>
+          <router-link :to="{ path: '/facegroup/face', query: { groupId: record.id }}">查看人像<a-icon type="right" /></router-link>
         </span>
       </a-table>
       <div class="mypagination">
@@ -90,14 +90,14 @@
     >
       <div>
         <a-form-model :model="editForm" :label-col="{span:0}">
-          <a-form-model-item label="选择人脸">
+          <a-form-model-item label="选择人像">
             <a-transfer
               :data-source="facesDatalist"
               :filter-option="filterOption"
               :showSelectAll="false"
               :showSearch="true"
               :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-              :titles="['人脸库', '目标']"
+              :titles="['人像库', '目标']"
               :target-keys="targetKeys"
               :selected-keys="selectedKeys"
               :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
@@ -182,7 +182,7 @@ const columns = [
     width: 120
   },
   // {
-  //   title: '人脸',
+  //   title: '人像',
   //   dataIndex: 'faceNames',
   //   key: 'faceNames',
   //   scopedSlots: { customRender: 'faceNames' }
@@ -329,7 +329,7 @@ export default {
           })
         }
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '获取人脸库出错！')
+          this.$message.error(error.response.data.message || '获取人像库出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
@@ -396,7 +396,7 @@ export default {
     },
     handleEdit () {
       if (!this.targetFaceIds.length) {
-        this.$message.error('请选择人脸！')
+        this.$message.error('请选择人像！')
         return
       }
       var params = {

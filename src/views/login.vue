@@ -3,7 +3,7 @@
     <div class="login_bg"></div>
     <div class="login-wrap" :style="smallLayout?'width:369px':''">
       <div class="login_slogan" v-show="smallLayout === false">
-        <span>AI人脸审核系统</span>
+        <span>AI人像审核系统</span>
       </div>
       <div class="login_box">
         <div class="login-form">

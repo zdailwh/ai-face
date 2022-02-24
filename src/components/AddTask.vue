@@ -69,14 +69,14 @@
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
             </a-select>
           </a-form-model-item> -->
-          <!-- <a-form-model-item label="选择人脸组" prop="groupId" :label-col="{span:3}" :wrapper-col="{span:21}">
+          <!-- <a-form-model-item label="选择人像组" prop="groupId" :label-col="{span:3}" :wrapper-col="{span:21}">
             <a-transfer
               :data-source="groupsData"
               :filter-option="filterOption"
               :showSelectAll="false"
               :showSearch="true"
               :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-              :titles="['人脸组', '目标']"
+              :titles="['人像组', '目标']"
               :target-keys="targetKeys"
               :selected-keys="selectedKeys"
               :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
@@ -415,7 +415,7 @@ export default {
         }
       })
     },
-    reset (e) {
+    reset () {
       // this.addVisible = false
       this.$refs.form.resetFields()
       this.filterList = []
@@ -653,11 +653,12 @@ export default {
           this.$store.dispatch('authentication/resetToken').then(() => {
             this.$router.push({ path: '/login' })
           })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '文件合并出错！')
         } else {
-          this.$message.error('合并-接口调用失败！')
+          if (error.response && error.response.data) {
+            this.$message.error(error.response.data.message || '文件合并出错！')
+          } else {
+            this.$message.error('合并-接口调用失败！' + JSON.stringify(error))
+          }
         }
       })
     },

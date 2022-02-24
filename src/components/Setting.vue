@@ -14,7 +14,7 @@
       <li v-if="taskinfo.type === 2"><p class="title">直播流地址：</p><p class="cont">{{ taskinfo.url }}</p></li>
       <li><p class="title">状态：</p><p class="cont">{{ taskinfo.statusStr }}</p></li>
       <!-- <li>
-        <p class="title">关联人脸组：</p>
+        <p class="title">关联人像组：</p>
         <p class="cont">
           <a-popover title="包含人像" trigger="click" arrow-point-at-center>
             <template slot="content">
@@ -73,7 +73,7 @@ export default {
           })
         }
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '获取人脸库出错！')
+          this.$message.error(error.response.data.message || '获取人像库出错！')
         } else {
           this.$message.error('接口调用失败！')
         }

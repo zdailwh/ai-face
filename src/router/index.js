@@ -345,7 +345,7 @@ export const asyncRoutes = [
     path: '/taskResult/:taskId',
     name: 'TaskResult',
     component: () => import('@/views/taskResult'),
-    meta: { title: '查看任务结果', active: 'task' },
+    meta: { title: '查看任务结果', active: 'taskbatch' },
     hidden: true
   },
   {

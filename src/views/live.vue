@@ -71,7 +71,7 @@
             <!--结果筛选-->
             <div class="searchWrap_video">
               <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-                <a-form-model-item label="人脸">
+                <a-form-model-item label="人像">
                   <a-input v-model="searchForm.name" placeholder="姓名" allow-clear style="width: 110px;" />
                 </a-form-model-item>
                 <a-form-model-item>
@@ -469,7 +469,7 @@ export default {
           })
         }
         // if (error.response && error.response.data) {
-        //   this.$message.error(error.response.data.message || '获取人脸列表出错！')
+        //   this.$message.error(error.response.data.message || '获取人像列表出错！')
         // } else {
         //   this.$message.error('接口调用失败！')
         // }

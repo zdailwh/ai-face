@@ -34,21 +34,21 @@
         <a-form-model-item label="任务描述">
           <a-input v-model="editForm.description" />
         </a-form-model-item>
-        <a-form-model-item label="人脸组">
+        <a-form-model-item label="人像组">
           <a-select v-model="editForm.groupId">
             <a-select-option :value="item.value" v-for="item in groupsData" v-bind:key="item.value">
               {{item.text}}
             </a-select-option>
           </a-select>
         </a-form-model-item>
-        <a-form-model-item label="选择人脸" :wrapperCol="{span: 20}">
+        <a-form-model-item label="选择人像" :wrapperCol="{span: 20}">
           <a-transfer
             :data-source="facesData"
             :filter-option="filterOption"
             :showSelectAll="false"
             :showSearch="true"
             :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
-            :titles="['人脸库', '目标']"
+            :titles="['人像库', '目标']"
             :target-keys="targetKeys"
             :selected-keys="selectedKeys"
             :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
@@ -161,7 +161,7 @@ export default {
       //   return
       // }
       if (!this.targetFaceIds.length) {
-        this.$message.error('请选择任务关联的人脸！')
+        this.$message.error('请选择任务关联的人像！')
         return
       }
 

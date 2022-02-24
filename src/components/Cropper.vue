@@ -41,7 +41,7 @@
       <div class="footer-btn">
         <div class="scope-btn">
           <template v-if="showInputImg">
-            <label class="btn" for="uploads">选择人脸</label>
+            <label class="btn" for="uploads">选择人像</label>
             <input type="file" id="uploads" style="position:absolute; clip:rect(0 0 0 0);" accept="image/png, image/jpeg, image/gif, image/jpg" @change="selectImg($event)">
           </template>
           <!-- <a-button size="small" type="primary" icon="scissor" @click="startCrop" v-if="!crap">开始截图</a-button>

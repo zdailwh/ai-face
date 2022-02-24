@@ -45,7 +45,7 @@ export default {
     return {
       previewImage: '',
       previewVisible: false,
-      imgMaxLength: 5, // 最多上传5张人脸图
+      imgMaxLength: 5, // 最多上传5张人像图
       fileList: [
         {
           uid: '-1',

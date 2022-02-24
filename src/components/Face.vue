@@ -5,8 +5,8 @@
         <a-collapse-panel :key="fid" :header="`${fItem[0].name} ${fItem.length}次`">
           <div class="faceList">
             <p class="faceItem" :class="{ currBox: currBoxKey === fid + '-' + k }" v-for="(it, k) in slicedTaskresult" :key="k" @click="changeBox(it, it.timepos, fid, k)">
-              <img v-if="it.thumbs" v-lazy="`/api/admin/v1/getResultImage?filepath=${it.thumbs}`" alt="人脸图">
-              <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
+              <img v-if="it.thumbs" v-lazy="`/api/admin/v1/getResultImage?filepath=${it.thumbs}`" alt="人像图">
+              <img v-else src="../assets/user.png" alt="人像图" style="width:32px;height:32px;">
               <span>{{ it.timepos | formateSeconds }}</span>
             </p>
             <div v-if="loading && !busy" class="loading-container">
@@ -68,7 +68,7 @@ export default {
   methods: {
     changeBox (fItem, second, fid, k) {
       this.$emit('videofixed', { currentTime: second, item: fItem })
-      this.currBoxKey = second + '-' + k
+      this.currBoxKey = fid + '-' + k
     },
     getFace (faceId) {
       this.spinning = true
@@ -88,7 +88,7 @@ export default {
           })
         }
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '获取人脸库出错！')
+          this.$message.error(error.response.data.message || '获取人像库出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
@@ -118,7 +118,7 @@ export default {
       if (this.activeKey) {
         this.loading = true
         if (this.slicedTaskresult.length >= this.currFaceResults.length) {
-          this.$message.warning('没有更多数据了~')
+          // this.$message.warning('没有更多数据了~')
           this.busy = true
           this.loading = false
           return

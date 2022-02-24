@@ -1,12 +1,12 @@
 <template>
-  <div class="faceWrap" :style="smalllayout? 'height: auto;': ''">
-    <ul v-if="Object.keys(taskresult).length" class="listWrap" v-infinite-scroll="handleInfiniteOnLoad" :infinite-scroll-disabled="busy" :infinite-scroll-distance="10">
+  <div class="faceWrap" :style="smalllayout? 'height: auto;': ''" v-infinite-scroll="handleInfiniteOnLoad" :infinite-scroll-disabled="busy" :infinite-scroll-distance="30">
+    <ul v-if="Object.keys(taskresult).length" class="listWrap">
       <template v-for="(fItem, second) in slicedTaskresult">
         <li :key="second" :id="'point_' + second"></li>
         <li class="list-item" v-if="fItem" :class="{ currBox: currBoxKey === second + '-' + k }" v-bind:key="second + '-' + k" v-for="(it, k) in fItem.items">
           <div class="img-box" @click="changeBox(fItem, second, k)">
-            <img v-if="fItem.thumbs" v-lazy="`/api/admin/v1/getResultImage?filepath=${fItem.thumbs}`" alt="人脸图">
-            <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
+            <img v-if="fItem.thumbs" v-lazy="`/api/admin/v1/getResultImage?filepath=${fItem.thumbs}`" alt="人像图">
+            <img v-else src="../assets/user.png" alt="人像图" style="width:32px;height:32px;">
           </div>
           <div class="desc-box">
             <div class="timeWrap">
@@ -36,10 +36,16 @@
         <p>性别：{{!clickFace.gender? '未知':(clickFace.gender === 1)? '男': '女'}}</p>
         <p>生日：{{clickFace.birthday}}</p>
         <p>别名：{{clickFace.title}}</p>
-        <p>履历：{{clickFace.history}}</p>
-        <p><img class="tablePopImg" v-for="(i,k) in clickFace.features" :key="k" :src="i.fileuri" /></p>
+        <p>标签：<span v-if="clickFace.labels" v-for="(i,k) in clickFace.labels" :key="k">{{i.name}}</span></p>
+        <p><img class="tablePopImg" v-for="(i,k) in clickFace.features" :key="k" :src="i.fileuri" @click="handlePreview(i.fileuri)" /></p>
       </template>
     </a-drawer>
+
+    <!--图片预览-->
+    <a-modal :visible="previewVisible" :footer="null" @cancel="previewVisible = false" width="250px">
+      <img alt="example" style="margin-top: 30px;" :src="previewImage" />
+    </a-modal>
+
   </div>
 </template>
 <script>
@@ -77,7 +83,9 @@ export default {
       limit: 100,
       page: 0,
       offset: 0,
-      visibleDrawer: false
+      visibleDrawer: false,
+      previewImage: '',
+      previewVisible: false
     }
   },
   watch: {
@@ -105,6 +113,9 @@ export default {
       this.slicedTaskresult = {}
       this.page = 0
       this.offset = Object.keys(this.taskresult).indexOf(hm + '')
+      if (document.querySelector('.faceWrap')) {
+        document.querySelector('.faceWrap').scrollTop = 0
+      }
 
       this.loading = true
       var sliceKeys = Object.keys(this.taskresult).slice(this.page * this.limit + this.offset, this.page * this.limit + this.limit + this.offset)
@@ -149,7 +160,7 @@ export default {
           })
         }
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '获取人脸库出错！')
+          this.$message.error(error.response.data.message || '获取人像库出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
@@ -158,7 +169,7 @@ export default {
     handleInfiniteOnLoad () {
       this.loading = true
       if (Object.keys(this.slicedTaskresult).length >= Object.keys(this.taskresult).length) {
-        this.$message.warning('没有更多数据了~')
+        // this.$message.warning('没有更多数据了~')
         this.busy = true
         this.loading = false
         return
@@ -176,6 +187,10 @@ export default {
 
       this.loading = false
       this.page++
+    },
+    async handlePreview (url) {
+      this.previewImage = url
+      this.previewVisible = true
     }
   }
 }
