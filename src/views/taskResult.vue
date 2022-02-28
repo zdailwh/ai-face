@@ -35,7 +35,7 @@
           <Timeline ref="timeline" :taskresult="resTimeFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="2" tab="按人像查看">
-          <Face :taskresult="resFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
+          <Face ref="face" :taskresult="resFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="3" tab="任务基本信息">
           <Setting :taskinfo="task"/>
@@ -203,18 +203,35 @@ export default {
       })
     },
     tabChange (key) {
+      var currK = 0
       if (key === '1') {
         // 获取结果 按时间轴
         if (!Object.keys(this.resTimeFaces).length) {
           this.getTaskResultsTimeline(this.taskId)
         }
         this.showLineControl = true
+
+        // 根据上次选中的人像 初始化左侧视频和大图
+        if (this.$refs.timeline && this.$refs.timeline.currBoxKey) {
+          currK = this.$refs.timeline.currBoxKey
+          this.$nextTick(function () {
+            this.$refs.timeline.$refs[currK][0].click()
+          })
+        }
       } else if (key === '2') {
         // 获取结果 按人像
         if (!Object.keys(this.resFaces).length) {
           this.getTaskResultsFace(this.taskId)
         }
         this.showLineControl = false
+
+        // 根据上次选中的人像 初始化左侧视频和大图
+        if (this.$refs.face && this.$refs.face.currBoxKey) {
+          currK = this.$refs.face.currBoxKey
+          this.$nextTick(function () {
+            this.$refs.face.$refs[currK][0].click()
+          })
+        }
       } else {
         this.showLineControl = false
       }
@@ -320,6 +337,7 @@ export default {
 }
 .media-wrapper .media-player {
   flex: 1;
+  margin: 0 20px;
 }
 .playwrap {
   display: flex;

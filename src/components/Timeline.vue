@@ -4,7 +4,7 @@
       <template v-for="(fItem, second) in slicedTaskresult">
         <li :key="second" :id="'point_' + second"></li>
         <li class="list-item" v-if="fItem" :class="{ currBox: currBoxKey === second + '-' + k }" v-bind:key="second + '-' + k" v-for="(it, k) in fItem.items">
-          <div class="img-box" @click="changeBox(fItem, second, k)">
+          <div class="img-box" @click="changeBox(fItem, second, k)" :ref="second + '-' + k">
             <img v-if="fItem.thumbs" v-lazy="`/api/admin/v1/getResultImage?filepath=${fItem.thumbs}`" alt="人像图">
             <img v-else src="../assets/user.png" alt="人像图" style="width:32px;height:32px;">
           </div>
