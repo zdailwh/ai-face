@@ -100,7 +100,7 @@
           <template v-if="record.status === 3 || record.status === 4">
             <a-popconfirm
               title="确定要取消该任务吗?"
-              ok-text="取消"
+              ok-text="确定"
               cancel-text="取消"
               @confirm="pause(record, idx)"
             >

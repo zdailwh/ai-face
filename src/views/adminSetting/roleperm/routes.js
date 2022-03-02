@@ -45,7 +45,7 @@ export const routes = [
         parent: 'FaceGroup'
       },
       {
-        title: '分组',
+        title: '标签',
         name: 'Group',
         parent: 'FaceGroup'
       }

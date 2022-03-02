@@ -625,6 +625,7 @@ export default {
         }
         // 暴露当前 xhr 给外部
         // requestList?.push(xhr)
+        this.requestList.push(xhr)
       })
     },
     // 通知服务端合并切片
