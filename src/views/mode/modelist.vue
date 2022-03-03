@@ -85,8 +85,8 @@
           <a-form-model-item label="名称" prop="name">
             <a-input v-model="addForm.name" />
           </a-form-model-item>
-          <a-form-model-item label="帧率" prop="frame_rate" extra="扫描检测时每秒时长抽取的画面帧数">
-            <a-select v-model="addForm.frame_rate">
+          <a-form-model-item label="固定帧率" prop="frame_rate" extra="扫描检测时每秒时长抽取的画面帧数">
+            <a-select v-model="addForm.frame_rate" :disabled="addForm.dynamic_rate > 0" @change="handleChangeFrameRate">
               <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
               <a-select-option :value="10">10</a-select-option>
@@ -95,7 +95,7 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
-          <!-- <a-form-model-item label="动态帧率" prop="dynamic_rate">
+          <a-form-model-item label="动态帧率" prop="dynamic_rate">
             <a-select v-model="addForm.dynamic_rate" :disabled="addForm.frame_rate > 0" @change="handleChangeDynamicRate">
               <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -104,7 +104,7 @@
               <a-select-option :value="20">20</a-select-option>
               <a-select-option :value="25">25</a-select-option>
             </a-select>
-          </a-form-model-item> -->
+          </a-form-model-item>
           <a-form-model-item label="优先级" prop="prority" extra="数值越大，任务越先执行">
             <a-select v-model="addForm.prority">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
@@ -179,8 +179,8 @@
           <a-form-model-item label="名称" prop="name">
             <a-input v-model="editForm.name" />
           </a-form-model-item>
-          <a-form-model-item label="帧率" prop="frame_rate" extra="扫描检测时每秒时长抽取的画面帧数">
-            <a-select v-model="editForm.frame_rate">
+          <a-form-model-item label="固定帧率" prop="frame_rate" extra="扫描检测时每秒时长抽取的画面帧数">
+            <a-select v-model="editForm.frame_rate" :disabled="editForm.dynamic_rate > 0" @change="handleChangeFrameRate_edit">
               <a-select-option :value="0">原始帧率</a-select-option>
               <a-select-option :value="5">5</a-select-option>
               <a-select-option :value="10">10</a-select-option>
@@ -189,7 +189,7 @@
               <a-select-option :value="25">25</a-select-option>
             </a-select>
           </a-form-model-item>
-          <!-- <a-form-model-item label="动态帧率" prop="dynamic_rate">
+          <a-form-model-item label="动态帧率" prop="dynamic_rate">
             <a-select v-model="editForm.dynamic_rate" :disabled="editForm.frame_rate > 0" @change="handleChangeDynamicRate_edit">
               <a-select-option :value="0">不启用</a-select-option>
               <a-select-option :value="5">5</a-select-option>
@@ -198,7 +198,7 @@
               <a-select-option :value="20">20</a-select-option>
               <a-select-option :value="25">25</a-select-option>
             </a-select>
-          </a-form-model-item> -->
+          </a-form-model-item>
           <a-form-model-item label="优先级" prop="prority" extra="数值越大，任务越先执行">
             <a-select v-model="editForm.prority">
               <a-select-option :value="item" :key="k" v-for="(item, k) in 3">{{item}}</a-select-option>
@@ -293,12 +293,12 @@ const columns = [
     key: 'frame_rate',
     width: 90
   },
-  // {
-  //   title: '动态帧率',
-  //   dataIndex: 'dynamic_rate',
-  //   key: 'dynamic_rate',
-  //   width: 90
-  // },
+  {
+    title: '动态帧率',
+    dataIndex: 'dynamic_rate',
+    key: 'dynamic_rate',
+    width: 90
+  },
   {
     title: '优先级',
     dataIndex: 'prority',
@@ -349,11 +349,11 @@ export default {
           { required: true, message: '请填写模板名称', trigger: 'blur' }
         ],
         frame_rate: [
-          { required: true, message: '请选择帧率', trigger: 'change' }
+          { required: true, message: '请选择固定帧率', trigger: 'change' }
         ],
-        // dynamic_rate: [
-        //   { required: true, message: '请选择动态帧率', trigger: 'change' }
-        // ],
+        dynamic_rate: [
+          { required: true, message: '请选择动态帧率', trigger: 'change' }
+        ],
         prority: [
           { required: true, message: '请选择优先级', trigger: 'change' }
         ]
@@ -361,7 +361,7 @@ export default {
       addForm: {
         name: '',
         frame_rate: 5,
-        // dynamic_rate: 0,
+        dynamic_rate: 0,
         prority: 1
       },
       addLoading: false,
@@ -494,8 +494,8 @@ export default {
     handleAdd (e) {
       this.$refs.addform.validate((valid) => {
         if (valid) {
-          if (this.addForm.frame_rate === '') {
-            this.$message.error('请选择帧率！')
+          if (!this.addForm.frame_rate && !this.addForm.dynamic_rate) {
+            this.$message.error('请选择固定帧率或动态帧率！')
             return
           }
           // if (!this.targetGroupIds.length) {
@@ -515,7 +515,7 @@ export default {
               this.addLoading = false
               this.addForm = {
                 frame_rate: 5,
-                // dynamic_rate: 0,
+                dynamic_rate: 0,
                 prority: 1
               }
               this.$message.success('模板创建成功')
@@ -561,8 +561,8 @@ export default {
     handleEdit () {
       this.$refs.editform.validate((valid) => {
         if (valid) {
-          if (this.editForm.frame_rate === '') {
-            this.$message.error('请选择帧率！')
+          if (!this.editForm.frame_rate && !this.editForm.dynamic_rate) {
+            this.$message.error('请选择固定帧率或动态帧率！')
             return
           }
           // if (!this.targetGroupIds.length) {
@@ -573,7 +573,7 @@ export default {
             id: this.editItem.id,
             name: this.editForm.name,
             frame_rate: this.editForm.frame_rate,
-            // dynamic_rate: this.editForm.dynamic_rate,
+            dynamic_rate: this.editForm.dynamic_rate,
             prority: this.editForm.prority
             // group_ids: this.targetGroupIds.join(',')
           }
@@ -726,27 +726,27 @@ export default {
     },
     changeModeAssignVisible (param) {
       this.modeAssignVisible = param
+    },
+    handleChangeFrameRate (val) {
+      if (val !== 0) {
+        this.addForm.dynamic_rate = 0
+      }
+    },
+    handleChangeDynamicRate (val) {
+      if (val !== 0) {
+        this.addForm.frame_rate = 0
+      }
+    },
+    handleChangeFrameRate_edit (val) {
+      if (val !== 0) {
+        this.editForm.dynamic_rate = 0
+      }
+    },
+    handleChangeDynamicRate_edit (val) {
+      if (val !== 0) {
+        this.editForm.frame_rate = 0
+      }
     }
-    // handleChangeFrameRate (val) {
-    //   if (val !== 0) {
-    //     this.addForm.dynamic_rate = 0
-    //   }
-    // },
-    // handleChangeDynamicRate (val) {
-    //   if (val !== 0) {
-    //     this.addForm.frame_rate = 0
-    //   }
-    // },
-    // handleChangeFrameRate_edit (val) {
-    //   if (val !== 0) {
-    //     this.editForm.dynamic_rate = 0
-    //   }
-    // },
-    // handleChangeDynamicRate_edit (val) {
-    //   if (val !== 0) {
-    //     this.editForm.frame_rate = 0
-    //   }
-    // }
   }
 }
 
