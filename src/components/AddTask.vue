@@ -13,6 +13,7 @@
         <a-form-model-item label="上传视频" v-if="addForm.type === 1" :label-col="{span:3}" :wrapper-col="{span:21}" :help="`视频上载支持的文件类型有${enableFile.join('、')}`">
           <a-upload
             list-type="text"
+            :file-list="fileList"
             :show-upload-list="false"
             :multiple="true"
             :beforeUpload="beforeUpload"
@@ -270,7 +271,9 @@ export default {
       uploadCompleted: true, // 当前页文件是否已经全部上传
       list: [],
       filterList: [],
-      requestList: []
+      requestList: [],
+      chunkRequestStartTime: 0,
+      maxChunkUploadTime: 5000 // 毫秒
     }
   },
   methods: {
@@ -416,10 +419,13 @@ export default {
       })
     },
     reset () {
-      // this.addVisible = false
-      this.$refs.form.resetFields()
-      this.filterList = []
-      this.updateParentData('addVisible', false)
+      if (this.$route.path.indexOf('taskbatch') !== -1) {
+        if (this.$refs.form) {
+          this.$refs.form.resetFields()
+        }
+        this.filterList = []
+        this.updateParentData('addVisible', false)
+      }
     },
     beforeUpload (file, fileList) {
       var ext = file.name.substring(file.name.lastIndexOf('.') + 1)
@@ -430,6 +436,7 @@ export default {
       return false
     },
     uploadVideoChange ({ fileList }) {
+      console.log(fileList)
       this.addForm.files = fileList
       this.filterList = []
       for (var i = 0; i < fileList.length; i++) {
@@ -601,10 +608,15 @@ export default {
             requestList: this.requestList
           })
         )
+      console.log(this.requestList)
+      this.chunkRequestStartTime = new Date().getTime()
+      console.log('开始时间:' + this.chunkRequestStartTime)
+      this.requestList[0].send(this.requestList[0].myformdata)
       return requestList
     },
     // xhr
     myRequest ({ url, method, data, headers = {}, onProgress = e => e, requestList }) {
+      var _this = this
       return new Promise(resolve => {
         const xhr = new XMLHttpRequest()
         xhr.upload.onprogress = onProgress
@@ -612,12 +624,30 @@ export default {
         Object.keys(headers).forEach(key =>
           xhr.setRequestHeader(key, headers[key])
         )
-        xhr.send(data)
+        xhr.myformdata = data
+        // xhr.send(data)
         xhr.onload = e => {
           // 将请求成功的 xhr 从列表中删除
           if (requestList) {
             const xhrIndex = requestList.findIndex(item => item === xhr)
             requestList.splice(xhrIndex, 1)
+          }
+          var now = new Date().getTime()
+          var cha = now - _this.chunkRequestStartTime
+          console.log(now + '：差值：' + cha)
+          if (requestList.length) {
+            if (cha < _this.maxChunkUploadTime) {
+              console.log('等：' + (_this.maxChunkUploadTime - cha))
+              window.setTimeout(function () {
+                _this.chunkRequestStartTime = new Date().getTime()
+                console.log('开始时间:' + _this.chunkRequestStartTime)
+                requestList[0].send(requestList[0].myformdata)
+              }, _this.maxChunkUploadTime - cha)
+            } else {
+              _this.chunkRequestStartTime = new Date().getTime()
+              console.log('开始时间:' + _this.chunkRequestStartTime)
+              requestList[0].send(requestList[0].myformdata)
+            }
           }
           resolve({
             data: e.target.response
@@ -630,6 +660,7 @@ export default {
     },
     // 通知服务端合并切片
     async mergeRequest (item) {
+      var _this = this
       api.taskMergeFile({ taskid: item.taskid, guid: item.guid, fileName: item.file.name }).then(res => {
         if (res.data.code === 0) {
           item.percentage = 100
@@ -637,10 +668,9 @@ export default {
           var notFinish = this.filterList.filter(it => {
             return it.percentage !== 100
           })
+          this.reset()
           if (!notFinish.length) {
             // 全部文件上传成功 5s后关闭上传进度小窗口
-            this.reset()
-            var _this = this
             window.setTimeout(function () {
               _this.$notification.close('uploadProgress')
             }, 5000)
@@ -658,7 +688,7 @@ export default {
           if (error.response && error.response.data) {
             this.$message.error(error.response.data.message || '文件合并出错！')
           } else {
-            this.$message.error('合并-接口调用失败！' + JSON.stringify(error))
+            this.$message.error('合并接口调用失败！')
           }
         }
       })
