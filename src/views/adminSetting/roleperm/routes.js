@@ -117,6 +117,11 @@ export const routes = [
         title: '存储管理',
         name: 'Storage',
         parent: 'SysSetting'
+      },
+      {
+        title: '设备备份',
+        name: 'Backup',
+        parent: 'SysSetting'
       }
     ]
   }

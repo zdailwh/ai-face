@@ -466,6 +466,12 @@ export const asyncRoutes = [
         name: 'Storage',
         component: () => import('@/views/sysSetting/storage'),
         meta: { title: '存储管理', active: 'sysSetting' }
+      },
+      {
+        path: 'backup',
+        name: 'Backup',
+        component: () => import('@/views/sysSetting/backup'),
+        meta: { title: '设备备份', active: 'sysSetting' }
       }
     ]
   },
