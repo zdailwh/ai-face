@@ -655,6 +655,9 @@ export default {
         }
         // 暴露当前 xhr 给外部
         // requestList?.push(xhr)
+        // if (requestList !== null && requestList !== undefined) {
+        //   requestList.push(xhr)
+        // }
         this.requestList.push(xhr)
       })
     },
