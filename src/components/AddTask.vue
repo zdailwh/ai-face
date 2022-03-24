@@ -41,7 +41,6 @@
             <a-select-option :value="item.id" v-for="item in modesData" v-bind:key="item.id" :myitem="item">
               {{item.name}}
             </a-select-option>
-            <a-select-option :value="0">默认</a-select-option>
           </a-select>
         </a-form-model-item>
         <template v-if="addForm.mymode !== ''">
@@ -143,30 +142,41 @@ export default {
   watch: {
     addVisible (newVal, oldVal) {
       if (newVal) {
-        var token = this.$store.state.authentication.token
-        if (token) {
-          var userObj = JSON.parse(token)
-          if (userObj.mode && userObj.mode.id) {
-            this.addForm.mymode = userObj.mode.id
-            this.addForm.frame_rate = userObj.mode.frameRate
-            // this.addForm.dynamic_rate = userObj.mode.dynamic_rate
-            this.addForm.prority = userObj.mode.prority
-            // this.addForm.groupId = userObj.mode.groupIds
-            // this.updateParentData('targetKeys', userObj.mode.groupIds.split(','))
-          } else {
-            this.addForm.mymode = 0
-            this.addForm.frame_rate = 5
-            this.addForm.prority = 1
-            // this.addForm.groupId = ''
-            // this.updateParentData('targetKeys', ['0'])
-          }
-        } else {
-          this.addForm.mymode = 0
-          this.addForm.frame_rate = 5
-          this.addForm.prority = 1
-          // this.addForm.groupId = ''
-          // this.updateParentData('targetKeys', ['0'])
+        var defaultMode = this.modesData.filter(item => {
+          return item.name.indexOf('平衡模式') !== -1
+        })[0] || {}
+        if (defaultMode.id) {
+          this.addForm.mymode = defaultMode.id
+          this.addForm.frame_rate = defaultMode.frame_rate
+          this.addForm.dynamic_rate = defaultMode.dynamic_rate
+          this.addForm.prority = defaultMode.prority
         }
+        // var token = this.$store.state.authentication.token
+        // if (token) {
+        //   var userObj = JSON.parse(token)
+        //   if (userObj.mode && userObj.mode.id) {
+        //     this.addForm.mymode = userObj.mode.id
+        //     this.addForm.frame_rate = userObj.mode.frameRate
+        //     // this.addForm.dynamic_rate = userObj.mode.dynamic_rate
+        //     this.addForm.prority = userObj.mode.prority
+        //     // this.addForm.groupId = userObj.mode.groupIds
+        //     // this.updateParentData('targetKeys', userObj.mode.groupIds.split(','))
+        //   } else {
+        //     this.addForm.mymode = 0
+        //     this.addForm.frame_rate = 5
+        //     // this.addForm.dynamic_rate = 0
+        //     this.addForm.prority = 1
+        //     // this.addForm.groupId = ''
+        //     // this.updateParentData('targetKeys', ['0'])
+        //   }
+        // } else {
+        //   this.addForm.mymode = 0
+        //   this.addForm.frame_rate = 5
+        //   // this.addForm.dynamic_rate = 0
+        //   this.addForm.prority = 1
+        //   // this.addForm.groupId = ''
+        //   // this.updateParentData('targetKeys', ['0'])
+        // }
       }
     },
     currBatch (newVal, oldVal) {

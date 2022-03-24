@@ -507,9 +507,9 @@ export default {
       if (params && params.name) {
         opts.name = params.name
       }
-      if (params && params.user_id) {
-        opts.userId = params.user_id
-      }
+      // if (params && params.user_id) {
+      //   opts.userId = params.user_id
+      // }
       if (params && params.createTime) {
         opts.createTime = params.createTime
       }

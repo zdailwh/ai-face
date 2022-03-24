@@ -6,21 +6,21 @@
         <a-form-model-item label="模板名称" prop="name">
           <a-input v-model="searchForm.name" style="width: 120px" />
         </a-form-model-item>
-        <a-form-model-item label="用户" prop="user_id" v-if="currUser.level !== '' && currUser.level > 3">
+        <!-- <a-form-model-item label="用户" prop="user_id" v-if="currUser.level !== '' && currUser.level > 3">
           <a-select v-model="searchForm.user_id" :dropdownMatchSelectWidth="false" show-search :filter-option="userFilterOption" style="width: 100px;">
             <a-select-option value="">全部</a-select-option>
             <a-select-option :value="item.id" v-for="item in allUsers" v-bind:key="item.id">
               {{item.username}}
             </a-select-option>
           </a-select>
-        </a-form-model-item>
+        </a-form-model-item> -->
         <a-form-model-item label="创建时间" prop="createTime" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD">
           <a-range-picker :locale="locale" v-model="searchForm.createTime" style="width: 220px;" />
         </a-form-model-item>
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
-          <a-button v-if="currUser.level !== '' && currUser.level > 3" style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建模板</a-button>
+          <!-- <a-button v-if="currUser.level !== '' && currUser.level > 3" style="margin-left: 10px;" type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>创建模板</a-button> -->
         </a-form-model-item>
       </a-form-model>
     </div>
@@ -38,9 +38,9 @@
         <span slot="action" slot-scope="record, index, idx">
           <template v-if="currUser.level !== '' && currUser.level > 3">
             <a @click="toEdit(record, idx)">编辑</a>
-            <a-divider type="vertical" />
+            <!-- <a-divider type="vertical" /> -->
           </template>
-          <template v-if="currUser.level !== '' && currUser.level > 3">
+          <!-- <template v-if="currUser.level !== '' && currUser.level > 3">
             <a-popconfirm
               title="确定要删除该模板吗?"
               ok-text="删除"
@@ -53,7 +53,7 @@
           </template>
           <template v-if="currUser.level !== '' && currUser.level > 3">
             <a @click="toModeAssign(record, idx)">关联用户</a>
-          </template>
+          </template> -->
         </span>
       </a-table>
       <div class="mypagination">
@@ -305,13 +305,13 @@ const columns = [
     key: 'prority',
     width: 90
   },
-  {
-    title: '关联用户',
-    dataIndex: 'user',
-    key: 'user',
-    scopedSlots: { customRender: 'user' },
-    width: 120
-  },
+  // {
+  //   title: '关联用户',
+  //   dataIndex: 'user',
+  //   key: 'user',
+  //   scopedSlots: { customRender: 'user' },
+  //   width: 120
+  // },
   {
     title: '创建时间',
     dataIndex: 'create_time',
@@ -368,7 +368,7 @@ export default {
       addVisible: false,
       searchForm: {
         name: '',
-        user_id: '',
+        // user_id: '',
         createTime: []
       },
       editForm: {
@@ -416,7 +416,7 @@ export default {
 
     this.getTemps()
     // this.getAllGroups()
-    this.getAllUsers()
+    // this.getAllUsers()
   },
   methods: {
     userFilterOption (input, option) {
@@ -456,9 +456,9 @@ export default {
       if (this.searchForm.name) {
         params.name = this.searchForm.name
       }
-      if (this.searchForm.user_id) {
-        params.user_id = this.searchForm.user_id
-      }
+      // if (this.searchForm.user_id) {
+      //   params.user_id = this.searchForm.user_id
+      // }
       if (this.searchForm.createTime && this.searchForm.createTime.length === 2) {
         params.createTime = 'range_' + moment(this.searchForm.createTime[0]).format('YYYY-MM-DD') + ',' + moment(this.searchForm.createTime[1]).format('YYYY-MM-DD')
       }
@@ -481,7 +481,7 @@ export default {
           })
         }
         if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '获取人像库出错！')
+          this.$message.error(error.response.data.message || '获取模板出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
