@@ -53,7 +53,7 @@ import infiniteScroll from 'vue-infinite-scroll'
 import api from '../api'
 export default {
   directives: { infiniteScroll },
-  props: [ 'taskresult', 'smalllayout' ],
+  props: [ 'taskresult', 'defaultfaces', 'smalllayout' ],
   filters: {
     formateSeconds (second) {
       let secondTime = parseInt(second / 1000)
@@ -142,29 +142,40 @@ export default {
       this.visibleDrawer = false
     },
     getFace (faceId) {
-      this.spinning = true
-      api.getFace({ id: faceId }).then(res => {
-        this.spinning = false
-        var resBody = res.data
-        if (resBody.code === 0) {
-          this.clickFace = resBody.data
-          this.visibleDrawer = true
-        } else {
-          this.$message.error(resBody.message || '请求出错！')
+      if (faceId > 0) {
+        this.spinning = true
+        api.getFace({ id: faceId }).then(res => {
+          this.spinning = false
+          var resBody = res.data
+          if (resBody.code === 0) {
+            this.clickFace = resBody.data
+            this.visibleDrawer = true
+          } else {
+            this.$message.error(resBody.message || '请求出错！')
+          }
+        }).catch(error => {
+          this.spinning = false
+          if (error.response && error.response.status === 401) {
+            this.$store.dispatch('authentication/resetToken').then(() => {
+              this.$router.push({ path: '/login' })
+            })
+          }
+          if (error.response && error.response.data) {
+            this.$message.error(error.response.data.message || '获取人像库出错！')
+          } else {
+            this.$message.error('接口调用失败！')
+          }
+        })
+      } else {
+        var face = this.defaultfaces[faceId * -1]
+        this.clickFace = {
+          name: face.name,
+          features: [
+            { fileuri: face.imagedata }
+          ]
         }
-      }).catch(error => {
-        this.spinning = false
-        if (error.response && error.response.status === 401) {
-          this.$store.dispatch('authentication/resetToken').then(() => {
-            this.$router.push({ path: '/login' })
-          })
-        }
-        if (error.response && error.response.data) {
-          this.$message.error(error.response.data.message || '获取人像库出错！')
-        } else {
-          this.$message.error('接口调用失败！')
-        }
-      })
+        this.visibleDrawer = true
+      }
     },
     handleInfiniteOnLoad () {
       this.loading = true

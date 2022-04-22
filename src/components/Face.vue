@@ -2,7 +2,7 @@
   <div class="faceWrap" :style="smalllayout? 'height: auto;': ''" v-infinite-scroll="handleInfiniteOnLoad" :infinite-scroll-disabled="busy" :infinite-scroll-distance="30">
     <a-collapse accordion :bordered="false" v-if="Object.keys(taskresult).length" :activeKey="activeKey" @change="changeActivekey">
       <template v-for="(fItem, fid) in taskresult">
-        <a-collapse-panel :key="fid" :header="`${fItem[0].name} ${fItem.length}次`">
+        <a-collapse-panel :key="fid" :header="fid > 0 ? `${fItem[0].name} ${fItem.length}次` : `${defaultfaces[fid * -1].name} ${fItem.length}次`">
           <div class="faceList">
             <p class="faceItem" :class="{ currBox: currBoxKey === fid + '-' + k }" v-for="(it, k) in slicedTaskresult" :key="k" @click="changeBox(it, it.timepos, fid, k)" :ref="fid + '-' + k">
               <img v-if="it.thumbs" v-lazy="`/api/admin/v1/getResultImage?filepath=${it.thumbs}`" alt="人像图">
@@ -24,7 +24,7 @@ import infiniteScroll from 'vue-infinite-scroll'
 import api from '../api'
 export default {
   directives: { infiniteScroll },
-  props: [ 'taskresult', 'smalllayout' ],
+  props: [ 'taskresult', 'defaultfaces', 'smalllayout' ],
   filters: {
     formateSeconds (second) {
       let secondTime = parseInt(second / 1000)

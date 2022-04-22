@@ -32,10 +32,10 @@
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <a-tabs :default-active-key="defaultActiveKey" size="small" @change="tabChange">
         <a-tab-pane key="1" tab="任务结果">
-          <Timeline ref="timeline" :taskresult="resTimeFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
+          <Timeline ref="timeline" :taskresult="resTimeFaces" :smalllayout="smallLayout" :defaultfaces="defaultfaces" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="2" tab="按人像查看">
-          <Face ref="face" :taskresult="resFaces" :smalllayout="smallLayout" @videofixed="videoFixed" />
+          <Face ref="face" :taskresult="resFaces" :smalllayout="smallLayout" :defaultfaces="defaultfaces" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="3" tab="任务基本信息">
           <Setting :taskinfo="task"/>
@@ -69,7 +69,8 @@ export default {
       resDataKeyTotal_timeline: '',
       resDataKeyTotal_face: '',
       timePoints: [],
-      showLineControl: false
+      showLineControl: false,
+      defaultfaces: {}
     }
   },
   filters: {
@@ -154,6 +155,7 @@ export default {
       api.getTaskResults(params).then(res => {
         var resBody = res.data
         if (resBody.code === 0) {
+          this.defaultfaces = resBody.data.defaultfaces
           this.resTimeFaces = resBody.data.timefaces
           this.timePoints = Object.keys(resBody.data.timefaces)
           this.timePoints = this.timePoints.map(item => {
@@ -184,6 +186,7 @@ export default {
       api.getTaskResults(params).then(res => {
         var resBody = res.data
         if (resBody.code === 0) {
+          this.defaultfaces = resBody.data.defaultfaces
           this.resFaces = resBody.data.faces
           this.resDataKeyTotal_face = Object.keys(resBody.data.faces).length
         } else {
