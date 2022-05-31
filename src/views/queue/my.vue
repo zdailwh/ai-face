@@ -44,7 +44,10 @@
             <a-tag v-if="record.resultstatus === 1" color="#f50">发现敏感人物</a-tag>
             <a-tag v-if="record.resultstatus === 0" color="#87d068">审核通过</a-tag>
           </template>
-          <template v-else><a-progress :percent="(record.processTime / record.duration * 100).toFixed(2)" /></template>
+          <template v-else>
+            <a-progress v-if="record.processTime && record.duration" :percent="(record.processTime / record.duration * 100).toFixed(2)" />
+            <a-progress v-else :percent="0" />
+          </template>
         </span>
         <!-- <span slot="groups" slot-scope="groups">
           <template v-if="groups.length">
