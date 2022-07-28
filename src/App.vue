@@ -4,7 +4,8 @@
       <div class="lager-layout">
         <div class="header">
           <div class="opt">
-            <div class="logo" v-show="smallLayout === false"><img src="./assets/zg_logo.png"><span class="logo_title">广电专业人像检索系统</span></div>
+            <!-- 慧眼智能总控监控系统V4.0 -- 广电专业人像检索系统 -->
+            <div class="logo" v-show="smallLayout === false"><img src="./assets/zg_logo.png"><span class="logo_title">慧眼智能总控监控系统V4.0</span></div>
           </div>
           <div class="opt" style="justify-content: flex-end;flex:1;margin-right: 10px;">
             <a-dropdown v-if="currUser.id">
