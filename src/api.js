@@ -412,6 +412,16 @@ export default {
     }
   },
 
+  async taskAlert (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.post(`/api/admin/v1/alerts/${params.id}`)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.task)
+      return { status: 200, data: data }
+    }
+  },
+
   async getTaskResults (params) {
     if (process.env.NODE_ENV === 'production') {
       var res = await axios.get(`/api/admin/v1/task/result/${params.id}?isFace=${params.isFace}`)

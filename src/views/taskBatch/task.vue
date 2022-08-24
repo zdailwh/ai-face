@@ -130,6 +130,17 @@
             </a-popconfirm>
             <a-divider type="vertical" />
           </template>
+          <template v-if="record.status === 5 && record.resultstatus === 1">
+            <a-popconfirm
+              title="确定要发送通知吗?"
+              ok-text="确定"
+              cancel-text="取消"
+              @confirm="taskAlert(record, idx)"
+            >
+              <a>通知</a>
+            </a-popconfirm>
+            <a-divider type="vertical" />
+          </template>
           <router-link v-if="record.status === 5" :to="'/taskResult/' + record.id">查看任务结果<a-icon type="right" /></router-link>
         </span>
       </a-table>
@@ -558,6 +569,32 @@ export default {
         }
         if (error.response && error.response.data) {
           this.$message.error(error.response.data.message || '任务重置出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    taskAlert (item, key) {
+      var params = {
+        id: item.id
+      }
+      api.taskAlert(params).then(res => {
+        this.$message.success('任务已发送通知')
+        // if (res.data.code === 0) {
+        //   // this.datalist[key].status = 2
+        //   this.$message.success('任务已发送通知')
+        //   this.getTasks()
+        // } else {
+        //   this.$message.error(res.data.message || '请求出错！')
+        // }
+      }).catch(error => {
+        if (error.response && error.response.status === 401) {
+          this.$store.dispatch('authentication/resetToken').then(() => {
+            this.$router.push({ path: '/login' })
+          })
+        }
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '任务取消出错！')
         } else {
           this.$message.error('接口调用失败！')
         }
